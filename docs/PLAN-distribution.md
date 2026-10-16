@@ -83,16 +83,14 @@ each start: slower, and often reported to trigger antivirus false positives).
 2. App shell: window, tray, single instance, autostart, the backend calls the interface
    uses (`desktop/ui/api.js` is the contract), OAuth sign-in, game detection from the
    registry and the usual folders. Done; tested on Linux with fakes for the Windows parts.
-3. Build: the installer and its CI workflow with smoke tests are written; they have not
-   run yet (they run on GitHub's Windows runner after the first push). Next: the MSIX
-   package for the Store, which also needs "Start with Windows" through the package's
-   startup task.
+3. Build: done for the direct installer. Version 1.0.0 was built, tested and published by
+   the workflow on 2026-10-16 (release `v1.0.0`, unsigned). Next: the MSIX package for the
+   Store, which also needs "Start with Windows" through the package's startup task.
 4. Store submission (owner), then a signed direct installer (owner buys the certificate).
 5. macOS: later, needs an Apple Developer membership.
 
 ## What the owner has to do
 
-- Approve pushing this work, so the Windows workflow runs and produces the first installer.
 - Microsoft Partner Center: create the free individual developer account (photo ID and
   selfie), reserve the name Gnomecaster, and pass the package identity it assigns into the
   MSIX build.

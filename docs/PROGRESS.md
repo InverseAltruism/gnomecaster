@@ -87,3 +87,19 @@ trustworthy, with clean icons. Nearly every player is on Windows, so Windows com
   `packaging/release-notes.md`; that job is the only one with write access. Before the
   first push, parsing the workflow found a YAML error (`--only-binary=:all: -r` read as a
   key) that would have failed every run; `actionlint` 1.7.12 now reports no problems.
+
+## 2026-10-16: release 1.0.0
+
+- First runs of the Windows workflow, both passed on the first attempt: run 38945331453
+  (main) and 38945912250 (tag `v1.0.0`, which also published the release).
+- On `windows-2025` with Python 3.13.16: 119 unit tests, 117 passed and 2 skipped (POSIX
+  file permissions), including the real Windows mutex test; `pip check` clean; the compiled
+  `runw.exe` (sha256 `98206d01...`) differs from PyInstaller's stock one (`2291f269...`).
+- Smoke tests of the built app and of the installed app: `ok`, page ready, setup screen,
+  tray icon present; the runner's screenshots show the window rendered with the brand
+  fonts and icon. The silent install, launch and uninstall cycle passed.
+- Release `v1.0.0`: `Gnomecaster-Setup-1.0.0.exe` (17,268,506 bytes, sha256
+  `b281a9eb371b036ddcca06191b46352403b430ef376e1d88807ec38f8be93118`, version details
+  InverseAltruism / Gnomecaster / 1.0.0, no Authenticode signature) and `SHA256SUMS.txt`.
+  The repository is private, so only accounts with access can download it.
+- Still unverified: a person using the installed app, and anything in the real game.

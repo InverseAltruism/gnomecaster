@@ -163,10 +163,10 @@ Proven on this machine, with real code:
   that are only called when present: two old macro and binding functions (with fallbacks
   to documented ones), the Classic quest log, and the optional TomTom addon.
 
-Not proven yet, because it needs Windows: the packaged app in its real window (WebView2),
-the tray icon and the installer. The Windows build workflow tests exactly this on each push:
-it builds the app and the installer, opens the app and checks its window reached the
-backend, then installs, opens and uninstalls it like a player would.
+The packaged app on Windows is checked by the Windows build workflow on each push: it
+builds the app and the installer, opens the app and checks that its window (WebView2)
+rendered from the backend's state with the tray icon present, then installs, opens and
+uninstalls it like a player would. A person has not used the installed app yet.
 
 Not proven yet, because it needs the real game. This is what the first in-game test is for:
 
