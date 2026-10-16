@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="WOWPILOT_TOGGLE" header="WOWPILOT" category="ADDONS">
+		WowpilotToggle()
+	</Binding>
+</Bindings>

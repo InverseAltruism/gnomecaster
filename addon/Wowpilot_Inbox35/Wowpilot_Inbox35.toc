@@ -1,0 +1,8 @@
+## Interface: 120105, 120100, 50504, 20506, 11509, 16001
+## Title: Wowpilot Inbox 35
+## Notes: Reply slot used by Wowpilot. Keep enabled.
+## LoadOnDemand: 1
+## Dependencies: Wowpilot
+## Group: Wowpilot
+
+inbox.lua
