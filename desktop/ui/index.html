@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'">
+  <title>Gnomecaster</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app" id="app" data-screen="loading">
+
+    <!-- Setup: three steps the first time the app starts -->
+    <section class="setup" id="setup" aria-labelledby="setup-title">
+      <aside class="setup-side">
+        <div class="brand">
+          <img class="brand-mark" src="icon.png" alt="" width="56" height="56">
+          <div>
+            <h1 class="brand-name" id="setup-title">Gnomecaster</h1>
+            <p class="brand-line">An AI helper inside World of Warcraft</p>
+          </div>
+        </div>
+        <ol class="steps" id="steps">
+          <li data-step="game"><span class="step-num">1</span><span class="step-label">Find World of Warcraft</span></li>
+          <li data-step="addon"><span class="step-num">2</span><span class="step-label">Install the addon</span></li>
+          <li data-step="ai"><span class="step-num">3</span><span class="step-label">Connect an AI</span></li>
+        </ol>
+        <div class="spark-trail" aria-hidden="true"><span class="halo"></span></div>
+      </aside>
+
+      <div class="setup-main">
+        <div class="pane" data-pane="game">
+          <h2>Find World of Warcraft</h2>
+          <p class="lead">Gnomecaster adds a small addon to your game folder.</p>
+          <div id="game-list" class="choice-list" role="radiogroup" aria-label="Game versions"></div>
+          <p class="hint" id="game-missing" hidden>World of Warcraft wasn't found automatically. Choose its folder: the one that contains <code>_retail_</code> or <code>_classic_</code>.</p>
+          <div class="actions">
+            <button class="btn ghost" id="choose-folder" type="button">Choose folder…</button>
+            <button class="btn primary" id="game-next" type="button" disabled>Continue</button>
+          </div>
+        </div>
+
+        <div class="pane" data-pane="addon">
+          <h2>Install the addon</h2>
+          <p class="lead">This copies Gnomecaster into <code id="addon-path">Interface\AddOns</code>.</p>
+          <p class="status-line" id="addon-status" role="status" hidden></p>
+          <div class="actions">
+            <button class="btn ghost" data-back="game" type="button">Back</button>
+            <button class="btn primary" id="install-addon" type="button">Install addon</button>
+          </div>
+        </div>
+
+        <div class="pane" data-pane="ai">
+          <h2>Connect an AI</h2>
+          <p class="lead">Gnomecaster asks an AI model to answer your questions. With OpenRouter one account reaches many models; a typical question costs less than a tenth of a cent.</p>
+          <div id="ai-connect">
+            <button class="btn primary wide" id="sign-in" type="button">Sign in with OpenRouter</button>
+            <p class="hint" id="sign-in-wait" hidden>Finish signing in in your browser. This window updates when you're done.</p>
+            <div class="row" id="ai-failed" hidden>
+              <button class="btn primary" id="ai-credit" type="button" hidden>Add credit</button>
+              <button class="btn ghost" id="ai-retest" type="button">Test again</button>
+            </div>
+            <button class="link" id="use-key" type="button">Use an API key instead</button>
+            <form class="key-form" id="key-form" hidden>
+              <label for="key-provider">Provider</label>
+              <select id="key-provider">
+                <option value="openrouter">OpenRouter</option>
+                <option value="openai">OpenAI</option>
+                <option value="ollama">Ollama (a model on this PC)</option>
+              </select>
+              <label for="key-value">API key</label>
+              <input id="key-value" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
+              <button class="btn primary" type="submit">Connect</button>
+            </form>
+          </div>
+          <div id="ai-models" hidden>
+            <p class="status-line ok" id="ai-connected" role="status"></p>
+            <fieldset class="choice-list" id="model-list">
+              <legend>Model</legend>
+            </fieldset>
+          </div>
+          <p class="status-line error" id="ai-error" role="alert" hidden></p>
+          <div class="actions">
+            <button class="btn ghost" data-back="addon" type="button">Back</button>
+            <button class="btn primary" id="ai-next" type="button" disabled>Finish</button>
+          </div>
+        </div>
+
+        <div class="pane" data-pane="done">
+          <h2>You're set</h2>
+          <p class="lead">Start World of Warcraft, then type <kbd>/gc</kbd> in chat, or bind a key under Options, Keybindings, AddOns, Gnomecaster.</p>
+          <p class="hint">Keep this app running while you play. Closing the window keeps it in the system tray.</p>
+          <div class="actions">
+            <button class="btn primary" id="open-main" type="button">Open Gnomecaster</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main: status and what was asked in the game -->
+    <section class="main" id="main" aria-labelledby="main-title">
+      <header class="topbar">
+        <div class="brand small">
+          <img class="brand-mark" src="icon.png" alt="" width="32" height="32">
+          <h1 class="brand-name" id="main-title">Gnomecaster</h1>
+        </div>
+        <div class="live" id="live" role="status">
+          <span class="spark"></span>
+          <span id="live-text">Starting</span>
+        </div>
+        <button class="btn ghost icon-btn" id="open-settings" type="button" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+        </button>
+      </header>
+
+      <div class="main-body">
+        <aside class="rail" aria-label="Status">
+          <div class="rail-item" id="rail-game">
+            <h2>World of Warcraft</h2>
+            <p class="rail-value" id="game-value"></p>
+            <p class="rail-note" id="game-note"></p>
+            <button class="btn small" id="update-addon" type="button" hidden>Update addon</button>
+          </div>
+          <div class="rail-item" id="rail-ai">
+            <h2>AI</h2>
+            <p class="rail-value" id="ai-value"></p>
+            <p class="rail-note" id="ai-note"></p>
+            <button class="btn small" id="fix-ai" type="button" hidden>Fix connection</button>
+          </div>
+          <div class="rail-item" id="rail-companion">
+            <h2>Companion</h2>
+            <p class="rail-value" id="companion-value"></p>
+            <p class="rail-note" id="companion-note"></p>
+            <button class="btn small" id="toggle-companion" type="button">Pause</button>
+          </div>
+        </aside>
+
+        <div class="feed" aria-labelledby="feed-title">
+          <h2 class="feed-title" id="feed-title">Questions from the game</h2>
+          <ol class="feed-list" id="feed-list" aria-live="polite"></ol>
+          <div class="feed-empty" id="feed-empty">
+            <p>Ask something in the game and it shows up here.</p>
+            <p class="hint">Try <kbd>/gc take me to my quest</kbd> or <kbd>/gc what was that error?</kbd></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- When the window cannot reach the app behind it -->
+    <section class="fatal" id="fatal" aria-labelledby="fatal-title">
+      <img class="brand-mark" src="icon.png" alt="" width="56" height="56">
+      <h1 id="fatal-title">Gnomecaster couldn't start</h1>
+      <p class="lead" id="fatal-text"></p>
+      <p class="hint">Quit Gnomecaster from its tray icon and open it again. If this keeps happening, the log folder in %LOCALAPPDATA%\Gnomecaster\logs says why.</p>
+    </section>
+
+    <!-- Settings drawer -->
+    <div class="scrim" id="scrim" hidden></div>
+    <aside class="drawer" id="drawer" aria-labelledby="drawer-title" hidden>
+      <header class="drawer-head">
+        <h2 id="drawer-title">Settings</h2>
+        <button class="btn ghost icon-btn" id="close-settings" type="button" aria-label="Close settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </header>
+      <div class="drawer-body">
+        <section>
+          <h3>AI</h3>
+          <label for="settings-model">Model</label>
+          <select id="settings-model"></select>
+          <p class="hint" id="settings-account"></p>
+          <div class="row">
+            <button class="btn small" id="settings-check" type="button">Test connection</button>
+            <button class="btn small ghost" id="settings-reconnect" type="button">Change account</button>
+          </div>
+          <p class="status-line" id="settings-ai-status" role="status" hidden></p>
+        </section>
+        <section>
+          <h3>Game</h3>
+          <p class="hint" id="settings-game"></p>
+          <div class="row">
+            <button class="btn small" id="settings-reinstall" type="button">Reinstall addon</button>
+            <button class="btn small ghost" id="settings-folder" type="button">Choose another folder</button>
+          </div>
+        </section>
+        <section>
+          <h3>Windows</h3>
+          <label class="toggle"><input type="checkbox" id="settings-autostart"><span>Start with Windows</span></label>
+          <label class="toggle"><input type="checkbox" id="settings-tray"><span>Keep running in the tray when the window closes</span></label>
+        </section>
+        <section class="about">
+          <p class="hint" id="settings-version"></p>
+          <button class="link" id="settings-logs" type="button">Open the log folder</button>
+        </section>
+      </div>
+    </aside>
+  </div>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
