@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7444E6"/>
+      <stop offset="0.55" stop-color="#3B1F8F"/>
+      <stop offset="1" stop-color="#190D45"/>
+    </linearGradient>
+    <radialGradient id="sheen" cx="0.28" cy="0.18" r="0.65">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" gradientUnits="userSpaceOnUse" x1="66" y1="60" x2="196" y2="120">
+      <stop offset="0" stop-color="#FFE8A8"/>
+      <stop offset="0.45" stop-color="#F9BE45"/>
+      <stop offset="0.8" stop-color="#E4901F"/>
+      <stop offset="1" stop-color="#C46F12"/>
+    </linearGradient>
+    <linearGradient id="brim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD978"/>
+      <stop offset="1" stop-color="#D07A17"/>
+    </linearGradient>
+    <radialGradient id="spark" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F0FFFF"/>
+      <stop offset="0.35" stop-color="#6CF5FF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#6CF5FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ground" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#0B0624" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#0B0624" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#tile)"/>
+  <rect x="8" y="8" width="240" height="240" rx="58" fill="url(#sheen)"/>
+  <rect x="9.5" y="9.5" width="237" height="237" rx="56.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="3"/>
+  <ellipse cx="124" cy="200" rx="92" ry="20" fill="url(#ground)"/>
+  <!-- cone: rises, bends right, the tip curls back down -->
+  <path d="M66 182 C 84 140, 100 104, 120 76 C 136 54, 160 38, 188 40 C 198 41, 204 52, 196 60 C 184 52, 170 56, 164 70 C 170 112, 180 150, 188 182 Z" fill="url(#gold)"/>
+  <!-- fold highlight along the cone -->
+  <path d="M96 150 C 104 118, 118 92, 134 72" fill="none" stroke="#FFF6D6" stroke-opacity="0.45" stroke-width="5" stroke-linecap="round"/>
+  <!-- band -->
+  <path d="M76 158 C 108 168, 150 168, 182 158 L 186 172 C 150 182, 106 182, 71 172 Z" fill="#6E2F0A" fill-opacity="0.6"/>
+  <!-- brim -->
+  <ellipse cx="127" cy="184" rx="84" ry="19" fill="url(#brim)"/>
+  <ellipse cx="127" cy="180" rx="70" ry="9" fill="#FFF4CF" fill-opacity="0.45"/>
+  <!-- spark at the tip -->
+  <circle cx="196" cy="58" r="26" fill="url(#spark)"/>
+  <path d="M196 40 L200.5 53.5 L214 58 L200.5 62.5 L196 76 L191.5 62.5 L178 58 L191.5 53.5 Z" fill="#F5FFFF"/>
+  <circle cx="60" cy="78" r="4.5" fill="#A6F8FF" fill-opacity="0.75"/>
+  <circle cx="72" cy="58" r="2.5" fill="#A6F8FF" fill-opacity="0.6"/>
+  <circle cx="212" cy="112" r="3.5" fill="#A6F8FF" fill-opacity="0.65"/>
+</svg>

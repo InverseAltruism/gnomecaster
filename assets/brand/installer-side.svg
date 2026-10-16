@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 164 314" preserveAspectRatio="xMidYMid slice">
+  <!-- The installer's welcome and finish pages: night sky, the app mark, sparks rising to it.
+       Inno Setup shows it at 164:314; tools/make_icons.py renders one PNG per screen scaling. -->
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#3B1F8F"/>
+      <stop offset="0.5" stop-color="#21134F"/>
+      <stop offset="1" stop-color="#140B33"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7C5CFF" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="spark" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F0FFFF"/>
+      <stop offset="0.4" stop-color="#6CF5FF" stop-opacity="0.8"/>
+      <stop offset="1" stop-color="#6CF5FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="164" height="314" fill="url(#sky)"/>
+  <circle cx="82" cy="118" r="78" fill="url(#glow)"/>
+  <!-- sparks rising to the mark -->
+  <circle cx="70" cy="262" r="3" fill="url(#spark)"/>
+  <circle cx="86" cy="232" r="4.5" fill="url(#spark)"/>
+  <circle cx="78" cy="203" r="6.5" fill="url(#spark)"/>
+  <!-- stars -->
+  <g fill="#C9F9FF">
+    <circle cx="22" cy="30" r="1.1" fill-opacity="0.8"/>
+    <circle cx="140" cy="22" r="1.4" fill-opacity="0.7"/>
+    <circle cx="118" cy="58" r="0.9" fill-opacity="0.6"/>
+    <circle cx="34" cy="76" r="0.8" fill-opacity="0.5"/>
+    <circle cx="150" cy="96" r="1" fill-opacity="0.55"/>
+    <circle cx="14" cy="150" r="1.2" fill-opacity="0.5"/>
+    <circle cx="146" cy="178" r="0.9" fill-opacity="0.5"/>
+    <circle cx="92" cy="232" r="0.8" fill-opacity="0.45"/>
+    <circle cx="20" cy="286" r="1" fill-opacity="0.4"/>
+    <circle cx="150" cy="292" r="1.1" fill-opacity="0.4"/>
+  </g>
+  <image x="34" y="70" width="96" height="96" href="gnomecaster-icon.svg" xlink:href="gnomecaster-icon.svg"/>
+</svg>
