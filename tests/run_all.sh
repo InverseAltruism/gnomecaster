@@ -4,7 +4,7 @@ set -e
 LUA="${LUA:-lua5.1}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 WORK="$(mktemp -d)"
-export WOWPILOT_COMPANION="$HERE/../companion/wowpilot_companion.py"
+export GNOMECASTER_COMPANION="$HERE/../companion/gnomecaster_companion.py"
 cp "$HERE"/wowmock.lua "$HERE"/render.py "$HERE"/driver.py "$HERE"/run_tests.lua "$WORK"/
 for sc in macro noevents noprobe fontcache secret combat jpeg scaled; do
   rm -rf "$WORK/AddOns" && mkdir -p "$WORK/AddOns" && cp -r "$HERE"/../addon/* "$WORK/AddOns/"

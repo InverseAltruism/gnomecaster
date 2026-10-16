@@ -1,0 +1,5 @@
+<Bindings>
+	<Binding name="GNOMECASTER_TOGGLE" header="GNOMECASTER" category="ADDONS">
+		GnomecasterToggle()
+	</Binding>
+</Bindings>

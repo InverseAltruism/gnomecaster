@@ -1,4 +1,4 @@
-# Wowpilot (prototype)
+# Gnomecaster (prototype)
 
 An in-game AI helper for World of Warcraft. You type (or later: talk) inside a WoW
 panel; the helper answers there and *does* things: creates and edits macros, puts
@@ -14,7 +14,7 @@ is deliberately simple (any OpenAI-compatible model, or an offline demo).
 ```
  WoW (addon)                                       Companion app (your PC)
  ───────────                                       ───────────────────────
- you type in the Wowpilot panel
+ you type in the Gnomecaster panel
  addon reads live context from the client          
  (class/spec, zone + coords, quest log,
   where the game says your quest goes next,
@@ -34,7 +34,7 @@ is deliberately simple (any OpenAI-compatible model, or an offline demo).
         ▼
  shows the answer; runs waypoints/marks at once;
  macro / bar / keybind / setting changes wait for
- one click on Apply (or /wp auto on)
+ one click on Apply (or /gc auto on)
 ```
 
 Nothing touches the game's memory, nothing sends key presses, nothing works in
@@ -68,30 +68,33 @@ mocked WoW API, plus the real companion code):
 Needs Python 3.9+ and Pillow (`pip install pillow`). Commands are run from the
 `companion` folder. Replace the path with your own game folder.
 
-1. **Install the addon** (copies `Wowpilot` + 60 `Wowpilot_InboxNN` reply slots):
+1. **Install the addon** (copies `Gnomecaster` + 60 `Gnomecaster_InboxNN` reply slots):
    ```
-   python wowpilot_companion.py install --wow "C:\Program Files (x86)\World of Warcraft\_retail_"
+   python gnomecaster_companion.py install --wow "C:\Program Files (x86)\World of Warcraft\_retail_"
    ```
    Then **fully restart WoW** (new addons need a restart, not just /reload).
-   In the AddOns list the reply slots appear grouped under Wowpilot; leave them enabled.
+   In the AddOns list the reply slots appear grouped under Gnomecaster; leave them enabled.
+   If you installed the earlier Wowpilot prototype, delete its `Wowpilot` and
+   `Wowpilot_Inbox01` to `Wowpilot_Inbox60` folders from `Interface\AddOns`; this
+   companion ignores its requests.
 
 2. **Test receiving (reply slots + ready signal)**, before starting the companion:
-   - in game: `/wp probe` → expect `false`
-   - in a terminal: `python wowpilot_companion.py write-test --wow "...\_retail_"`
-   - in game: `/wp probe` → `true` means the ready signal works
-   - in game: `/wp poll` → should print "Inbox test OK - written by the companion at …"
+   - in game: `/gc probe` → expect `false`
+   - in a terminal: `python gnomecaster_companion.py write-test --wow "...\_retail_"`
+   - in game: `/gc probe` → `true` means the ready signal works
+   - in game: `/gc poll` → should print "Inbox test OK - written by the companion at …"
    - then `/reload` (resets the slots for the next test)
 
 3. **Test sending (screenshot channel)**:
-   - terminal: `python wowpilot_companion.py run --wow "...\_retail_"` (leave it running)
-   - in game: `/wp ping` → the terminal should print the decoded request
+   - terminal: `python gnomecaster_companion.py run --wow "...\_retail_"` (leave it running)
+   - in game: `/gc ping` → the terminal should print the decoded request
      (your class, zone, quest log …)
 
-4. **Full round trip**: in game `/wp test` → the panel should say
+4. **Full round trip**: in game `/gc test` → the panel should say
    `Round trip OK in X.Xs via ready-signal` (or `via timed poll`).
 
-5. **Try it** (offline demo, no model needed): open the panel with `/wp` (or `/wowpilot` if another addon owns `/wp`) or bind a key
-   (Esc → Options → Keybindings → AddOns → Wowpilot) and try:
+5. **Try it** (offline demo, no model needed): open the panel with `/gc` (or `/gnomecaster` if another addon owns `/gc`) or bind a key
+   (Esc → Options → Keybindings → AddOns → Gnomecaster) and try:
    - `take me to my quest` (track a quest first)
    - `way 45.2 63.1`
    - `mark skull` (with a target)
@@ -99,25 +102,25 @@ Needs Python 3.9+ and Pillow (`pip install pillow`). Commands are run from the
    - `what was that error`
 
 **Please send back:** the result line of each step, and anything red in chat.
-If step 3 fails, also try `/console screenshotFormat png` and `/wp ping` again,
+If step 3 fails, also try `/console screenshotFormat png` and `/gc ping` again,
 and check whether a screenshot appeared in the `Screenshots` folder.
 
 ## Connecting a model
 
 Set three environment variables before `run` (any OpenAI-compatible endpoint):
 
-| Option | WOWPILOT_BASE_URL | WOWPILOT_MODEL (example) |
+| Option | GNOMECASTER_BASE_URL | GNOMECASTER_MODEL (example) |
 |---|---|---|
 | OpenRouter (free models with a free account) | `https://openrouter.ai/api/v1` | a `:free` model id |
 | OpenAI API key | `https://api.openai.com/v1` | `gpt-4o-mini` |
 | Local model (Ollama) | `http://localhost:11434/v1` | `llama3.1` |
 
-plus `WOWPILOT_API_KEY` (not needed for Ollama).
+plus `GNOMECASTER_API_KEY` (not needed for Ollama).
 
 Windows PowerShell example:
 ```
-$env:WOWPILOT_BASE_URL="https://openrouter.ai/api/v1"; $env:WOWPILOT_API_KEY="sk-or-..."; $env:WOWPILOT_MODEL="<model id>"
-python wowpilot_companion.py run --wow "C:\Program Files (x86)\World of Warcraft\_retail_"
+$env:GNOMECASTER_BASE_URL="https://openrouter.ai/api/v1"; $env:GNOMECASTER_API_KEY="sk-or-..."; $env:GNOMECASTER_MODEL="<model id>"
+python gnomecaster_companion.py run --wow "C:\Program Files (x86)\World of Warcraft\_retail_"
 ```
 
 ## Known limits of this prototype
@@ -138,9 +141,9 @@ python wowpilot_companion.py run --wow "C:\Program Files (x86)\World of Warcraft
 ## Layout
 
 ```
-addon/Wowpilot/            the addon (Core, Context, Errors, Beacon=send, Inbox=receive, Actions, UI, Request)
-addon/Wowpilot_Inbox01-60/ reply slots (load-on-demand)
-companion/                 the desktop companion (single Python file)
-tools/make_inboxes.py      regenerates the reply slots
-tests/                     the simulation harness used above (needs a Lua 5.1 interpreter)
+addon/Gnomecaster/            the addon (Core, Context, Errors, Beacon=send, Inbox=receive, Actions, UI, Request)
+addon/Gnomecaster_Inbox01-60/ reply slots (load-on-demand)
+companion/                    the desktop companion (single Python file)
+tools/make_inboxes.py         regenerates the reply slots
+tests/                        the simulation harness used above (needs a Lua 5.1 interpreter)
 ```

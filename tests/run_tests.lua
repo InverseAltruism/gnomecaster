@@ -29,7 +29,7 @@ M.onScreenshot = function()
 	end)
 end
 
-local ns = M.LoadAddon(addonsDir .. "/Wowpilot")
+local ns = M.LoadAddon(addonsDir .. "/Gnomecaster")
 local function has(name, a1, a2, a3)
 	for _, c in ipairs(M.calls) do
 		if c.name == name and (a1 == nil or c.args[1] == a1) and (a2 == nil or c.args[2] == a2) and (a3 == nil or c.args[3] == a3) then return c end
@@ -43,7 +43,7 @@ end
 
 local function ask(text, wait)
 	M.chat = {}
-	SlashCmdList.WOWPILOT(text)
+	SlashCmdList.GNOMECASTER(text)
 	M.Advance(wait or 12, 0.05)
 end
 
@@ -53,7 +53,7 @@ if scenario == "macro" or scenario == "noevents" or scenario == "noprobe" or sce
 	check(M.companionOk, "companion decoded the screenshot and wrote a reply")
 	check(has("Screenshot"), "addon took a screenshot")
 	check(M.cvars.screenshotFormat == "jpeg", "screenshot format restored afterwards")
-	check(not _G.WowpilotBeacon.shown, "beacon hidden again")
+	check(not _G.GnomecasterBeacon.shown, "beacon hidden again")
 	check(has("LoadAddOn"), "reply slot loaded")
 	local pending = false
 	for _, l in ipairs(M.chat) do if tostring(l):find("mouseover help macro") then pending = true end end

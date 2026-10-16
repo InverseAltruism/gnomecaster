@@ -15,3 +15,10 @@ Open items, none fixed yet:
 4. Policy risk has not been assessed. Blizzard's UI add-on policy and Terms of Use have not been checked against the screenshot channel or the mid-session reply-slot reload. The README's comparison with the TSM and Raider.IO desktop apps is the prototype author's claim and is unverified.
 5. Naming: the repo is gnomecaster, the code says Wowpilot (addon and slot folder names, `WowpilotDB`, global functions and frames, `/wp` and `/wowpilot`, `WOWPILOT_*` environment variables, the `"WP"` beacon magic). A rename touches the wire protocol and the SavedVariables name, so it belongs in one commit that covers both halves, with tests.
 6. Low: with `/wp auto on`, a model-proposed `bind` can replace any key binding, a movement key for example, without a prompt; the key check is only `^[%w%-]+$`. In the default mode the confirm bar shows "(replaces ...)" before Apply.
+
+## 2026-10-16: renamed to Gnomecaster
+
+- Renamed every identifier from Wowpilot to Gnomecaster: addon folder and TOC, the 60 reply slots (regenerated with `tools/make_inboxes.py`), `GnomecasterDB`, global functions and frame names, the key binding, slash commands `/gc` and `/gnomecaster`, `GNOMECASTER_*` environment variables, the companion's file name, and the beacon magic `"GC"`. `PROTOCOL` stays 1: the new magic already stops old and new halves from decoding each other's packets.
+- No SavedVariables migration: the prototype stored only `autoApply` and the panel position.
+- `/gc` was checked against warcraft.wiki.gg's list of built-in commands. That list shows full command names only, so an alias or another addon could still own `/gc`; `/gnomecaster` is the fallback.
+- Tests after the rename: 97 PASS, 0 FAIL over 8 scenarios. Two mutations that leave half the rename undone (beacon magic changed only on the addon side; slot folder name changed only on the companion side) each produced 7 FAIL lines.

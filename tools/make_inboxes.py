@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Wowpilot_InboxNN load-on-demand reply slots next to the main addon."""
+"""Generate the Gnomecaster_InboxNN load-on-demand reply slots next to the main addon."""
 import pathlib
 import sys
 
@@ -7,22 +7,22 @@ NUM_SLOTS = 60
 INTERFACE = "120105, 120100, 50504, 20506, 11509, 16001"
 
 TOC = """## Interface: {iface}
-## Title: Wowpilot Inbox {n:02d}
-## Notes: Reply slot used by Wowpilot. Keep enabled.
+## Title: Gnomecaster Inbox {n:02d}
+## Notes: Reply slot used by Gnomecaster. Keep enabled.
 ## LoadOnDemand: 1
-## Dependencies: Wowpilot
-## Group: Wowpilot
+## Dependencies: Gnomecaster
+## Group: Gnomecaster
 
 inbox.lua
 """
 
-PLACEHOLDER = "-- Wowpilot reply slot (empty until the companion writes a reply)\n"
+PLACEHOLDER = "-- Gnomecaster reply slot (empty until the companion writes a reply)\n"
 
 
 def main(out_dir: str) -> None:
     root = pathlib.Path(out_dir)
     for n in range(1, NUM_SLOTS + 1):
-        name = f"Wowpilot_Inbox{n:02d}"
+        name = f"Gnomecaster_Inbox{n:02d}"
         d = root / name
         d.mkdir(parents=True, exist_ok=True)
         (d / f"{name}.toc").write_text(TOC.format(iface=INTERFACE, n=n), encoding="utf-8")

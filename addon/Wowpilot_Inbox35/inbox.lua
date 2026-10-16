@@ -1,1 +1,0 @@
--- Wowpilot reply slot (empty until the companion writes a reply)

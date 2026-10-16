@@ -9,7 +9,7 @@ import pathlib
 import sys
 import time
 
-COMPANION = os.environ.get("WOWPILOT_COMPANION") or str(pathlib.Path(__file__).resolve().parent.parent / "companion" / "wowpilot_companion.py")
+COMPANION = os.environ.get("GNOMECASTER_COMPANION") or str(pathlib.Path(__file__).resolve().parent.parent / "companion" / "gnomecaster_companion.py")
 spec = importlib.util.spec_from_file_location("companion", COMPANION)
 companion = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(companion)

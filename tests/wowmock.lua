@@ -1,4 +1,4 @@
--- Minimal WoW API mock: enough to run the Wowpilot addon in plain Lua 5.1.
+-- Minimal WoW API mock: enough to run the Gnomecaster addon in plain Lua 5.1.
 -- Records what the addon does so tests can assert on it.
 local M = { now = 1000, frames = {}, timers = {}, calls = {}, chat = {}, cvars = { screenshotFormat = "jpeg" } }
 _G.MOCK = M
@@ -218,21 +218,21 @@ MAX_ACCOUNT_MACROS, MAX_CHARACTER_MACROS = 120, 18
 -- load the addon ---------------------------------------------------------
 function M.LoadAddon(dir)
 	local ns = {}
-	local toc = assert(io.open(dir .. "/Wowpilot.toc")):read("*a")
+	local toc = assert(io.open(dir .. "/Gnomecaster.toc")):read("*a")
 	for line in toc:gmatch("[^\n]+") do
 		if line:match("%.lua$") then
 			local chunk = assert(loadfile(dir .. "/" .. line))
-			chunk("Wowpilot", ns)
+			chunk("Gnomecaster", ns)
 		end
 	end
-	M.Fire("ADDON_LOADED", "Wowpilot")
+	M.Fire("ADDON_LOADED", "Gnomecaster")
 	M.Fire("PLAYER_LOGIN")
 	return ns
 end
 
 -- dump the beacon as rectangles in physical pixels
 function M.DumpBeacon(path)
-	local beacon = _G.WowpilotBeacon
+	local beacon = _G.GnomecasterBeacon
 	assert(beacon and beacon.shown, "beacon not shown at screenshot time")
 	local _, physH = GetPhysicalScreenSize()
 	local unit = beacon.scale * physH / 768   -- pixels per UI unit (should be 1)
