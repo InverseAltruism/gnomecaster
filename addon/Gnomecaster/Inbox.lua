@@ -1,8 +1,9 @@
 -- Inbound channel: the game only reads addon files when an addon loads.
--- Load-on-demand addons are read from disk the moment LoadAddOn is called,
--- so we ship NUM_SLOTS empty "inbox" addons. The companion writes each reply
--- into the inbox files, and we load the next unused slot to receive it.
--- Each slot can be loaded once per session; /reload resets them.
+-- Load-on-demand addons are assumed to be read from disk the moment LoadAddOn
+-- is called, so we ship NUM_SLOTS empty "inbox" addons. The companion writes
+-- each reply into the inbox files, and we load the next unused slot to receive
+-- it. Each slot can be loaded once per session; /reload is assumed to free
+-- them. Neither assumption is verified on a real client (docs/REVIEW.md, R4).
 --
 -- Ready signal (experimental): each slot has a ready.ttf that is empty until
 -- the reply is written. EditBox:SetFont() reports whether a font file is

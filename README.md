@@ -51,9 +51,11 @@ mocked WoW API, plus the real companion code):
 - macro created + placed on slot 5 + bound to SHIFT-E only after Apply
 - quest arrow set to the game's own next-step coordinates
 - Lua error captured and sent along; secret (Midnight) values left out safely
-- decoding survives JPEG screenshots and a 1.25× rescaled screenshot; ordinary
-  screenshots are ignored and left alone
-- bad model output (unknown action types, nested junk) is dropped
+- decoding survives JPEG screenshots and a 1.25× rescaled screenshot
+
+Handled by the code but not covered by a test yet (see `docs/REVIEW.md`, R5):
+ordinary screenshots are ignored and left alone; bad model output (unknown action
+types, nested junk) is dropped.
 
 **Not yet proven in the real game**: that's what the 10-minute test below is for:
 
@@ -62,6 +64,9 @@ mocked WoW API, plus the real companion code):
 3. Does the "ready" signal work (EditBox `SetFont` noticing a font file appear)?
    If not, the addon falls back to timed polling by itself. That is slower (≈3 s
    minimum) and uses up reply slots faster, but it still works.
+4. Does `/reload` free the reply slots? The design assumes so. If load-on-demand
+   addons stay loaded across a reload, slots used before it are wasted afterwards
+   (see `docs/REVIEW.md`, R4).
 
 ## 10-minute test
 
@@ -92,6 +97,9 @@ Needs Python 3.9+ and Pillow (`pip install pillow`). Commands are run from the
 
 4. **Full round trip**: in game `/gc test` → the panel should say
    `Round trip OK in X.Xs via ready-signal` (or `via timed poll`).
+   Note the slot number in that line. Step 2 used slot 1 before its `/reload`, so
+   `slot 1` here means the reload freed it, and `slot 2` or higher means loaded
+   slots survive a reload.
 
 5. **Try it** (offline demo, no model needed): open the panel with `/gc` (or `/gnomecaster` if another addon owns `/gc`) or bind a key
    (Esc → Options → Keybindings → AddOns → Gnomecaster) and try:

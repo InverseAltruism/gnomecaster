@@ -4,6 +4,8 @@ In-game AI helper for World of Warcraft. The player types into an addon panel; a
 
 The code started as the Wowpilot prototype, imported and renamed to Gnomecaster on 2026-10-16 (see `docs/PROGRESS.md`). The old name survives only in that history, in the README's upgrade note, and in `.gitignore` (the archive's file name). Slash commands are `/gc` and `/gnomecaster`; the beacon magic is `"GC"`; environment variables are `GNOMECASTER_*`.
 
+Known defects and the quality backlog are in `docs/REVIEW.md`.
+
 ## Layout
 
 - `addon/Gnomecaster/`: the addon (Lua 5.1, WoW API). Load order is the TOC: Core, Json, Errors, Context, Beacon, Inbox, Actions, UI, Request.
@@ -16,12 +18,12 @@ The code started as the Wowpilot prototype, imported and renamed to Gnomecaster 
 Addons cannot use the network or write files during play, so both directions go through the file system.
 
 - Addon to companion (`Beacon.lua`): the request JSON is packed as `"GC"`, protocol byte, 2-byte length, adler32, payload. It is drawn as a grid 96 cells wide, 3 px per cell, 3 bits per cell, in the top-left corner for two frames, then `Screenshot()` is called. The companion watches `Screenshots/`, decodes new files, and deletes only those that contain a beacon. The payload limit is 2400 bytes; `Request.lua` drops context detail over 5 levels until it fits.
-- Companion to addon (`Inbox.lua`): the companion writes `GnomecasterInbox({...})` into `inbox.lua` of every slot from the requested one up to 60. The addon calls `LoadAddOn` on the next unused slot. Each slot loads once per UI session; `/reload` resets them. Replies carry `sid` (per UI load) and `rid` (per request) and are ignored when either does not match.
+- Companion to addon (`Inbox.lua`): the companion writes `GnomecasterInbox({...})` into `inbox.lua` of every slot from the requested one up to 60. The addon calls `LoadAddOn` on the next unused slot. Each slot loads once per UI session. The design assumes `/reload` frees them; that is unverified (`docs/REVIEW.md`, R4). Replies carry `sid` (per UI load) and `rid` (per request) and are ignored when either does not match.
 - Ready signal (experimental): each slot has an empty `ready.ttf`. The companion writes a real font into the next slots when a reply is ready, and the addon probes it with `EditBox:SetFont`. A signal counts only after the addon has seen it go from not ready to ready; otherwise the addon falls back to timed polling.
 
 ## Trust boundary
 
-Model output is untrusted. The companion's `sanitize()` keeps only known action types and scalar fields, and `lua_value()` escapes everything it writes into Lua. The addon re-validates every action in `Actions.lua` (`check`) before running it. Navigation and marks run at once; macro, bar, bind and setting changes wait for Apply unless `/gc auto on`. Settings are limited to `CVAR_ALLOW`.
+Model output is untrusted. The companion's `sanitize()` keeps only known action types and scalar fields, and `lua_value()` escapes everything it writes into Lua. The addon re-checks the shape and size of every action in `Actions.lua` (`check`) before running it, but not its meaning: a macro body may contain `/run` (`docs/REVIEW.md`, R1). Navigation and marks run at once; macro, bar, bind and setting changes wait for Apply unless `/gc auto on`. Settings are limited to `CVAR_ALLOW`.
 
 ## Constants mirrored across Lua and Python
 
