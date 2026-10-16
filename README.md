@@ -1,4 +1,4 @@
-# Wowpilot — prototype
+# Wowpilot (prototype)
 
 An in-game AI helper for World of Warcraft. You type (or later: talk) inside a WoW
 panel; the helper answers there and *does* things: creates and edits macros, puts
@@ -44,7 +44,7 @@ Raider.IO desktop apps do).
 
 ## What's proven and what isn't
 
-Tested here (Lua 5.1.1 — WoW's Lua version — running the real addon code against a
+Tested here (Lua 5.1.1, WoW's Lua version, running the real addon code against a
 mocked WoW API, plus the real companion code):
 
 - request → screenshot grid → decode → answer → reply slot → actions, end to end
@@ -55,13 +55,13 @@ mocked WoW API, plus the real companion code):
   screenshots are ignored and left alone
 - bad model output (unknown action types, nested junk) is dropped
 
-**Not yet proven in the real game** — that's what the 10-minute test below is for:
+**Not yet proven in the real game**: that's what the 10-minute test below is for:
 
 1. Can addons call `Screenshot()` and does the grid come out readable?
 2. Are load-on-demand addon files really read fresh from disk mid-session?
 3. Does the "ready" signal work (EditBox `SetFont` noticing a font file appear)?
-   If not, the addon falls back to timed polling by itself — slower (≈3 s
-   minimum) and it uses up reply slots faster, but it still works.
+   If not, the addon falls back to timed polling by itself. That is slower (≈3 s
+   minimum) and uses up reply slots faster, but it still works.
 
 ## 10-minute test
 
@@ -73,13 +73,13 @@ Needs Python 3.9+ and Pillow (`pip install pillow`). Commands are run from the
    python wowpilot_companion.py install --wow "C:\Program Files (x86)\World of Warcraft\_retail_"
    ```
    Then **fully restart WoW** (new addons need a restart, not just /reload).
-   In the AddOns list the reply slots appear grouped under Wowpilot — leave them enabled.
+   In the AddOns list the reply slots appear grouped under Wowpilot; leave them enabled.
 
 2. **Test receiving (reply slots + ready signal)**, before starting the companion:
    - in game: `/wp probe` → expect `false`
    - in a terminal: `python wowpilot_companion.py write-test --wow "...\_retail_"`
    - in game: `/wp probe` → `true` means the ready signal works
-   - in game: `/wp poll` → should print "Inbox test OK – written by the companion at …"
+   - in game: `/wp poll` → should print "Inbox test OK - written by the companion at …"
    - then `/reload` (resets the slots for the next test)
 
 3. **Test sending (screenshot channel)**:

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+
+# The uploaded source archive; its contents are the first commit.
+/wowpilot-prototype.zip
