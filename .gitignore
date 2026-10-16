@@ -4,3 +4,7 @@ __pycache__/
 
 # The uploaded source archive; its contents are the first commit.
 /wowpilot-prototype.zip
+
+# PyInstaller and Inno Setup output (packaging/README.md)
+/build/
+/dist/

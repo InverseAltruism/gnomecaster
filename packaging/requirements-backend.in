@@ -1,0 +1,10 @@
+# Stage 1: the build backends, from wheels. The later stages install with
+# --no-build-isolation so that pip builds source archives with these exact versions instead
+# of fetching unpinned, unhashed ones.
+setuptools==84.0.0
+hatchling==1.32.4
+packaging==26.3
+pathspec==1.1.1
+pluggy==1.6.0
+trove-classifiers==2026.9.21.13
+tomlkit==0.15.1

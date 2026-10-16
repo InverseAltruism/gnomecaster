@@ -1,0 +1,141 @@
+name: Windows build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]                        # a version tag also publishes the release (job "release")
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13.16"
+
+      # Three stages, every file hash-checked (packaging/README.md explains the order)
+      - name: Install the build backends
+        run: |
+          python -m pip install --require-hashes --no-deps --only-binary=:all: -r packaging/requirements-backend.txt
+      - name: Build PyInstaller and its bootloader from source
+        env:
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
+        run: python -m pip install --require-hashes --no-deps --no-build-isolation --no-binary=pyinstaller -r packaging/requirements-build.txt
+      - name: Install what the app runs on
+        run: |
+          python -m pip install --require-hashes --no-deps --no-build-isolation -r packaging/requirements-app.txt
+          python -m pip check
+
+      - name: Check the bootloader was compiled here, not taken from the package
+        run: python packaging/check_bootloader.py
+
+      - name: Unit tests on Windows
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Build the app
+        run: python -m PyInstaller packaging/gnomecaster.spec --noconfirm
+
+      - name: Smoke test the built app
+        run: |
+          $out = "$env:RUNNER_TEMP\smoke-app"
+          New-Item -ItemType Directory -Force $out, "$env:RUNNER_TEMP\home-app" | Out-Null
+          $env:GNOMECASTER_CONFIG = "$env:RUNNER_TEMP\home-app\config.json"
+          $env:LOCALAPPDATA = "$env:RUNNER_TEMP\home-app"
+          $p = Start-Process dist\Gnomecaster\Gnomecaster.exe -ArgumentList "--smoke-test", $out -PassThru
+          if (-not $p.WaitForExit(180000)) { $p.Kill(); throw "the app did not finish its smoke test within 180 s" }
+          Get-Content "$out\smoke.json"
+          Get-Content "$env:RUNNER_TEMP\home-app\Gnomecaster\logs\gnomecaster.log" -ErrorAction SilentlyContinue
+          if (-not (Get-Content "$out\smoke.json" | ConvertFrom-Json).ok) { throw "smoke test failed" }
+
+      - name: Install Inno Setup 6.7.3
+        run: |
+          $exe = "$env:RUNNER_TEMP\innosetup-6.7.3.exe"
+          Invoke-WebRequest https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe -OutFile $exe
+          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash
+          if ($hash -ne "9C73C3BAE7ED48D44112A0F48E66742C00090BDB5BEF71D9D3C056C66E97B732") { throw "unexpected Inno Setup download: $hash" }
+          Start-Process $exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/CURRENTUSER", "/DIR=$env:RUNNER_TEMP\inno" -Wait
+
+      - name: Build the installer
+        run: |
+          $version = python -c "import sys; sys.path.insert(0, 'companion'); import gnomecaster; print(gnomecaster.__version__)"
+          & "$env:RUNNER_TEMP\inno\ISCC.exe" "/DAppVersion=$version" packaging\gnomecaster.iss
+          if ($LASTEXITCODE) { throw "ISCC failed" }
+          "VERSION=$version" | Out-File -Append $env:GITHUB_ENV
+
+      - name: Install, run and uninstall like a player
+        run: |
+          $setup = "dist\Gnomecaster-Setup-$env:VERSION.exe"
+          Start-Process $setup -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
+          $app = "$env:LOCALAPPDATA\Programs\Gnomecaster\Gnomecaster.exe"
+          if (-not (Test-Path $app)) { throw "not installed at $app" }
+          $out = "$env:RUNNER_TEMP\smoke-installed"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          $env:GNOMECASTER_CONFIG = "$env:RUNNER_TEMP\home-installed\config.json"
+          $p = Start-Process $app -ArgumentList "--smoke-test", $out -PassThru
+          if (-not $p.WaitForExit(180000)) { $p.Kill(); throw "the installed app did not finish its smoke test" }
+          Get-Content "$out\smoke.json"
+          if (-not (Get-Content "$out\smoke.json" | ConvertFrom-Json).ok) { throw "installed smoke test failed" }
+          Start-Process "$env:LOCALAPPDATA\Programs\Gnomecaster\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES" -Wait
+          # the uninstaller relaunches itself from a temp copy, so its first process returns early
+          $deadline = (Get-Date).AddSeconds(60)
+          while ((Test-Path $app) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 1 }
+          if (Test-Path $app) { throw "uninstall left the app behind" }
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: installer
+          path: dist/Gnomecaster-Setup-*.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: smoke-results
+          path: |
+            ${{ runner.temp }}/smoke-app
+            ${{ runner.temp }}/smoke-installed
+          if-no-files-found: warn
+
+  # Publishes the installer the build job made and tested. Only this job may write to the
+  # repository, and it runs no third-party packages.
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: installer
+          path: release
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -n 's/^__version__ = "\([0-9.]*\)".*/\1/p' companion/gnomecaster/__init__.py)
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then echo "tag $GITHUB_REF_NAME does not match version $version"; exit 1; fi
+          setup="release/Gnomecaster-Setup-$version.exe"
+          test -s "$setup"
+          (cd release && sha256sum "Gnomecaster-Setup-$version.exe" > SHA256SUMS.txt && cat SHA256SUMS.txt)
+          gh release create "$GITHUB_REF_NAME" "$setup" release/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" \
+            --title "Gnomecaster $version" --notes-file packaging/release-notes.md
