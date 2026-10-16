@@ -12,6 +12,7 @@ TOC = """## Interface: {iface}
 ## LoadOnDemand: 1
 ## Dependencies: Gnomecaster
 ## Group: Gnomecaster
+## IconTexture: Interface\\AddOns\\Gnomecaster\\Media\\icon
 
 inbox.lua
 """

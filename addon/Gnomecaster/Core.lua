@@ -24,6 +24,19 @@ function ns.Plain(v)
 	return v
 end
 
+-- A plain (non-secret) string, cut to n bytes with "..." appended; nil otherwise.
+function ns.Trim(s, n)
+	if type(s) ~= "string" or ns.IsSecret(s) then return nil end
+	if #s > n then return s:sub(1, n) .. "..." end
+	return s
+end
+
+-- Text from the model or other addons is shown literally: "|" starts WoW's colour, link
+-- and texture codes, so it is doubled before display.
+function ns.Escape(s)
+	return (tostring(s):gsub("|", "||"))
+end
+
 function ns.InCombat()
 	return InCombatLockdown ~= nil and InCombatLockdown() == true
 end
@@ -31,6 +44,7 @@ end
 ns.GetCVar = (C_CVar and C_CVar.GetCVar) or GetCVar
 ns.SetCVar = (C_CVar and C_CVar.SetCVar) or SetCVar
 ns.LoadAddOn = (C_AddOns and C_AddOns.LoadAddOn) or LoadAddOn
+ns.IsAddOnLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
 
 local defaults = {
 	autoApply = false,   -- apply macro/bar/keybind changes without asking

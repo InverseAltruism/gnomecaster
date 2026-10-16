@@ -9,11 +9,7 @@ ns.Context = Context
 local floor = math.floor
 local P = function(v) return ns.Plain(v) end
 
-local function trim(s, n)
-	if type(s) ~= "string" or ns.IsSecret(s) then return nil end
-	if #s > n then return s:sub(1, n) .. "..." end
-	return s
-end
+local trim = ns.Trim
 
 local function round4(v)
 	if type(v) ~= "number" or ns.IsSecret(v) then return nil end

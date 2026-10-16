@@ -16,11 +16,7 @@ local function push(list, item, max)
 	if #list > max then table.remove(list) end
 end
 
-local function plainString(s, maxLen)
-	if type(s) ~= "string" or ns.IsSecret(s) then return nil end
-	if #s > maxLen then s = s:sub(1, maxLen) .. "..." end
-	return s
-end
+local plainString = ns.Trim
 
 function Errors.RecordLua(msg)
 	msg = plainString(msg, 400)

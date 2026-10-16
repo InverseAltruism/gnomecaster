@@ -1,30 +1,30 @@
 """Plays the companion's part in two steps so the test can put game time between them:
-  receive <image> <addons> <probe>  -> decode, clear ready signals, compute the answer
+  receive <image> <addons> <probe>  -> decode, mark the slots 'not ready', compute the answer
   deliver <image> <addons> <probe>  -> write the answer into the reply slots
+Both steps use the companion's own code (serve.respond, Slots.deliver).
 """
-import importlib.util
 import json
 import os
 import pathlib
 import sys
-import time
 
-COMPANION = os.environ.get("GNOMECASTER_COMPANION") or str(pathlib.Path(__file__).resolve().parent.parent / "companion" / "gnomecaster_companion.py")
-spec = importlib.util.spec_from_file_location("companion", COMPANION)
-companion = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(companion)
+ENTRY = pathlib.Path(os.environ.get("GNOMECASTER_COMPANION")
+                     or pathlib.Path(__file__).resolve().parent.parent / "companion" / "gnomecaster_companion.py")
+sys.path.insert(0, str(ENTRY.parent))
+
+from gnomecaster import config, protocol, serve  # noqa: E402
+from gnomecaster.cli import make_brain  # noqa: E402
+from gnomecaster.slots import Slots  # noqa: E402
 
 step, image, addons_dir, probe = sys.argv[1:5]
-slots = companion.Slots(pathlib.Path(addons_dir), b"FAKEFONTDATA" if probe == "1" else None)
+slots = Slots(pathlib.Path(addons_dir), b"FAKEFONTDATA" if probe == "1" else None)
 state = pathlib.Path(image + ".reply.json")
 
 if step == "receive":
-    packet = companion.decode_image(image)
+    packet = protocol.decode_image(image)
     pathlib.Path(image + ".json").write_text(json.dumps(packet, indent=1))
-    slots.clear_probes(int(packet.get("slot") or 1))
-    reply = companion.Brain().answer(packet)
-    reply.update({"sid": packet.get("sid"), "rid": packet.get("rid"), "t": packet.get("t"), "written": time.strftime("%H:%M:%S")})
-    state.write_text(json.dumps({"slot": packet.get("slot"), "reply": reply}))
+    reply = serve.respond(packet, slots, make_brain(config.resolve()))
+    state.write_text(json.dumps({"slot": serve.slot_of(packet), "reply": reply}))
     print(f"   companion <- {packet.get('t')} #{packet.get('rid')} slot {packet.get('slot')}: {packet.get('text')}")
 else:
     data = json.loads(state.read_text())

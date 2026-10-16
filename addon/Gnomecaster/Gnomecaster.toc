@@ -1,7 +1,8 @@
 ## Interface: 120105, 120100, 50504, 20506, 11509, 16001
 ## Title: Gnomecaster
+## IconTexture: Interface\AddOns\Gnomecaster\Media\icon
 ## Notes: In-game AI helper (prototype). Needs the Gnomecaster companion app running.
-## Version: 0.1.0
+## Version: 1.0.0
 ## SavedVariables: GnomecasterDB
 
 Core.lua

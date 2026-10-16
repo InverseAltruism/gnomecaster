@@ -6,6 +6,60 @@ Scope: the whole repo after the rename to Gnomecaster. Apart from names, the cod
 
 Good prototype code by someone who knows the WoW runtime. The addon has clear module boundaries, is defensive against an API that differs per game version and hides values in combat, and the Lua serialiser between model output and the game holds up under fuzzing. It is not yet product-grade. Validation checks the shape of model-proposed actions but not their meaning, so a macro can carry arbitrary Lua, and with auto-apply on it is installed and bound to a key without a prompt. One malformed model reply crashes the companion. The test runner cannot fail, the whole model path has no tests, and knowledge is hand-mirrored between Lua and Python. Each of these is cheap to fix. The open question that matters more is whether the screenshot and reply-slot channels work on a real client at all, including what `/reload` does to loaded reply slots.
 
+## Status after the refinement round (2026-10-16, later the same day)
+
+A third review (by a different model family) ran on commit `475ef31` and found real problems both earlier reviews missed; they are C1 to C14 below. Everything marked fixed has a test that fails without the fix (checked by mutation where noted).
+
+| Finding | Status | Evidence |
+|---|---|---|
+| R1 `/run` macros | fixed | `MACRO_COMMANDS` allowlist in `Actions.lua`; `actions` scenario (refused `/run`, chat lines, `\|` codes); the prompt now forbids scripts, and all six evaluated models stopped proposing them |
+| R2 companion crash | fixed | `slots.text_safe`; `serve.handle` never raises; unit tests (both mutation-checked) |
+| R3 runner cannot fail | fixed | `run_all.sh` counts failures; mutation of `Actions.lua` now exits 1 |
+| R4 `/reload` and loaded slots | mitigated, still open in game | `Inbox.SkipLoaded`; `/gc status` shows the next slot; `ui` scenario |
+| R5 untested claims | fixed | unit tests for ordinary screenshots, junk model output, the request loop; `driver.py` calls `serve.respond` instead of copying it |
+| R6 mirrored knowledge | fixed, one part open | `tests/test_contract.py` (7 tests, mutation-checked); settings and macro commands read from `Actions.lua`; mixed coordinate scales refused. Open, low: the packet's `slots` field is still unused by the companion |
+| R7 one-file companion | fixed | `companion/gnomecaster/` package |
+| R8 tests reaching a real model | fixed | `run_all.sh` clears `GNOMECASTER_*` and points `GNOMECASTER_CONFIG` at a missing file |
+| R9 mock fidelity | improved | the mock rejects widget methods Blizzard does not document (`tests/wow_api_methods.lua`, mutation-checked) and fires EditBox scripts like the game; secret values and the `SetFont` hypothesis remain limits of any mock |
+| R10 escape codes | fixed | `ns.Escape` for all model and player text; `actions` scenario |
+| R11 module boundaries | open | `Actions` still writes to the UI directly; slash commands still live in `Core` |
+| R12 garbage normalised | fixed | integer checks, NaN and infinity dropped, mixed scales refused; `actions` scenario, unit test |
+| R13 duplicated helper | fixed | `ns.Trim` in `Core.lua` |
+| R14 truncated screenshot | fixed | retried up to 3 times; unit test |
+| R15 covered beacon | open, needs the game | |
+| R16 no manifest | fixed | `companion/requirements.txt` pins `pillow==12.3.0` (released 2026-07-01, needs Python 3.10+) |
+| R17 dead code | fixed | removed |
+| C1 model can outlive the addon's wait | fixed | one 40 s deadline per question (`model.ModelClient`); unit test with a trickling server took 47.3 s without it, 2 s with it; a real provider was cut at 40.0 s |
+| C2 failed model replaced by keyword demo actions | fixed | errors return the message only; the demo runs only with no model set up and says so; unit test (mutation fails 8 tests) |
+| C3 R2 overstated | corrected | R2 above |
+| C4 reasoning output mis-parsed | fixed | `<think>` blocks dropped before parsing, draft actions never run, empty reasoning-only answers explained; unit tests |
+| C5 provider errors unexplained | fixed | messages for rejected key, no credit, unknown model, rate limit with Retry-After, provider error, timeout, no network, local server down; unit tests |
+| C6 JSON contract | fixed | junk actions dropped instead of raising; JSON-mode fallback remembered per session; prose answers kept as text; unit tests |
+| C7 slow models spend extra slots | improved | ready signal covers the next 9 slots (pinned by the contract test); `ack.ttf` shows the question was picked up |
+| C8 Windows onboarding | improved | `setup` command, `py` launcher in the README, `requirements.txt`, install errors explained, version check at start |
+| C9 demo-to-model switch, `/gc test` hides a dead key | fixed | settings file plus connection check in `setup`, `run`, `check` and `/gc test`; unit tests |
+| C10 Ollama prerequisites | improved | setup preset; a missing local model gets an `ollama pull` hint |
+| C11 instant actions after the target changed | fixed for marks | a mark asks first when the target changed; `actions` scenario |
+| C12 answers to a closed panel | fixed | the panel opens when an answer or error arrives; `ui` scenario |
+| C13 slot-number reload diagnostic | fixed | replaced by `/gc status` after `/reload` |
+| C14 R3 wording | corrected | |
+
+A fourth review (the same different-model reviewer) then read the uncommitted refinement and found eleven defects in it, D1 to D11. Each was checked, fixed with a test that fails without the fix (mutation-checked), or recorded:
+
+| Finding | Status | Evidence |
+|---|---|---|
+| D1 error body read outside the deadline (high) | fixed | `ModelClient._open` reads it in the deadline thread; unit test with a trickling error body |
+| D2 provider text could echo the key; a surrogate could crash logging | fixed | key and key-like strings redacted, text cleaned, logging guarded, stdout uses `errors="replace"`; unit test |
+| D3 early "no companion" abort broke the timed-polling fallback | fixed | the addon now warns at 5 s and keeps waiting with timed polls; `macro` scenario checks the warning and the 60 s end |
+| D4 a screenshot was marked done before its reply was written | fixed | marked done only after the write; failed writes retried; unit test |
+| D5 target check by name only, skipped without a starting target | fixed | `UnitGUID` when the game gives it, names otherwise; a target picked after asking also asks; `actions` scenario |
+| D6 model-supplied `targetChanged` crashed sorting | fixed | the companion keeps only each action type's own fields, the addon resets internal flags, and every handler has an order; unit test and `actions` scenario |
+| D7 shortened macro names could collide | fixed | distinct short names, bar and bind follow; unit test |
+| D8 "readable only by you" not enforced on Windows | fixed by removing the claim | README now says the file lives in the user profile; owner-only permissions are enforced on macOS and Linux |
+| D9 eval's addon check passed when it did not run | fixed | `eval_models.py` requires Lua; a Lua error counts as a refused action |
+| D10 `/gc test` reported the startup check | fixed | `/gc test` checks the connection again; unit test |
+| D11 fade checks cannot see fades; method allowlist ignores widget type | recorded | test names no longer claim fades; per-widget-type method checking is open (R9) |
+
 ## Strengths
 
 - Addon modules split by concern, 72 to 259 lines each, loaded in dependency order by the TOC, all through one `ns` table. `Request` orchestrates `Context` and `Json` into `Beacon` on the way out and `Inbox` into `Actions` on the way back; nothing below `Request` calls it.

@@ -9,6 +9,8 @@
 -- the reply is written. EditBox:SetFont() reports whether a font file is
 -- valid, so we can check readiness without spending a slot. If the client
 -- caches font files this will not work, and we fall back to timed polling.
+-- The same trick tells us the companion picked a request up: it fills
+-- Gnomecaster\ack.ttf on receipt and empties it with the reply.
 local _, ns = ...
 
 local Inbox = {}
@@ -26,6 +28,18 @@ local function slotName(i)
 	return string.format("Gnomecaster_Inbox%02d", i)
 end
 Inbox.SlotName = slotName
+
+local ACK_PATH = "Interface\\AddOns\\Gnomecaster\\ack.ttf"
+local ACK_GRACE = 5   -- seconds a running companion takes at most to pick a request up
+
+-- Slots loaded earlier cannot deliver again (LoadAddOn only runs a file once). Whether
+-- the game keeps them loaded across /reload is unverified, so check instead of assuming.
+function Inbox.SkipLoaded()
+	local isLoaded = ns.IsAddOnLoaded
+	while isLoaded and Inbox.next <= ns.NUM_SLOTS and isLoaded(slotName(Inbox.next)) do
+		Inbox.next = Inbox.next + 1
+	end
+end
 
 function Inbox.Remaining()
 	return ns.NUM_SLOTS - Inbox.next + 1
@@ -45,16 +59,19 @@ function Inbox.LoadNext()
 end
 
 local probeBox
-function Inbox.Probe(i)
-	if i > ns.NUM_SLOTS then return false end
+local function probePath(path)
 	if not probeBox then
 		probeBox = CreateFrame("EditBox", nil, UIParent)
 		probeBox:SetAutoFocus(false)
 		probeBox:Hide()
 	end
-	local path = "Interface\\AddOns\\" .. slotName(i) .. "\\ready.ttf"
 	local ok, valid = pcall(probeBox.SetFont, probeBox, path, 12, "")
 	return (ok and valid) and true or false
+end
+
+function Inbox.Probe(i)
+	if i > ns.NUM_SLOTS then return false end
+	return probePath("Interface\\AddOns\\" .. slotName(i) .. "\\ready.ttf")
 end
 
 local ticker
@@ -71,22 +88,48 @@ local BLIND_WHEN_PROBE_WORKS = { 12, 22, 35, 50, 60 }
 -- request, so a working signal always flips; a cached font never does, and
 -- then timed polling takes over by itself.
 local seenNotReady = {}
+local ackSeenEmpty
 
 function Inbox.PreCheck()
 	seenNotReady = {}
 	if not Inbox.Probe(Inbox.next) then seenNotReady[Inbox.next] = true end
+	ackSeenEmpty = not probePath(ACK_PATH)
 end
 
 -- Wait for the reply to request `rid`.
--- onReply(msg, seconds, how, slot) / onFail(reason)
-function Inbox.Await(rid, onReply, onFail)
+-- onReply(msg, seconds, how, slot) / onFail(reason) / onAck(seconds) / onSilent(seconds)
+function Inbox.Await(rid, onReply, onFail, onAck, onSilent)
 	stop()
 	local start = GetTime()
 	local schedule = (Inbox.probeState == "works") and BLIND_WHEN_PROBE_WORKS or BLIND
 	local blindIndex = 1
+	local acked, warned = false, false
+	-- Decided at the start: the slot heuristic below may reset probeState mid-wait (for
+	-- instance on fonts a closed companion left behind), but ack.ttf is probed on its own.
+	local signalsWork = Inbox.probeState == "works"
 
 	ticker = C_Timer.NewTicker(0.25, function()
 		local elapsed = GetTime() - start
+		if not acked then
+			if probePath(ACK_PATH) then
+				if ackSeenEmpty then
+					acked = true
+					if onAck then onAck(elapsed) end
+				end
+			else
+				ackSeenEmpty = true
+			end
+			-- Once signals are known to work this session, silence most likely means no companion.
+			-- Say so early, but keep waiting: a companion restarted without signals still answers,
+			-- and timed polls will find it.
+			if not acked and not warned and signalsWork and ackSeenEmpty and elapsed >= ACK_GRACE then
+				warned = true
+				Inbox.probeState = "unknown"
+				schedule, blindIndex = BLIND, 1
+				while BLIND[blindIndex] and BLIND[blindIndex] < elapsed do blindIndex = blindIndex + 1 end
+				if onSilent then onSilent(elapsed) end
+			end
+		end
 		local how
 		local i = Inbox.next
 		if Inbox.Probe(i) then
@@ -131,10 +174,6 @@ function Inbox.Await(rid, onReply, onFail)
 	end)
 end
 
-function Inbox.Cancel()
-	stop()
-end
-
 -- /gc poll : load the next slot and show what is in it (pair with `companion write-test`)
 function Inbox.DebugPoll()
 	local msg, slot, err = Inbox.LoadNext()
@@ -153,6 +192,7 @@ function Inbox.DebugProbe()
 end
 
 function Inbox.DebugStatus()
+	Inbox.SkipLoaded()
 	ns.Print(string.format("session %s, next slot %d, %d slots left, ready-signal: %s",
 		ns.sessionId, Inbox.next, Inbox.Remaining(), Inbox.probeState))
 end

@@ -14,6 +14,7 @@ local _, ns = ...
 local Beacon = {}
 ns.Beacon = Beacon
 
+local MAGIC = "GC"        -- first two bytes of every packet
 local GRID_W = 96         -- cells per row
 local CELL = 3            -- physical pixels per cell
 local MAX_BYTES = 2400    -- payload limit (about 72 rows)
@@ -42,7 +43,6 @@ local function adler32(s)
 	end
 	return b * 65536 + a
 end
-Beacon.adler32 = adler32
 
 local function u32(n)
 	return char(floor(n / 16777216) % 256, floor(n / 65536) % 256, floor(n / 256) % 256, n % 256)
@@ -50,7 +50,7 @@ end
 
 function Beacon.Pack(json)
 	local len = #json
-	return "GC" .. char(ns.PROTOCOL, floor(len / 256), len % 256) .. u32(adler32(json)) .. json
+	return MAGIC .. char(ns.PROTOCOL, floor(len / 256), len % 256) .. u32(adler32(json)) .. json
 end
 
 -- bytes -> list of colour indices (0..7)
@@ -142,10 +142,6 @@ function Beacon.Render(data)
 		drawRow(r, cells, first, math.min(first + GRID_W - 1, #cells))
 	end
 	return rows
-end
-
-function Beacon.IsBusy()
-	return busy
 end
 
 -- Draw `data`, wait two frames so it is on screen, take the screenshot.
