@@ -222,7 +222,7 @@ class Connect(AppCase):
         api = self.api(sign_in=sign_in, credit=credit)
         r = api.signIn()
         self.assertTrue(r["ok"], r)
-        self.assertRegex(r["message"], r"^Connected\. Answered in \d+\.\d s\.$")
+        self.assertRegex(r["message"], r"^Connected\. Test question answered in \d+\.\d s\.$")
         saved = self.saved()
         self.assertEqual((saved["provider"], saved["account"], saved["api_key"], saved["model"]),
                          ("openrouter", "oauth", "sk-or-v1-fresh", LUNA))
@@ -314,6 +314,38 @@ class Connect(AppCase):
         self.assertTrue(results["second"]["ok"], results)
         self.assertEqual(results["first"], {"ok": False, "message": "Sign-in was cancelled."})
         self.assertEqual(self.saved()["api_key"], "sk-or-v1-second")
+
+    def test_the_player_can_cancel_a_sign_in_waiting_on_the_browser(self):
+        waiting = threading.Event()
+
+        def browser_step(cancel):
+            waiting.set()
+            if cancel.wait(10):
+                raise oauth.SignInError("Sign-in was cancelled.")
+            return "sk-or-v1-late"
+        api = self.api(sign_in=browser_step)
+        result = {}
+        t = threading.Thread(target=lambda: result.setdefault("r", api.signIn()))
+        t.start()
+        self.assertTrue(waiting.wait(5))
+        started = time.monotonic()
+        self.assertEqual(api.cancelSignIn(), {"ok": True})
+        t.join(5)
+        self.assertLess(time.monotonic() - started, 2)
+        self.assertEqual(result["r"], {"ok": False, "message": "Sign-in was cancelled."})
+        self.assertFalse(self.config.exists())
+        self.assertEqual(api.cancelSignIn(), {"ok": True})        # nothing waiting: harmless
+
+    def test_key_pages_and_the_provider_list(self):
+        opened = []
+        api = self.api(open_browser=opened.append)
+        providers = api.getState()["providers"]
+        self.assertEqual([p["id"] for p in providers], ["openrouter", "openai", "ollama"])
+        self.assertEqual([p["key"] for p in providers], [True, True, False])
+        self.assertEqual(api.openKeyPage({"provider": "openrouter"}), {"ok": True})
+        self.assertFalse(api.openKeyPage({"provider": "ollama"})["ok"])
+        self.assertFalse(api.openKeyPage({"provider": "https://evil.example"})["ok"])
+        self.assertEqual(opened, ["https://openrouter.ai/keys"])
 
     def test_a_rejected_key_is_not_saved(self):
         self.model_server({"status": 401, "body": {"error": {"message": "No auth credentials found"}}})
@@ -592,7 +624,9 @@ class Describe(unittest.TestCase):
         self.assertEqual(service.describe({"type": "waypoint", "x": 0.381, "y": 0.552, "title": "Quest"}),
                          "Waypoint: Quest (38.1, 55.2)")
         self.assertEqual(service.describe({"type": "waypoint", "x": 38.1, "y": 55.2}), "Waypoint: Gnomecaster (38.1, 55.2)")
-        self.assertIn("apply it in the game", service.describe({"type": "macro", "name": "Rejuv"}))
+        self.assertEqual(service.describe({"type": "macro", "name": "Rejuv"}), "Macro \u201cRejuv\u201d")
+        self.assertEqual(service.describe({"type": "bind", "key": "SHIFT-E", "macro": "Rejuv"}), "Shift-E bound to \u201cRejuv\u201d")
+        self.assertEqual(service.describe({"type": "bind", "key": "CTRL-ALT-F1", "macro": "X"}), "Ctrl-Alt-F1 bound to \u201cX\u201d")
         self.assertEqual(service.describe({"type": "mark", "icon": 8}), "Skull on your target")
         self.assertEqual(service.describe({"type": "mark", "icon": 1, "unit": "focus"}), "Star on your focus")
         self.assertEqual(service.describe({"type": "mark", "icon": 0}), "Marker cleared from your target")

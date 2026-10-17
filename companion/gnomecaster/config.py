@@ -12,13 +12,15 @@ import pathlib
 import sys
 
 PRESETS = {
-    "openrouter": {"label": "OpenRouter: one key, hundreds of models (recommended)",
+    "openrouter": {"label": "OpenRouter: one key, hundreds of models (recommended)", "name": "OpenRouter",
                    "base_url": "https://openrouter.ai/api/v1", "model": "openai/gpt-6-luna", "key": True,
-                   "key_hint": "create one at https://openrouter.ai/keys"},
-    "openai": {"label": "OpenAI", "base_url": "https://api.openai.com/v1", "model": "gpt-6-luna", "key": True,
+                   "key_url": "https://openrouter.ai/keys", "key_hint": "create one at https://openrouter.ai/keys"},
+    "openai": {"label": "OpenAI", "name": "OpenAI", "base_url": "https://api.openai.com/v1", "model": "gpt-6-luna",
+               "key": True, "key_url": "https://platform.openai.com/api-keys",
                "key_hint": "create one at https://platform.openai.com/api-keys"},
     "ollama": {"label": "Ollama: a free local model on this PC (needs a strong graphics card)",
-               "base_url": "http://localhost:11434/v1", "model": "llama3.1", "key": False, "key_hint": ""},
+               "name": "Ollama (a model on this PC)", "base_url": "http://localhost:11434/v1", "model": "llama3.1",
+               "key": False, "key_hint": ""},
     "custom": {"label": "Another OpenAI-compatible endpoint", "base_url": "", "model": "", "key": True,
                "key_hint": ""},
 }
@@ -27,12 +29,11 @@ PRESETS = {
 # 20 in tools/eval_models.py (README, "Choosing a model"); the others are the presets' defaults.
 MODELS = {
     "openrouter": [
-        {"id": "openai/gpt-6-luna", "name": "GPT-6 Luna", "detail": "Fast, and among the cheapest per question.",
-         "recommended": True},
-        {"id": "anthropic/claude-haiku-5.5", "name": "Claude Haiku 5.5", "detail": "The fastest answers in testing."},
-        {"id": "google/gemini-3.8-flash", "name": "Gemini 3.8 Flash", "detail": "As accurate, at many times the price."},
+        {"id": "openai/gpt-6-luna", "name": "GPT-6 Luna", "detail": "Quick answers, very low cost.", "recommended": True},
+        {"id": "anthropic/claude-haiku-5.5", "name": "Claude Haiku 5.5", "detail": "Quickest answers, low cost."},
+        {"id": "google/gemini-3.8-flash", "name": "Gemini 3.8 Flash", "detail": "Quick answers, several times the cost."},
         {"id": "deepseek/deepseek-v4.1-flash", "name": "DeepSeek V4.1 Flash",
-         "detail": "The cheapest, but some answers took much longer."},
+         "detail": "Lowest cost; some answers are slow."},
     ],
 }
 

@@ -7,6 +7,7 @@
   let state = null;
   let step = "game";
   let focusAfterMove = false;
+  let signInAttempt = 0;           // a sign-in's result counts only while it is the latest attempt
 
   // ---------------------------------------------------------------- helpers
 
@@ -25,6 +26,47 @@
     node.textContent = text || "";
     node.className = "status-line" + (kind ? " " + kind : "");
     node.hidden = !text;
+  }
+
+  // One API-key form (setup and settings have one each), opened by `opener`. The providers
+  // come from the app; a provider without keys (Ollama) shows no key field. `onToggle` runs
+  // after the form opens or closes.
+  function wireKeyForm(prefix, opener, status, onConnected, onToggle = () => {}) {
+    const form = $(prefix + "key-form"), provider = $(prefix + "key-provider"), value = $(prefix + "key-value");
+    const keyField = form.querySelector("[data-key-field]"), keyPage = form.querySelector("[data-key-page]");
+    const chosen = () => state.providers.find((p) => p.id === provider.value) || {};
+    const sync = () => { keyField.hidden = !chosen().key; keyPage.hidden = !chosen().keyPage; };
+    const close = () => { form.hidden = true; opener.hidden = false; value.value = ""; onToggle(); };
+    provider.addEventListener("change", sync);
+    keyPage.addEventListener("click", () => GC.call("openKeyPage", { provider: provider.value }));
+    const cancel = form.querySelector("[data-cancel]");
+    cancel.addEventListener("click", () => { close(); setStatus(status, "", ""); opener.focus(); });
+    opener.addEventListener("click", () => {
+      provider.replaceChildren(...state.providers.map((p) => el("option", { value: p.id, text: p.name })));
+      sync();
+      form.hidden = false;
+      opener.hidden = true;
+      onToggle();
+      (keyField.hidden ? provider : value).focus();
+    });
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      // while the key is being tested the form stays as it is: no cancelling, no edits
+      const fields = [cancel, provider, value];
+      fields.forEach((f) => { f.disabled = true; });
+      busy(form.querySelector("button[type=submit]"), async () => {
+        try {
+          const r = await GC.call("saveKey", { provider: provider.value, key: value.value.trim() });
+          if (!r.ok) { setStatus(status, r.message, "error"); return; }
+          close();
+          setStatus(status, "", "");
+          await refresh();
+          onConnected(r);
+        } finally {
+          fields.forEach((f) => { f.disabled = false; });
+        }
+      });
+    });
   }
 
   async function busy(button, work) {
@@ -68,6 +110,8 @@
       if (focusable) setTimeout(() => focusable.focus({ preventScroll: true }), 60);
     }
     focusAfterMove = true;
+    document.querySelectorAll(".steps-mini .bar").forEach((bar, i) => bar.classList.toggle("on", index === -1 || i <= index));
+    $("steps-mini-text").textContent = index === -1 ? "All set" : `Step ${index + 1} of ${STEPS.length}`;
   }
 
   function renderGames() {
@@ -80,6 +124,9 @@
     });
     $("game-missing").hidden = state.games.length > 0;
     $("game-next").disabled = !state.games.length;
+    // with nothing found, choosing the folder is the step's one action
+    $("choose-folder").classList.toggle("primary", !state.games.length);
+    $("choose-folder").classList.toggle("ghost", state.games.length > 0);
   }
 
   function selectedGame() {
@@ -89,10 +136,13 @@
   function renderAddonPane() {
     const g = selectedGame();
     if (!g) return;
-    $("addon-path").textContent = g.path + "\\Interface\\AddOns";
+    // a long path may wrap only after a backslash, never inside a folder name
+    const parts = (g.path + "\\Interface\\AddOns").split("\\");
+    $("addon-path").replaceChildren(...parts.flatMap((part, i) => (i ? ["\\", el("wbr"), part] : [part])));
+    $("addon-target").classList.toggle("done", g.addon === "current");
     const status = $("addon-status");
-    if (g.addon === "current") setStatus(status, "The addon is installed and up to date.", "ok");
-    else if (g.addon === "outdated") setStatus(status, "An older version is installed. Install to update it.", "warn");
+    if (g.addon === "current") setStatus(status, "Installed and up to date.", "ok");
+    else if (g.addon === "outdated") setStatus(status, "An older version is installed. Update it to get the latest fixes.", "warn");
     else setStatus(status, "", "");
     $("install-addon").textContent = g.addon === "current" ? "Continue" : g.addon === "outdated" ? "Update addon" : "Install addon";
   }
@@ -113,13 +163,20 @@
     }
   }
 
+  const AI_LEAD = "OpenRouter gives one account access to many AI models. You pay OpenRouter directly; a typical question costs under a tenth of a cent.";
+
   function renderAiPane() {
     const connected = !!(state.ai && state.ai.ok);
+    $("ai-lead").textContent = connected ? "Choose the model that answers your questions. You can change it later in Settings." : AI_LEAD;
     const failed = !!(state.ai && state.ai.ok === false);     // a saved key whose test question failed
     $("ai-connect").hidden = connected;
     $("ai-models").hidden = !connected;
     $("ai-next").disabled = !connected;
-    $("ai-failed").hidden = !failed;
+    // The key form stands in for signing in, so while it is open its Connect is the only
+    // action; while a sign-in waits, only its Cancel is
+    const keying = !$("key-form").hidden, waiting = !$("sign-in-wait").hidden;
+    $("sign-in").hidden = keying || waiting;
+    $("ai-failed").hidden = !failed || keying || waiting;
     if (state.ai && state.ai.ok === null) setStatus($("ai-error"), "Checking the saved connection…", "");
     $("ai-credit").hidden = !(failed && state.ai.needsCredit);
     // with a saved key that failed its test, fixing that comes first; signing in again is the fallback
@@ -129,7 +186,7 @@
     if (failed) setStatus($("ai-error"), state.ai.note, "error");
     if (connected) {
       setStatus($("ai-error"), "", "");
-      setStatus($("ai-connected"), state.ai.account + ". " + state.ai.note + ".", "ok");
+      $("ai-connected").textContent = state.ai.account + ". " + state.ai.note + ".";
       renderModels($("model-list"));
     }
   }
@@ -151,15 +208,30 @@
         setStatus($("addon-status"), r.message, r.ok ? "ok" : "error");
       });
     });
-    $("sign-in").addEventListener("click", () => busy($("sign-in"), async () => {
+    // Puts the AI step back as the app's state says, after a sign-in ends or is cancelled.
+    const endSignIn = () => {
+      $("sign-in-wait").hidden = true;
+      $("use-key").hidden = !$("key-form").hidden;
+      renderAiPane();
+    };
+    $("sign-in").addEventListener("click", async () => {
+      const mine = ++signInAttempt;
       setStatus($("ai-error"), "", "");
+      [$("sign-in"), $("use-key"), $("key-form"), $("ai-failed")].forEach((n) => { n.hidden = true; });
       $("sign-in-wait").hidden = false;
       const r = await GC.call("signIn");
-      $("sign-in-wait").hidden = true;
+      if (mine !== signInAttempt) return;     // cancelled, or a newer attempt took over
       await refresh();
-      renderAiPane();
+      endSignIn();
       if (!r.ok) setStatus($("ai-error"), r.message, "error");
-    }));
+    });
+    // Cancel answers at once; the backend's sign-in winds down behind it
+    $("sign-in-cancel").addEventListener("click", () => {
+      signInAttempt++;
+      endSignIn();
+      $("sign-in").focus();
+      GC.call("cancelSignIn");
+    });
     $("ai-credit").addEventListener("click", () => GC.call("openCredits"));
     $("ai-retest").addEventListener("click", () => busy($("ai-retest"), async () => {
       const r = await GC.call("checkConnection");
@@ -167,19 +239,7 @@
       renderAiPane();
       if (!r.ok) setStatus($("ai-error"), r.message, "error");
     }));
-    $("use-key").addEventListener("click", () => { $("key-form").hidden = false; $("use-key").hidden = true; $("key-value").focus(); });
-    $("key-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const button = $("key-form").querySelector("button");
-      busy(button, async () => {
-        const r = await GC.call("saveKey", { provider: $("key-provider").value, key: $("key-value").value.trim() });
-        if (!r.ok) { setStatus($("ai-error"), r.message, "error"); return; }
-        $("key-value").value = "";
-        setStatus($("ai-error"), "", "");
-        await refresh();
-        renderAiPane();
-      });
-    });
+    wireKeyForm("", $("use-key"), $("ai-error"), () => renderAiPane(), () => renderAiPane());
     $("ai-next").addEventListener("click", () => busy($("ai-next"), async () => {
       const r = await GC.call("finishSetup");
       if (!r.ok) { setStatus($("ai-error"), r.message, "error"); return; }
@@ -202,15 +262,16 @@
     const ai = state.ai;
     const aiProblem = !ai || ai.ok === false;   // ok is null while the connection is being checked
     $("ai-value").textContent = ai ? (state.models.find((m) => m.id === ai.model) || { name: ai.model }).name : "Not connected";
-    $("ai-note").textContent = ai ? (ai.ok ? [ai.note, ai.credit].filter(Boolean).join(". ") : ai.note) : "Connect an AI in settings.";
+    // a problem's details and fixes are in the alert above the questions; the rail only says so
+    $("ai-note").textContent = !ai ? "Not connected." : ai.ok === false ? "Not answering right now." : [ai.note, ai.credit].filter(Boolean).join(". ");
     $("ai-note").className = "rail-note" + (aiProblem ? " error" : "");
-    $("fix-ai").hidden = !aiProblem;
-    $("fix-ai").textContent = ai && ai.needsCredit ? "Add credit" : "Fix connection";
+    renderAlert(ai, aiProblem);
 
     const c = state.companion;
-    $("companion-value").textContent = c.running ? "Listening" : "Paused";
+    $("companion-value").textContent = c.running ? "On" : "Paused";
     $("companion-note").textContent = c.running ? "Since " + c.since + ". Keep it running while you play." : "Questions asked in the game while paused get no answer.";
     $("toggle-companion").textContent = c.running ? "Pause" : "Resume";
+    $("toggle-companion").classList.toggle("primary", !c.running);
 
     const live = $("live");
     const problem = aiProblem || !g || g.addon !== "current";
@@ -218,15 +279,29 @@
     $("live-text").textContent = !c.running ? "Paused" : problem ? "Needs attention" : "Listening for questions";
   }
 
+  // The AI problem, at the top of the feed where the questions fail, with what fixes it.
+  function renderAlert(ai, problem) {
+    $("feed-alert").hidden = !problem;
+    if (!problem) return;
+    $("feed-alert-text").textContent = ai ? ai.note : "No AI is connected, so questions from the game get no answer.";
+    $("alert-credit").hidden = !(ai && ai.needsCredit);
+    $("alert-check").hidden = !ai;
+  }
+
   function entryNode(e) {
     const q = el("div", { class: "entry-q" }, [el("span", { class: "who", text: "You" }), el("span", { class: "text", text: e.question }), el("time", { text: e.time })]);
     const node = el("li", { class: "entry" + (e.error ? " error" : ""), "data-id": e.id }, [q]);
-    if (e.pending) node.append(el("p", { class: "entry-a hint", text: "Thinking…" }));
+    if (e.pending) {
+      const dots = el("span", { class: "dots", "aria-hidden": "true" }, [el("i"), el("i"), el("i")]);
+      node.append(el("p", { class: "entry-a thinking" }, [dots, document.createTextNode("Thinking")]));
+    }
     else {
       node.append(el("p", { class: "entry-a", text: e.answer }));
+      // what the answer asked the game to do; whether it happened, and when, the game decides
       if (e.actions && e.actions.length) node.append(el("ul", { class: "entry-actions" }, e.actions.map((a) => el("li", { text: a }))));
       const model = e.model && (state.models.find((m) => m.id === e.model) || { name: e.model }).name;
-      if (e.seconds) node.append(el("p", { class: "entry-meta", text: `Answered in ${e.seconds.toFixed(1)} s` + (model ? ` by ${model}` : "") }));
+      const took = e.seconds ? e.seconds.toFixed(1) + " s" : "";
+      if (took) node.append(el("p", { class: "entry-meta", text: e.error ? `Failed after ${took}` : `Answered in ${took}` + (model ? ` by ${model}` : "") }));
     }
     return node;
   }
@@ -235,6 +310,7 @@
     const list = $("feed-list");
     list.replaceChildren(...state.activity.map(entryNode));
     $("feed-empty").hidden = state.activity.length > 0;
+    $("feed-title").hidden = state.activity.length === 0;
   }
 
   function flare() {
@@ -251,7 +327,7 @@
       if (i >= 0) state.activity[i] = event.entry; else state.activity.unshift(event.entry);
       renderFeed();
       const node = document.querySelector(`.entry[data-id="${event.entry.id}"]`);
-      if (node) node.classList.add("new");
+      if (node) node.classList.add(event.type === "question" ? "new" : "answered");
       if (event.type === "question") flare();
     } else if (event.type === "state") {
       refresh().then(() => {
@@ -274,11 +350,30 @@
   function renderSettings() {
     renderModels(null, $("settings-model"));
     $("settings-account").textContent = state.ai ? state.ai.account + "." + (state.ai.credit ? " " + state.ai.credit + "." : "") : "No AI connected.";
+    $("settings-reconnect").textContent = state.ai && state.ai.account.startsWith("Signed in") ? "Switch account" : "Sign in with OpenRouter";
     const g = selectedGame();
     $("settings-game").textContent = g ? g.name + ": " + g.path : "No game folder chosen.";
     $("settings-autostart").checked = !!state.settings.autostart;
     $("settings-tray").checked = !!state.settings.tray;
     $("settings-version").textContent = "Gnomecaster " + state.version;
+  }
+
+  // Examples go into the game's chat, so a click copies one (WoW's chat box takes Ctrl+V).
+  async function copyExample(text) {
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {
+      const area = el("textarea", { class: "offscreen" });
+      area.value = text;
+      document.body.append(area);
+      area.select();
+      ok = document.execCommand("copy");
+      area.remove();
+    }
+    const note = $("copied");
+    note.textContent = ok ? `Copied. Paste it into the game's chat with Ctrl+V.` : "Couldn't copy; type it in the game's chat.";
+    note.classList.add("show");
+    clearTimeout(copyExample.timer);
+    copyExample.timer = setTimeout(() => note.classList.remove("show"), 3200);
   }
 
   function openDrawer(open) {
@@ -305,9 +400,14 @@
     $("update-addon").addEventListener("click", () => busy($("update-addon"), async () => {
       await GC.call("installAddon", { id: state.game }); await refresh(); renderRail();
     }));
-    $("fix-ai").addEventListener("click", () => {
-      if (state.ai && state.ai.needsCredit) GC.call("openCredits"); else openDrawer(true);
-    });
+    $("alert-credit").addEventListener("click", () => GC.call("openCredits"));
+    $("alert-settings").addEventListener("click", () => openDrawer(true));
+    $("alert-check").addEventListener("click", () => busy($("alert-check"), async () => {
+      const r = await GC.call("checkConnection");
+      await refresh(); renderRail();
+      if (!r.ok) $("feed-alert-text").textContent = r.message;
+    }));
+    document.querySelectorAll(".example").forEach((b) => b.addEventListener("click", () => copyExample(b.textContent)));
     $("settings-model").addEventListener("change", (e) => GC.call("setModel", { id: e.target.value }).then(refresh).then(renderRail));
     $("settings-check").addEventListener("click", () => busy($("settings-check"), async () => {
       const r = await GC.call("checkConnection");
@@ -319,6 +419,10 @@
       setStatus($("settings-ai-status"), r.message, r.ok ? "ok" : "error");
       await refresh(); renderRail(); renderSettings();
     }));
+    wireKeyForm("settings-", $("settings-use-key"), $("settings-ai-status"), (r) => {
+      setStatus($("settings-ai-status"), r.message, "ok");
+      renderRail(); renderSettings();
+    });
     $("settings-reinstall").addEventListener("click", () => busy($("settings-reinstall"), async () => {
       const r = await GC.call("installAddon", { id: state.game });
       await refresh(); renderRail(); renderSettings();

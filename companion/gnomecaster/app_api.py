@@ -18,7 +18,7 @@ from .brain import Brain
 from .model import ModelClient, ModelError
 
 log = logging.getLogger("gnomecaster")
-KEY_PROVIDERS = ("openrouter", "openai", "ollama")      # the choices in the window's key form
+KEY_PROVIDERS = ("openrouter", "openai", "ollama")      # the choices in the window's key form, in order
 
 
 def _preferred(games: list[dict]) -> dict | None:
@@ -111,7 +111,7 @@ class Api:
                         "credit": None, "fix": "credit"}
             return {"ok": False, "note": e.message, "credit": None, "fix": None}
         credit = self._credit(client.key) if openrouter and client.key else None
-        return {"ok": True, "note": note[:1].upper() + note[1:], "credit": credit, "fix": None}
+        return {"ok": True, "note": "Test question " + note, "credit": credit, "fix": None}
 
     def _games(self) -> list[dict]:
         roots = list(self._data.get("roots") or [])
@@ -218,6 +218,8 @@ class Api:
                 "companion": {"running": self._companion.running, "since": self._companion.since},
                 "settings": {"autostart": self._system.autostart_enabled(), "tray": d.get("tray", True) is not False},
                 "models": config.models_for(d.get("provider") or "openrouter"),
+                "providers": [{"id": p, "name": self._presets[p]["name"], "key": self._presets[p]["key"],
+                               "keyPage": bool(self._presets[p].get("key_url"))} for p in KEY_PROVIDERS],
                 "activity": list(self._companion.activity)}
 
     @_call
@@ -288,6 +290,14 @@ class Api:
         return {"ok": True, "message": f"Connected. {note}."}
 
     @_call
+    def cancelSignIn(self, args):
+        """The player gave up on the browser step; the waiting signIn call answers at once."""
+        with self._lock:
+            if self._sign_in_cancel is not None:
+                self._sign_in_cancel.set()
+        return {"ok": True}
+
+    @_call
     def saveKey(self, args):
         provider = str(args.get("provider") or "")
         key = str(args.get("key") or "").strip()
@@ -346,6 +356,14 @@ class Api:
                 self._save()
         else:
             return {"ok": False, "message": "Unknown setting."}
+        return {"ok": True}
+
+    @_call
+    def openKeyPage(self, args):
+        url = self._presets.get(str(args.get("provider") or ""), {}).get("key_url")
+        if not url:
+            return {"ok": False, "message": "This provider needs no key."}
+        self._open_browser(url)
         return {"ok": True}
 
     @_call

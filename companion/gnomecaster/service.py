@@ -15,17 +15,25 @@ KEEP = 50                           # activity entries kept for the window
 MARKERS = [None, "Star", "Circle", "Diamond", "Triangle", "Moon", "Square", "Cross", "Skull"]
 
 
+def key_name(key) -> str:
+    """SHIFT-E as the game's settings show it: Shift-E."""
+    parts = str(key or "").split("-")
+    mods = {"SHIFT": "Shift", "CTRL": "Ctrl", "ALT": "Alt", "META": "Meta"}
+    return "-".join([mods.get(p.upper(), p.title()) for p in parts[:-1]] + parts[-1:])
+
+
 def describe(action: dict) -> str:
-    """One action as the window lists it. Changes wait for Apply in the game."""
+    """One action the answer asked of the game, as the window lists it. Whether it happened
+    is the game's decision (the confirm bar, auto-apply, a changed target), so no status."""
     t = action.get("type")
     if t == "macro":
-        return f'Macro "{action.get("name")}" (apply it in the game)'
+        return f'Macro \u201c{action.get("name")}\u201d'
     if t == "bar":
-        return f'"{action.get("macro")}" on action slot {action.get("slot")} (apply it in the game)'
+        return f'\u201c{action.get("macro")}\u201d on action slot {action.get("slot")}'
     if t == "bind":
-        return f'{action.get("key")} bound to "{action.get("macro")}" (apply it in the game)'
+        return f'{key_name(action.get("key"))} bound to \u201c{action.get("macro")}\u201d'
     if t == "setting":
-        return f'Setting {action.get("name")} = {action.get("value")} (apply it in the game)'
+        return f'Setting {action.get("name")} = {action.get("value")}'
     if t == "waypoint":
         x, y, where = action.get("x"), action.get("y"), ""
         if isinstance(x, (int, float)) and isinstance(y, (int, float)):

@@ -29,69 +29,103 @@
       </aside>
 
       <div class="setup-main">
-        <div class="pane" data-pane="game">
-          <h2>Find World of Warcraft</h2>
-          <p class="lead">Gnomecaster adds a small addon to your game folder.</p>
-          <div id="game-list" class="choice-list" role="radiogroup" aria-label="Game versions"></div>
-          <p class="hint" id="game-missing" hidden>World of Warcraft wasn't found automatically. Choose its folder: the one that contains <code>_retail_</code> or <code>_classic_</code>.</p>
-          <div class="actions">
-            <button class="btn ghost" id="choose-folder" type="button">Choose folder…</button>
-            <button class="btn primary" id="game-next" type="button" disabled>Continue</button>
-          </div>
+        <div class="steps-mini" aria-hidden="true">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          <span class="steps-mini-text" id="steps-mini-text">Step 1 of 3</span>
         </div>
-
-        <div class="pane" data-pane="addon">
-          <h2>Install the addon</h2>
-          <p class="lead">This copies Gnomecaster into <code id="addon-path">Interface\AddOns</code>.</p>
-          <p class="status-line" id="addon-status" role="status" hidden></p>
-          <div class="actions">
-            <button class="btn ghost" data-back="game" type="button">Back</button>
-            <button class="btn primary" id="install-addon" type="button">Install addon</button>
-          </div>
-        </div>
-
-        <div class="pane" data-pane="ai">
-          <h2>Connect an AI</h2>
-          <p class="lead">Gnomecaster asks an AI model to answer your questions. With OpenRouter one account reaches many models; a typical question costs less than a tenth of a cent.</p>
-          <div id="ai-connect">
-            <button class="btn primary wide" id="sign-in" type="button">Sign in with OpenRouter</button>
-            <p class="hint" id="sign-in-wait" hidden>Finish signing in in your browser. This window updates when you're done.</p>
-            <div class="row" id="ai-failed" hidden>
-              <button class="btn primary" id="ai-credit" type="button" hidden>Add credit</button>
-              <button class="btn ghost" id="ai-retest" type="button">Test again</button>
+        <div class="panes">
+          <div class="pane" data-pane="game">
+            <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.5h7.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg></span>
+            <h2>Find World of Warcraft</h2>
+            <p class="lead">Gnomecaster adds a small addon to your game folder. Choose the game version you play.</p>
+            <div id="game-list" class="choice-list" role="radiogroup" aria-label="Game versions"></div>
+            <div class="notice" id="game-missing" hidden>
+              <p class="notice-title">World of Warcraft wasn't found automatically</p>
+              <p>Choose its folder: the one that contains <code>_retail_</code>, <code>_classic_</code> or <code>_classic_era_</code>, usually <code>C:\<wbr>Program Files (x86)\<wbr>World of Warcraft</code>.</p>
             </div>
-            <button class="link" id="use-key" type="button">Use an API key instead</button>
-            <form class="key-form" id="key-form" hidden>
-              <label for="key-provider">Provider</label>
-              <select id="key-provider">
-                <option value="openrouter">OpenRouter</option>
-                <option value="openai">OpenAI</option>
-                <option value="ollama">Ollama (a model on this PC)</option>
-              </select>
-              <label for="key-value">API key</label>
-              <input id="key-value" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
-              <button class="btn primary" type="submit">Connect</button>
-            </form>
+            <div class="actions">
+              <button class="btn ghost" id="choose-folder" type="button">Choose folder…</button>
+              <button class="btn primary" id="game-next" type="button" disabled>Continue</button>
+            </div>
           </div>
-          <div id="ai-models" hidden>
-            <p class="status-line ok" id="ai-connected" role="status"></p>
-            <fieldset class="choice-list" id="model-list">
-              <legend>Model</legend>
-            </fieldset>
-          </div>
-          <p class="status-line error" id="ai-error" role="alert" hidden></p>
-          <div class="actions">
-            <button class="btn ghost" data-back="addon" type="button">Back</button>
-            <button class="btn primary" id="ai-next" type="button" disabled>Finish</button>
-          </div>
-        </div>
 
-        <div class="pane" data-pane="done">
-          <h2>You're set</h2>
-          <p class="lead">Start World of Warcraft, then type <kbd>/gc</kbd> in chat, or bind a key under Options, Keybindings, AddOns, Gnomecaster.</p>
-          <p class="hint">Keep this app running while you play. Closing the window keeps it in the system tray.</p>
-          <div class="actions">
-            <button class="btn primary" id="open-main" type="button">Open Gnomecaster</button>
+          <div class="pane" data-pane="addon">
+            <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 3.5h4v2.2a1.8 1.8 0 1 0 3.6 0V3.5H20v5.8h-2.2a1.8 1.8 0 1 0 0 3.6H20V20h-5.8v-2.2a1.8 1.8 0 1 0-3.6 0V20H4v-5.8h2.2a1.8 1.8 0 1 0 0-3.6H4V3.5z"/></svg></span>
+            <h2>Install the addon</h2>
+            <p class="lead">The addon is the panel you talk to in the game. It goes into the game's AddOns folder:</p>
+            <div class="target" id="addon-target">
+              <svg class="target-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H9l2 2.5h7.5A2.5 2.5 0 0 1 21 10v7.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/></svg>
+              <code class="target-path" id="addon-path">Interface\AddOns</code>
+              <svg class="target-check" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>
+            </div>
+            <p class="status-line" id="addon-status" role="status" hidden></p>
+            <div class="actions">
+              <button class="btn ghost" data-back="game" type="button">Back</button>
+              <button class="btn primary" id="install-addon" type="button">Install addon</button>
+            </div>
+          </div>
+
+          <div class="pane" data-pane="ai">
+            <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 3.5l1.9 5.1 5.1 1.9-5.1 1.9L11 17.5l-1.9-5.1L4 10.5l5.1-1.9z"/><path d="M18 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span>
+            <h2>Connect an AI</h2>
+            <p class="lead" id="ai-lead">OpenRouter gives one account access to many AI models. You pay OpenRouter directly; a typical question costs under a tenth of a cent.</p>
+            <div id="ai-connect">
+              <button class="btn primary wide" id="sign-in" type="button">Sign in with OpenRouter</button>
+              <div class="waiting" id="sign-in-wait" hidden>
+                <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <p>OpenRouter opened in your browser. Approve Gnomecaster there and this window continues by itself.</p>
+                <button class="link" id="sign-in-cancel" type="button">Cancel</button>
+              </div>
+              <div class="row" id="ai-failed" hidden>
+                <button class="btn primary" id="ai-credit" type="button" hidden>Add credit</button>
+                <button class="btn ghost" id="ai-retest" type="button">Test again</button>
+              </div>
+              <button class="link" id="use-key" type="button">Use an API key instead</button>
+              <form class="key-form" id="key-form" hidden>
+                <div class="field">
+                  <label for="key-provider">Provider</label>
+                  <select id="key-provider"></select>
+                </div>
+                <div class="field" data-key-field>
+                  <div class="field-head">
+                    <label for="key-value">API key</label>
+                    <button class="link" type="button" data-key-page>Get a key</button>
+                  </div>
+                  <input id="key-value" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
+                </div>
+                <div class="form-actions">
+                  <button class="link" type="button" data-cancel>Cancel</button>
+                  <button class="btn primary" type="submit">Connect</button>
+                </div>
+              </form>
+            </div>
+            <div id="ai-models" hidden>
+              <p class="banner ok" id="ai-connected" role="status"></p>
+              <fieldset class="choice-list" id="model-list">
+                <legend>Choose a model</legend>
+              </fieldset>
+            </div>
+            <p class="status-line error" id="ai-error" role="alert" hidden></p>
+            <div class="actions">
+              <button class="btn ghost" data-back="addon" type="button">Back</button>
+              <button class="btn primary" id="ai-next" type="button" disabled>Finish</button>
+            </div>
+          </div>
+
+          <div class="pane" data-pane="done">
+            <svg class="done-mark" viewBox="0 0 64 64" aria-hidden="true">
+              <circle class="ring" cx="32" cy="32" r="28"/>
+              <path class="tick" d="M20 33l8 8 16-17"/>
+            </svg>
+            <h2>You're set</h2>
+            <ol class="next-steps">
+              <li><span class="n">1</span><p>Start World of Warcraft. If it was running, restart it so the addon loads.</p></li>
+              <li><span class="n">2</span><p>Type <kbd>/gc</kbd> in chat and ask anything. Prefer a hotkey? Set one in Options › Keybindings › AddOns › Gnomecaster.</p></li>
+            </ol>
+            <p class="hint">Keep this app running while you play. Closing its window keeps it running: its icon is under the arrow next to the clock.</p>
+            <div class="actions">
+              <button class="btn primary" id="open-main" type="button">Done</button>
+            </div>
           </div>
         </div>
       </div>
@@ -125,7 +159,6 @@
             <h2>AI</h2>
             <p class="rail-value" id="ai-value"></p>
             <p class="rail-note" id="ai-note"></p>
-            <button class="btn small" id="fix-ai" type="button" hidden>Fix connection</button>
           </div>
           <div class="rail-item" id="rail-companion">
             <h2>Companion</h2>
@@ -136,11 +169,27 @@
         </aside>
 
         <div class="feed" aria-labelledby="feed-title">
+          <div class="feed-alert" id="feed-alert" role="alert" hidden>
+            <p class="feed-alert-text" id="feed-alert-text"></p>
+            <div class="row">
+              <button class="btn small primary" id="alert-credit" type="button">Add credit</button>
+              <button class="btn small" id="alert-check" type="button">Check again</button>
+              <button class="btn small ghost" id="alert-settings" type="button">Open settings</button>
+            </div>
+          </div>
           <h2 class="feed-title" id="feed-title">Questions from the game</h2>
           <ol class="feed-list" id="feed-list" aria-live="polite"></ol>
           <div class="feed-empty" id="feed-empty">
-            <p>Ask something in the game and it shows up here.</p>
-            <p class="hint">Try <kbd>/gc take me to my quest</kbd> or <kbd>/gc what was that error?</kbd></p>
+            <img class="feed-empty-mark" src="icon.png" alt="" width="64" height="64">
+            <h3>Ask your first question in the game</h3>
+            <p>Open the panel with <kbd>/gc</kbd>, type a question and press Enter. Each question and its answer shows up here.</p>
+            <ul class="examples" aria-label="Examples to copy into the game's chat">
+              <li><button class="example" type="button">/gc take me to my quest</button></li>
+              <li><button class="example" type="button">/gc mark my target with skull</button></li>
+              <li><button class="example" type="button">/gc what was that error?</button></li>
+              <li><button class="example" type="button">/gc turn on auto loot</button></li>
+            </ul>
+            <p class="copied" id="copied" role="status"></p>
           </div>
         </div>
       </div>
@@ -171,16 +220,34 @@
           <p class="hint" id="settings-account"></p>
           <div class="row">
             <button class="btn small" id="settings-check" type="button">Test connection</button>
-            <button class="btn small ghost" id="settings-reconnect" type="button">Change account</button>
+            <button class="btn small" id="settings-reconnect" type="button">Sign in with OpenRouter</button>
           </div>
           <p class="status-line" id="settings-ai-status" role="status" hidden></p>
+          <button class="link" id="settings-use-key" type="button">Use an API key instead</button>
+          <form class="key-form" id="settings-key-form" hidden>
+            <div class="field">
+              <label for="settings-key-provider">Provider</label>
+              <select id="settings-key-provider"></select>
+            </div>
+            <div class="field" data-key-field>
+              <div class="field-head">
+                <label for="settings-key-value">API key</label>
+                <button class="link" type="button" data-key-page>Get a key</button>
+              </div>
+              <input id="settings-key-value" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key">
+            </div>
+            <div class="form-actions">
+              <button class="link" type="button" data-cancel>Cancel</button>
+              <button class="btn primary small" type="submit">Connect</button>
+            </div>
+          </form>
         </section>
         <section>
           <h3>Game</h3>
           <p class="hint" id="settings-game"></p>
           <div class="row">
             <button class="btn small" id="settings-reinstall" type="button">Reinstall addon</button>
-            <button class="btn small ghost" id="settings-folder" type="button">Choose another folder</button>
+            <button class="btn small" id="settings-folder" type="button">Choose another folder</button>
           </div>
         </section>
         <section>
