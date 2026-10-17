@@ -1,9 +1,0 @@
-## Interface: 120105, 120100, 50504, 20506, 11509, 16001
-## Title: Gnomecaster Inbox 35
-## Notes: Reply slot used by Gnomecaster. Keep enabled.
-## LoadOnDemand: 1
-## Dependencies: Gnomecaster
-## Group: Gnomecaster
-## IconTexture: Interface\AddOns\Gnomecaster\Media\icon
-
-inbox.lua

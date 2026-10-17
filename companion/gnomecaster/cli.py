@@ -200,7 +200,7 @@ def cmd_write_test(args) -> None:
     stamp = time.strftime("%H:%M:%S")
     slots.deliver(args.slot, {"sid": "*", "rid": 0, "say": f"Inbox test OK - written by the companion at {stamp}",
                               "written": stamp}, keep_probe=True)
-    print(f"Test reply written to slots {args.slot}-60" + (" with ready signal." if slots.font else " (without ready signal)."))
+    print(f"Test reply written to slots {args.slot}-{protocol.NUM_SLOTS}" + (" with ready signal." if slots.font else " (without ready signal)."))
     print("In game: /gc probe  (should now say true)  then  /gc poll  (should show the test text)" if slots.font
           else "In game: /gc poll  (should show the test text)")
 

@@ -30,6 +30,9 @@ M.onScreenshot = function()
 end
 
 local ns = M.LoadAddon(addonsDir .. "/Gnomecaster")
+-- The addon asks for PNG; JPEG is the fallback when the game ignores that. The dim plate does
+-- not survive JPEG reliably (run_beacon.lua measures it), the classic one does.
+if scenario == "jpeg" then SlashCmdList.GNOMECASTER("beacon classic") end
 local function has(name, a1, a2, a3)
 	for _, c in ipairs(M.calls) do
 		if c.name == name and (a1 == nil or c.args[1] == a1) and (a2 == nil or c.args[2] == a2) and (a3 == nil or c.args[3] == a3) then return c end

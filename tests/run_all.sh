@@ -27,6 +27,15 @@ for sc in macro noevents noprobe fontcache secret combat jpeg scaled actions ui 
 	fi
 done
 
+echo "=== beacon"
+cp "$HERE"/run_beacon.lua "$HERE"/beacon_matrix.py "$WORK"/
+rm -rf "$WORK/AddOns" && mkdir -p "$WORK/AddOns" && cp -r "$HERE"/../addon/* "$WORK/AddOns/"
+if ! (cd "$WORK" && "$LUA" run_beacon.lua "$WORK/AddOns" "$WORK") >"$WORK/beacon.log" 2>&1; then
+	failed+=("beacon")
+	grep -q "^FAIL" "$WORK/beacon.log" || tail -n 15 "$WORK/beacon.log"
+fi
+grep -E "^(PASS|FAIL)" "$WORK/beacon.log" || true
+
 echo "=== python unit tests"
 if ! python3 -m unittest discover -s "$HERE" -p 'test_*.py'; then
 	failed+=("python")

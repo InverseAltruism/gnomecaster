@@ -31,7 +31,7 @@ local function newWidget(kind, name, parent)
 end
 
 function Widget:CreateTexture() local t = newWidget("Texture", nil, nil); self.regions[#self.regions + 1] = t; return t end
-function Widget:CreateFontString() local t = newWidget("FontString", nil, nil); return t end
+function Widget:CreateFontString() local t = newWidget("FontString", nil, nil); t.owner = self; return t end
 function Widget:RegisterEvent(e)
 	if e == "SOME_UNKNOWN_EVENT" or (M.noScreenshotEvents and e:find("^SCREENSHOT")) then error("unknown event " .. e) end
 	self.events[e] = true
@@ -44,7 +44,7 @@ function Widget:Hide() self.shown = false end
 function Widget:IsShown() return self.shown end
 function Widget:SetPoint(p, rel, rp, x, y)
 	if type(rel) == "number" then x, y, rel, rp = rel, rp, nil, nil end
-	self.point = { p = p, x = x or 0, y = y or 0 }
+	self.point = { p = p, rel = rel, rp = rp, x = x or 0, y = y or 0 }
 end
 function Widget:ClearAllPoints() self.point = nil end
 function Widget:SetSize(w, h) self.w, self.h = w, h end
@@ -317,19 +317,44 @@ function M.LoadAddon(dir)
 	return ns
 end
 
--- dump the beacon as rectangles in physical pixels
+-- beacon plate ------------------------------------------------------------
+function Widget:SetTextColor(r, g, b) self.textColor = { r, g, b } end
+
+-- The beacon as the screenshot would show it, in physical pixels from the screen's top-left:
+--   <screen width> <screen height>
+--   rect <x> <y> <w> <h> <r> <g> <b>     textures, in drawing order, colours 0..1
+--   text <x> <y> <r> <g> <b> <text>       font strings (top-left corner)
+-- Every region must sit at its TOPLEFT on the beacon's TOPLEFT, and the beacon at its TOPLEFT
+-- on UIParent's; that is all Beacon.lua does, and all this dump can place.
 function M.DumpBeacon(path)
 	local beacon = _G.GnomecasterBeacon
 	assert(beacon and beacon.shown, "beacon not shown at screenshot time")
-	local _, physH = GetPhysicalScreenSize()
+	local physW, physH = GetPhysicalScreenSize()
 	local unit = beacon.scale * physH / 768   -- pixels per UI unit (should be 1)
+	local bp = beacon.point
+	assert(bp and bp.p == "TOPLEFT" and bp.rel == UIParent and bp.rp == "TOPLEFT", "beacon anchored unexpectedly")
+	local ox, oy = bp.x * unit, -bp.y * unit
+	local function at(region)
+		local pt = rawget(region, "point")
+		if not pt then return nil end
+		assert(pt.p == "TOPLEFT" and pt.rel == beacon and pt.rp == "TOPLEFT", "beacon region anchored unexpectedly")
+		return ox + pt.x * unit, oy - pt.y * unit
+	end
 	local out = assert(io.open(path, "w"))
-	out:write(string.format("%d %d\n", beacon.w * unit + 0.5, beacon.h * unit + 0.5))
+	out:write(string.format("%d %d\n", physW, physH))
 	for _, t in ipairs(beacon.regions) do
-		local pt, col = rawget(t, "point"), rawget(t, "color")
-		if t.shown and col and pt then
-			out:write(string.format("%g %g %g %g %d %d %d\n", pt.x * unit, -pt.y * unit,
-				(rawget(t, "w") or beacon.w) * unit, (rawget(t, "h") or beacon.h) * unit, col[1], col[2], col[3]))
+		local col = rawget(t, "color")
+		if t.shown and col then
+			local x, y = at(t)
+			out:write(string.format("rect %g %g %g %g %g %g %g\n", x, y, rawget(t, "w") * unit, rawget(t, "h") * unit,
+				col[1], col[2], col[3]))
+		end
+	end
+	for _, f in ipairs(M.frames) do
+		if f.kind == "FontString" and f.owner == beacon and f.shown and rawget(f, "point") then
+			local x, y = at(f)
+			local col = rawget(f, "textColor") or { 1, 1, 1 }
+			out:write(string.format("text %g %g %g %g %g %s\n", x, y, col[1], col[2], col[3], f.text))
 		end
 	end
 	out:close()

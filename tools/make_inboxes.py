@@ -3,7 +3,7 @@
 import pathlib
 import sys
 
-NUM_SLOTS = 60
+NUM_SLOTS = 20
 INTERFACE = "120105, 120100, 50504, 20506, 11509, 16001"
 
 TOC = """## Interface: {iface}

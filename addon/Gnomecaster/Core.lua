@@ -3,7 +3,7 @@ local ADDON, ns = ...
 
 ns.VERSION = "0.1.0"
 ns.PROTOCOL = 1
-ns.NUM_SLOTS = 60          -- must match the number of Gnomecaster_InboxNN folders
+ns.NUM_SLOTS = 20          -- must match the number of Gnomecaster_InboxNN folders
 ns.PREFIX = "|cff66ccffGnomecaster|r"
 
 -- Random per-UI-load id, so replies meant for an earlier session are ignored.
@@ -48,6 +48,7 @@ ns.IsAddOnLoaded = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
 
 local defaults = {
 	autoApply = false,   -- apply macro/bar/keybind changes without asking
+	beacon = "dim",      -- how requests are drawn for the screenshot: "dim" or "classic" (Beacon.lua)
 }
 
 local events = CreateFrame("Frame")
@@ -81,6 +82,7 @@ local function help()
 	ns.Print("  /gc status")
 	ns.Print("  /gc auto on|off  - apply changes without confirming")
 	ns.Print("  /gc new  - start a new conversation")
+	ns.Print("  /gc beacon dim|classic  - how questions are sent: a dim plate by the panel, or the original bright corner square")
 end
 
 SLASH_GNOMECASTER1 = "/gc"
@@ -108,6 +110,9 @@ SlashCmdList.GNOMECASTER = function(input)
 	elseif cmd == "auto on" or cmd == "auto off" then
 		ns.db.autoApply = (cmd == "auto on")
 		ns.Print("auto-apply is now " .. (ns.db.autoApply and "ON" or "OFF"))
+	elseif cmd == "beacon" or cmd == "beacon dim" or cmd == "beacon classic" then
+		-- exact words only: "/gc beacon of light macro" is a question
+		ns.Beacon.Command(cmd:sub(8))
 	else
 		ns.UI.Toggle(false)
 		ns.Request.Send("ask", input)

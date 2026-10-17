@@ -7,6 +7,8 @@ import pathlib
 import shutil
 import sys
 
+from .protocol import NUM_SLOTS
+
 
 def _addon_dir() -> pathlib.Path:
     if getattr(sys, "frozen", False):   # the desktop app: PyInstaller unpacks data under _MEIPASS
@@ -18,6 +20,11 @@ ADDON_DIR = _addon_dir()
 GUESSES = [r"C:\Program Files (x86)\World of Warcraft", r"C:\Program Files\World of Warcraft",
            r"D:\World of Warcraft", r"D:\Games\World of Warcraft", "/Applications/World of Warcraft"]
 FLAVORS = ["_retail_", "_classic_", "_classic_era_", "_anniversary_"]
+# Releases up to 1.1.0 shipped 60 reply slots. Folders up to this number are ours even when this
+# version ships fewer, so an update can remove the ones it no longer ships.
+MOST_SLOTS_EVER = 60
+OURS = frozenset({"Gnomecaster"} | {f"Gnomecaster_Inbox{n:02d}" for n in range(1, max(NUM_SLOTS, MOST_SLOTS_EVER) + 1)})
+CURRENT = frozenset({"Gnomecaster"} | {f"Gnomecaster_Inbox{n:02d}" for n in range(1, NUM_SLOTS + 1)})
 
 
 def is_flavor(path: pathlib.Path) -> bool:
@@ -50,11 +57,25 @@ def resolve_flavor(path: str | None) -> pathlib.Path:
     return found
 
 
+def _our_folders(addons: pathlib.Path) -> list[pathlib.Path]:
+    """Folders in AddOns that this app installed, by exact name; never through a link."""
+    if not addons.is_dir():
+        return []
+    return [p for p in sorted(addons.glob("Gnomecaster*")) if p.name in OURS and p.is_dir() and not p.is_symlink()]
+
+
+def leftovers(flavor: pathlib.Path) -> list[pathlib.Path]:
+    """Our folders in the game that this version no longer ships: reply slots past NUM_SLOTS."""
+    return [p for p in _our_folders(flavor / "Interface" / "AddOns") if p.name not in CURRENT]
+
+
 def addon_status(flavor: pathlib.Path) -> str:
     """'missing', 'outdated' or 'current' for the addon and its reply slots in the game."""
     dest = flavor / "Interface" / "AddOns"
     if not (dest / "Gnomecaster").is_dir():
         return "missing"
+    if leftovers(flavor):
+        return "outdated"
     for src in sorted(ADDON_DIR.iterdir()):
         if not (src.is_dir() and src.name.startswith("Gnomecaster")):
             continue
@@ -79,6 +100,7 @@ class Installed:
     dest: pathlib.Path
     count: int                          # addon folders copied
     old: list[str]                      # folders left by the Wowpilot prototype
+    removed: list[str] = dataclasses.field(default_factory=list)   # our folders this version no longer ships
 
 
 def install(flavor: pathlib.Path) -> Installed:
@@ -94,25 +116,26 @@ def install(flavor: pathlib.Path) -> Installed:
             if src.is_dir() and src.name.startswith("Gnomecaster"):
                 shutil.copytree(src, dest / src.name, dirs_exist_ok=True)
                 count += 1
+        removed = []
+        for folder in leftovers(flavor):
+            shutil.rmtree(folder)
+            removed.append(folder.name)
     except PermissionError as e:
         raise InstallError(f"Windows refused to write into {dest} ({e.filename}). Close the game and try again.",
                            denied=True) from None
     except OSError as e:
-        raise InstallError(f"Couldn't copy the addon into {dest} ({e}).") from None
+        raise InstallError(f"Couldn't install the addon into {dest} ({e}).") from None
     old = sorted(p.name for p in dest.glob("Wowpilot*") if p.is_dir())
-    return Installed(dest, count, old)
+    return Installed(dest, count, old, removed)
 
 
 def remove(flavor: pathlib.Path) -> list[str]:
     """Deletes the addon and its reply slots from a game version, nothing else: only folders
-    named Gnomecaster or Gnomecaster_Inbox01 to 60. Returns the names removed."""
-    addons = flavor / "Interface" / "AddOns"
-    ours = {"Gnomecaster"} | {f"Gnomecaster_Inbox{n:02d}" for n in range(1, 61)}
+    named in OURS. Returns the names removed."""
     removed = []
-    for folder in sorted(addons.glob("Gnomecaster*")) if addons.is_dir() else []:
-        if folder.name in ours and folder.is_dir() and not folder.is_symlink():
-            shutil.rmtree(folder)
-            removed.append(folder.name)
+    for folder in _our_folders(flavor / "Interface" / "AddOns"):
+        shutil.rmtree(folder)
+        removed.append(folder.name)
     return removed
 
 
@@ -121,6 +144,8 @@ def install_notes(done: Installed, restart: bool = True) -> list[str]:
     if done.old:
         notes.append(f"Found {len(done.old)} folders of the old Wowpilot prototype in {done.dest}; delete them "
                      "(Wowpilot and Wowpilot_Inbox01 to 60). This companion ignores their requests.")
+    if done.removed:
+        notes.append(f"Removed {len(done.removed)} reply slot folders that this version no longer uses.")
     if restart:
         notes.append("Restart the game completely: new addons need a restart, not just /reload.")
     return notes
