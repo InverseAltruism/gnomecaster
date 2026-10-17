@@ -35,16 +35,37 @@ local function startStatus(stage)
 	return state
 end
 
--- Build the packet, dropping detail until it fits the screenshot channel.
-local function buildPacket(kind, text)
-	for level = 1, 5 do
+-- The conversation key lets the companion tell one conversation from the next. It is kept
+-- in the saved variables, so it survives /reload; /gc new starts another.
+local function newKey()
+	return string.format("%04x%06x%06x", (time() or 0) % 0x10000, math.random(0, 0xFFFFFF), math.random(0, 0xFFFFFF))
+end
+
+function Request.Conversation()
+	if type(ns.db.conv) ~= "string" or ns.db.conv == "" or #ns.db.conv > 16 then ns.db.conv = newKey() end
+	return ns.db.conv
+end
+
+function Request.NewConversation()
+	ns.db.conv = newKey()
+	ns.Actions.ClearResults()
+	ns.UI.Reveal()
+	ns.UI.AddLine("|cff888888New conversation: the assistant starts over from here.|r")
+end
+
+-- The packet as JSON, dropping detail until it fits the screenshot channel; nil when even
+-- the least detail is too much. Questions also carry what became of the last answer's actions.
+function Request.BuildPacket(kind, text)
+	for level, opts in ipairs(ns.Context.LEVELS) do
 		local packet = {
 			v = ns.PROTOCOL, t = kind, sid = ns.sessionId, rid = rid,
 			slot = ns.Inbox.next, slots = ns.NUM_SLOTS, text = text,
+			conv = Request.Conversation(),
+			last = kind == "ask" and ns.Actions.Results(opts.last) or nil,
 			ctx = ns.Context.Collect(level),
 		}
 		local json = ns.Json.Encode(packet)
-		if #json <= ns.Beacon.MAX_BYTES then return json end
+		if #json <= ns.Beacon.MAX_BYTES then return json, level end
 	end
 	return nil
 end
@@ -98,7 +119,7 @@ function Request.Send(kind, text)
 	end
 	rid = rid + 1
 	local thisRid = rid
-	local json = buildPacket(kind, text)
+	local json = Request.BuildPacket(kind, text)
 	if not json then
 		ns.UI.AddLine("|cffff5555That request is too long.|r")
 		return false
@@ -118,6 +139,7 @@ function Request.Send(kind, text)
 			onFail("the game didn't take the screenshot")
 			return
 		end
+		if kind == "ask" then ns.Actions.ClearResults() end
 		if kind == "ping" then
 			waiting = false
 			stopStatus()

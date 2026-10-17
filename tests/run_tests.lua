@@ -350,4 +350,9 @@ if scenario == "live" then
 	end
 end
 
+-- Places, goto, action results and the conversation key.
+if scenario == "places" or scenario == "conversation" then
+	dofile(work .. "/run_places.lua")({ scenario = scenario, M = M, ns = ns, check = check, has = has, ask = ask, work = work })
+end
+
 print("scenario " .. scenario .. " done")

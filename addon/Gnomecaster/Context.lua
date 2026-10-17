@@ -59,6 +59,11 @@ local function collectLocation()
 			loc.mapID = mapID
 			local info = C_Map.GetMapInfo(mapID)
 			if info then loc.map = trim(info.name, 60) end
+			local within = {}         -- the zone and continent around this map
+			for i, parent in ipairs(ns.Places.Ancestors(mapID)) do
+				if i > 1 and parent.name then within[#within + 1] = parent.name end
+			end
+			if #within > 0 then loc.within = within end
 			-- nil inside instances (addons have not had positions there since 7.1)
 			local pos = C_Map.GetPlayerMapPosition(mapID, "player")
 			if pos then
@@ -94,39 +99,88 @@ local function objectivesModern(questID)
 	return #list > 0 and list or nil
 end
 
-local function collectQuests(max, withObjectives)
-	local list = {}
-	if C_QuestLog and C_QuestLog.GetNumQuestLogEntries and C_QuestLog.GetInfo then
-		for i = 1, C_QuestLog.GetNumQuestLogEntries() do
-			local info = C_QuestLog.GetInfo(i)
-			if info and not info.isHeader and not info.isHidden and info.questID then
-				local q = { id = info.questID, title = trim(info.title, 70), level = info.level }
-				if C_QuestLog.IsComplete and C_QuestLog.IsComplete(info.questID) then q.done = true end
-				if withObjectives then q.obj = objectivesModern(info.questID) end
-				list[#list + 1] = q
-				if #list >= max then break end
+-- Quest levels only say something when they differ from the player's (Retail scales most).
+local function addLevel(q, level, playerLevel)
+	level = P(level)
+	if type(level) == "number" and level > 0 and level ~= playerLevel then q.level = level end
+end
+
+-- The `n` quests nearest to the player on this continent, nearest first, leaving out `skip`.
+local function nearest(list, n, skip)
+	local scored = {}
+	if n > 0 and C_QuestLog.GetDistanceSqToQuest then
+		for _, q in ipairs(list) do
+			if q.id ~= skip then
+				local d, onContinent = C_QuestLog.GetDistanceSqToQuest(q.id)
+				d = P(d)
+				if type(d) == "number" and P(onContinent) then scored[#scored + 1] = { q = q, d = d } end
 			end
 		end
-	elseif GetNumQuestLogEntries and GetQuestLogTitle then
-		for i = 1, GetNumQuestLogEntries() do
-			local title, level, _, isHeader, _, isComplete, _, questID = GetQuestLogTitle(i)
-			if title and not isHeader then
-				local q = { id = questID, title = trim(title, 70), level = level }
-				if isComplete == 1 then q.done = true end
-				if withObjectives and GetNumQuestLeaderBoards then
-					local objs = {}
-					for j = 1, GetNumQuestLeaderBoards(i) do
-						local text = trim(GetQuestLogLeaderBoard(j, i), 70)
-						if text then objs[#objs + 1] = text end
-					end
-					if #objs > 0 then q.obj = objs end
-				end
-				list[#list + 1] = q
-				if #list >= max then break end
-			end
+		table.sort(scored, function(a, b) return a.d < b.d end)
+	end
+	local out = {}
+	for i = 1, math.min(n, #scored) do out[i] = scored[i].q end
+	return out
+end
+
+-- The quest log in its own order: id, title, the log's zone header, done, and objectives for
+-- the `opts.objectives` nearest quests (the followed quest has its own in focus).
+local function questsModern(opts, playerLevel)
+	local list, header = {}, nil
+	for i = 1, C_QuestLog.GetNumQuestLogEntries() do
+		local info = C_QuestLog.GetInfo(i)
+		if info and P(info.isHeader) then
+			header = trim(info.title, 40)
+		elseif info and not P(info.isHidden) and P(info.questID) then
+			local q = { id = P(info.questID), title = trim(info.title, 70) }
+			if opts.zones then q.zone = header end
+			addLevel(q, info.level, playerLevel)
+			if C_QuestLog.IsComplete and P(C_QuestLog.IsComplete(q.id)) then q.done = true end
+			list[#list + 1] = q
+			if #list >= opts.quests then break end
 		end
 	end
-	return #list > 0 and list or nil
+	local followed = C_SuperTrack and C_SuperTrack.GetSuperTrackedQuestID and P(C_SuperTrack.GetSuperTrackedQuestID())
+	for _, q in ipairs(nearest(list, opts.objectives or 0, followed)) do q.obj = objectivesModern(q.id) end
+	return list
+end
+
+-- Classic flavors: the same from the old quest log; objectives for the first quests.
+local function questsClassic(opts, playerLevel)
+	local list, header = {}, nil
+	for i = 1, GetNumQuestLogEntries() do
+		local title, level, _, isHeader, _, isComplete, _, questID = GetQuestLogTitle(i)
+		if title and isHeader then
+			header = trim(title, 40)
+		elseif title then
+			local q = { id = questID, title = trim(title, 70) }
+			if opts.zones then q.zone = header end
+			addLevel(q, level, playerLevel)
+			if isComplete == 1 then q.done = true end
+			if #list < (opts.objectives or 0) and GetNumQuestLeaderBoards then
+				local objs = {}
+				for j = 1, GetNumQuestLeaderBoards(i) do
+					local text = trim(GetQuestLogLeaderBoard(j, i), 70)
+					if text then objs[#objs + 1] = text end
+				end
+				if #objs > 0 then q.obj = objs end
+			end
+			list[#list + 1] = q
+			if #list >= opts.quests then break end
+		end
+	end
+	return list
+end
+
+local function collectQuests(opts)
+	local playerLevel = P(UnitLevel("player"))
+	local list
+	if C_QuestLog and C_QuestLog.GetNumQuestLogEntries and C_QuestLog.GetInfo then
+		list = questsModern(opts, playerLevel)
+	elseif GetNumQuestLogEntries and GetQuestLogTitle then
+		list = questsClassic(opts, playerLevel)
+	end
+	return list and #list > 0 and list or nil
 end
 
 -- The quest the player is following, plus where the game says to go next.
@@ -144,20 +198,31 @@ local function collectFocus()
 	return focus
 end
 
--- level 1 = everything, higher levels drop detail to fit the screenshot channel
+-- Detail levels, from everything down to the bare minimum. Request.lua tries them in order
+-- until the packet fits the screenshot channel. Place names (what goto can find) outlast
+-- quest zones and objectives. `last` caps each action result's text.
+local LEVELS = {
+	{ quests = 40, zones = true, objectives = 3, places = 10, errors = true, last = 120 },
+	{ quests = 40, zones = true, objectives = 1, places = 10, errors = true, last = 120 },
+	{ quests = 40, places = 10, errors = true, last = 120 },
+	{ quests = 25, places = 5, errors = true, last = 120 },
+	{ quests = 12, errors = true, last = 40 },
+	{ errors = true, last = 40 },
+	{ last = 40 },
+}
+Context.LEVELS = LEVELS
+
 function Context.Collect(level)
-	level = level or 1
+	local opts = LEVELS[level or 1] or LEVELS[#LEVELS]
 	local ctx = {}
 	section(ctx, "game", collectGame)
 	section(ctx, "player", collectPlayer)
 	section(ctx, "location", collectLocation)
 	section(ctx, "target", collectTarget)
 	section(ctx, "focus", collectFocus)
-	if level <= 3 then
-		local max = (level == 1 and 12) or (level == 2 and 8) or 4
-		section(ctx, "quests", function() return collectQuests(max, level == 1) end)
-	end
-	if level <= 4 then
+	if opts.quests then section(ctx, "quests", function() return collectQuests(opts) end) end
+	if opts.places then section(ctx, "places", function() return ns.Places.Nearby(opts.places) end) end
+	if opts.errors then
 		section(ctx, "errors", function()
 			local e = ns.Errors.Snapshot()
 			return next(e) and e or nil

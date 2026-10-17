@@ -80,6 +80,7 @@ local function help()
 	ns.Print("  /gc probe - check the ready-signal for the next slot")
 	ns.Print("  /gc status")
 	ns.Print("  /gc auto on|off  - apply changes without confirming")
+	ns.Print("  /gc new  - start a new conversation")
 end
 
 SLASH_GNOMECASTER1 = "/gc"
@@ -102,6 +103,8 @@ SlashCmdList.GNOMECASTER = function(input)
 		ns.Inbox.DebugProbe()
 	elseif cmd == "status" then
 		ns.Inbox.DebugStatus()
+	elseif cmd == "new" then
+		ns.Request.NewConversation()
 	elseif cmd == "auto on" or cmd == "auto off" then
 		ns.db.autoApply = (cmd == "auto on")
 		ns.Print("auto-apply is now " .. (ns.db.autoApply and "ON" or "OFF"))

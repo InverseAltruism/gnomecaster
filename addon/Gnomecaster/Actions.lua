@@ -109,6 +109,33 @@ local function macroBodyProblem(body)
 	return nil
 end
 
+-- TomTom (optional addon) takes TomTom:AddWaypoint(uiMapID, x, y, opts) with x and y from 0 to
+-- 1, as its TomTom.lua defines it and current HandyNotes plugins call it. Its errors stay its own.
+local function addTomTom(map, x, y, title)
+	if not (TomTom and TomTom.AddWaypoint) then return false end
+	return (pcall(TomTom.AddWaypoint, TomTom, map, x, y, { title = E(title), from = "Gnomecaster", persistent = false }))
+end
+
+-- Blizzard's map pin and arrow, plus TomTom's waypoint when it is installed.
+-- Returns whether each of the two was set.
+local function setPin(map, x, y, title)
+	local blizzard = false
+	if C_Map and C_Map.SetUserWaypoint and UiMapPoint then
+		if not C_Map.CanSetUserWaypointOnMap or C_Map.CanSetUserWaypointOnMap(map) then
+			C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(map, x, y))
+			if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then
+				C_SuperTrack.SetSuperTrackedUserWaypoint(true)
+			end
+			blizzard = true
+		end
+	end
+	return blizzard, addTomTom(map, x, y, title)
+end
+
+local function firstLine(text)
+	return (text:match("^[^\n]*"))
+end
+
 local handlers = {}
 
 handlers.waypoint = {
@@ -131,22 +158,111 @@ handlers.waypoint = {
 		return string.format("Waypoint: %s (%.1f, %.1f)", E(a.title), a.x * 100, a.y * 100)
 	end,
 	run = function(a)
-		local done = false
-		if C_Map and C_Map.SetUserWaypoint and UiMapPoint then
-			if not C_Map.CanSetUserWaypointOnMap or C_Map.CanSetUserWaypointOnMap(a.map) then
-				C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(a.map, a.x, a.y))
-				if C_SuperTrack and C_SuperTrack.SetSuperTrackedUserWaypoint then
-					C_SuperTrack.SetSuperTrackedUserWaypoint(true)
-				end
-				done = true
-			end
-		end
-		if TomTom and TomTom.AddWaypoint then
-			TomTom:AddWaypoint(a.map, a.x, a.y, { title = E(a.title), from = "Gnomecaster", persistent = false })
-			done = true
-		end
-		if not done then return false, "waypoints are not allowed on this map" end
+		local blizzard, tomtom = setPin(a.map, a.x, a.y, a.title)
+		if not (blizzard or tomtom) then return false, "waypoints are not allowed on this map" end
 		return true
+	end,
+}
+
+-- What a goto found, by action, kept apart from the action's fields (those come from the model).
+local reached = setmetatable({}, { __mode = "k" })
+
+local function questTitle(questID)
+	local title = C_QuestLog.GetTitleForQuestID and C_QuestLog.GetTitleForQuestID(questID)
+	if not ns.Trim(title, 80) and C_TaskQuest and C_TaskQuest.GetQuestInfoByQuestID then
+		title = C_TaskQuest.GetQuestInfoByQuestID(questID)
+	end
+	return ns.Trim(title, 80)
+end
+
+-- A quest in the log, or a world quest that is up; nil for any other quest ID.
+local function questPlace(questID)
+	local inLog = C_QuestLog.GetLogIndexForQuestID and ns.Plain(C_QuestLog.GetLogIndexForQuestID(questID))
+	local zone = not inLog and C_TaskQuest and C_TaskQuest.GetQuestZoneID and ns.Plain(C_TaskQuest.GetQuestZoneID(questID))
+	if not inLog and type(zone) ~= "number" then return nil end
+	local place = { quest = questID, kind = "quest", name = questTitle(questID) or ("quest " .. questID), exact = true }
+	if zone then
+		local x, y = C_TaskQuest.GetQuestLocation(questID, zone)
+		place.map, place.x, place.y = ns.Places.Pinnable(zone, ns.Plain(x), ns.Plain(y))
+	end
+	return place
+end
+
+-- Where the game itself says the quest's next step is.
+local function nextWaypoint(questID)
+	if not C_QuestLog.GetNextWaypoint then return nil end
+	local map, x, y = C_QuestLog.GetNextWaypoint(questID)
+	map, x, y = ns.Plain(map), ns.Plain(x), ns.Plain(y)
+	if type(map) == "number" and type(x) == "number" and type(y) == "number" then return map, x, y end
+	return nil
+end
+
+-- Quests go through the quest arrow, other places through a map pin.
+local function travel(place)
+	if place.quest and C_SuperTrack and C_SuperTrack.SetSuperTrackedQuestID then
+		C_SuperTrack.SetSuperTrackedQuestID(place.quest)
+		local map, x, y = nextWaypoint(place.quest)
+		if map then place.map, place.x, place.y = map, x, y end
+		place.tomtom = place.map ~= nil and addTomTom(place.map, place.x, place.y, place.name)
+		return true
+	end
+	if not place.map then return false, "the game gives no position for it" end
+	local blizzard, tomtom = setPin(place.map, place.x, place.y, place.name)
+	place.tomtom = tomtom
+	if not (blizzard or tomtom) then return false, "the game allows no waypoint there" end
+	return true
+end
+
+local function placeList(list)
+	local parts = {}
+	for _, p in ipairs(list) do
+		parts[#parts + 1] = E(p.name) .. " (" .. p.kind .. (p.zone and (", " .. E(p.zone)) or "") .. ")"
+	end
+	return table.concat(parts, "; ")
+end
+
+-- `goto` is a plain name in Lua 5.1, which WoW runs (it became a keyword in 5.2).
+handlers.goto = {
+	instant = true,
+	order = 6,
+	check = function(a)
+		a.name = str(a.name, 80)
+		a.kind = type(a.kind) == "string" and a.kind:lower() or "any"
+		if not ns.Places.KINDS[a.kind] then a.kind = "any" end
+		a.quest = int(a.quest, 1)
+		return (a.name or a.quest) ~= nil, "needs a place name or a quest ID"
+	end,
+	describe = function(a)
+		local found = reached[a]
+		local p = found and found.place
+		if not p then return "Go to " .. (a.name and ("\"" .. E(a.name) .. "\"") or ("quest " .. a.quest)) end
+		local line = (p.quest and ("Following " .. p.kind .. ": ") or "Map pin: ") .. E(p.name)
+			.. ((not p.quest and (" (" .. p.kind .. ")")) or "")
+		if p.zone then line = line .. " in " .. E(p.zone) end
+		if p.map then line = line .. string.format(" at %.1f, %.1f", p.x * 100, p.y * 100) end
+		if p.tomtom then line = line .. ", also in TomTom" end
+		if not p.exact and #found.others > 0 then
+			line = line .. "\n|cffbbbbbbOther matches: " .. placeList(found.others) .. "|r"
+		end
+		return line
+	end,
+	run = function(a)
+		local found = { others = {} }
+		reached[a] = found
+		found.place = a.quest and questPlace(a.quest)
+		if not found.place and a.name then
+			local result = ns.Places.Find(a.name, a.kind)
+			found.place, found.others = result.place, result.others
+		end
+		local p = found.place
+		if not p then
+			if #found.others > 0 then return false, "couldn't find it; close matches: " .. placeList(found.others) end
+			if not a.name then return false, "that quest is neither in your quest log nor up as a world quest" end
+			return false, "couldn't find it near you or on this continent"
+		end
+		local ok, why = travel(p)
+		if ok and p.map then p.zone = ns.Places.MapName(p.map) or p.zone end
+		return ok, why
 	end,
 }
 
@@ -288,19 +404,68 @@ local function describe(a)
 	return h.describe(a, h)
 end
 
-local function runList(list)
+-- What became of each action, for the next request's `last`. An entry is reported once in
+-- every state it reaches (waiting for Apply, then applied, failed or declined); the newest
+-- MAX_RESULTS are kept.
+local MAX_RESULTS, RESULT_BYTES = 6, 120
+ns.lastResults = {}
+local resultOf = setmetatable({}, { __mode = "k" })
+
+-- Panel text as plain text: colour codes removed, doubled pipes single again.
+local function plainText(text)
+	return (text:gsub("||", "\1"):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("\1", "|"))
+end
+
+local function note(a, ok, say)
+	local entry = resultOf[a]
+	if not entry then
+		entry = { type = ns.Trim(tostring(a.type), 24) }
+		resultOf[a] = entry
+	end
+	entry.ok, entry.say = ok, plainText(say)
+	for i, e in ipairs(ns.lastResults) do
+		if e == entry then table.remove(ns.lastResults, i); break end
+	end
+	table.insert(ns.lastResults, entry)
+	while #ns.lastResults > MAX_RESULTS do table.remove(ns.lastResults, 1) end
+end
+
+-- The entries not reported yet, with `say` cut to sayBytes; nil when there are none.
+function Actions.Results(sayBytes)
+	local out = {}
+	for i, e in ipairs(ns.lastResults) do
+		out[i] = { type = e.type, ok = e.ok, say = ns.Trim(e.say, (sayBytes or RESULT_BYTES) - 3) }
+	end
+	return #out > 0 and out or nil
+end
+
+function Actions.ClearResults()
+	ns.lastResults = {}
+end
+
+-- `applied`: the player confirmed these, so the result names what they saw before running.
+local function runList(list, applied)
 	local okCount, problems, doneList = 0, {}, {}
 	for _, a in ipairs(list) do
+		local before = applied and firstLine(describe(a))
 		local ok, success, err = pcall(handlers[a.type].run, a)
+		local text = before or firstLine(describe(a))
 		if ok and success then
 			okCount = okCount + 1
 			doneList[#doneList + 1] = a
+			note(a, true, (applied and "applied: " or "") .. text)
 		else
-			problems[#problems + 1] = describe(a):match("^[^\n]*") .. ": " .. tostring(ok and err or success)
+			local problem = text .. ": " .. tostring(ok and err or success)
+			problems[#problems + 1] = problem
+			note(a, false, problem)
 		end
 	end
 	for _, p in ipairs(problems) do ns.UI.AddLine("|cffff5555Couldn't do|r " .. p) end
 	return okCount, problems, doneList
+end
+
+local function noteAll(list, prefix)
+	for _, a in ipairs(list or {}) do note(a, false, prefix .. firstLine(describe(a))) end
 end
 
 -- True when the unit a mark would hit is not the one the player had targeted when asking.
@@ -334,9 +499,11 @@ function Actions.Handle(list, request)
 				if h.instant and not a.targetChanged then instant[#instant + 1] = a else changes[#changes + 1] = a end
 			else
 				ns.UI.AddLine("|cff888888(skipped " .. a.type .. ": " .. E(why or "invalid") .. ")|r")
+				note(a, false, "skipped: " .. (why or "invalid"))
 			end
 		elseif type(a) == "table" then
 			ns.UI.AddLine("|cff888888(skipped " .. E(tostring(a.type)) .. ": not something Gnomecaster can do)|r")
+			note(a, false, "skipped: not something Gnomecaster can do")
 		end
 	end
 	table.sort(changes, function(x, y) return handlers[x.type].order < handlers[y.type].order end)
@@ -349,7 +516,9 @@ function Actions.Handle(list, request)
 	if ns.db.autoApply and not needsConfirm then
 		Actions.Apply(changes)
 	else
+		noteAll(pending, "dropped, a newer answer replaced it: ")
 		pending = changes
+		noteAll(changes, "waiting for the player to click Apply: ")
 		local lines = {}
 		for _, a in ipairs(changes) do lines[#lines + 1] = "- " .. describe(a) end
 		ns.UI.ShowConfirm(table.concat(lines, "\n"))
@@ -364,6 +533,7 @@ function Actions.Apply(list)
 	if not list then return end
 	if ns.InCombat() then
 		ns.UI.AddLine("In combat: I'll apply this when combat ends.")
+		noteAll(list, "applies when combat ends: ")
 		waitFrame = waitFrame or CreateFrame("Frame")
 		waitFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 		waitFrame:SetScript("OnEvent", function(self)
@@ -372,13 +542,14 @@ function Actions.Apply(list)
 		end)
 		return
 	end
-	local done = runList(list)
+	local done = runList(list, true)
 	if done > 0 then
 		ns.UI.AddLine(string.format("|cff66ff66Done:|r %d change%s applied.", done, done == 1 and "" or "s"))
 	end
 end
 
 function Actions.Cancel()
+	noteAll(pending, "declined by the player: ")
 	pending = nil
 	ns.UI.HideConfirm()
 	ns.UI.AddLine("|cff888888Cancelled.|r")

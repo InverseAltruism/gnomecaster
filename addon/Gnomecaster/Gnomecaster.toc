@@ -8,6 +8,7 @@
 Core.lua
 Json.lua
 Errors.lua
+Places.lua
 Context.lua
 Beacon.lua
 Inbox.lua

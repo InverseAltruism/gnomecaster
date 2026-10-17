@@ -295,6 +295,8 @@ function ReloadUI() record("ReloadUI") end
 -- MAX_ACCOUNT_MACROS / MAX_CHARACTER_MACROS globals no longer exist in its UI code.
 Constants = { MacroConsts = { MAX_ACCOUNT_MACROS = 120, MAX_CHARACTER_MACROS = 30 } }
 
+dofile(here .. "wowmock_places.lua")      -- maps, entrances, delves, world quests, flight points
+
 -- load the addon ---------------------------------------------------------
 function M.LoadAddon(dir)
 	local ns = {}

@@ -17,7 +17,7 @@ from .slots import text_safe
 ACTION_FIELDS = {
     "waypoint": {"map", "x", "y", "title"}, "track_quest": {"quest"}, "mark": {"icon", "unit"},
     "macro": {"name", "body", "char", "icon"}, "bar": {"macro", "slot"}, "bind": {"key", "macro"},
-    "setting": {"name", "value"},
+    "setting": {"name", "value"}, "goto": {"name", "kind", "quest"},
 }
 ACTION_TYPES = set(ACTION_FIELDS)
 MAX_ACTIONS = 12
