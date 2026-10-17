@@ -345,9 +345,14 @@
     return m ? m[1].padStart(2, "0") + ":" + m[2] : "";
   }
 
-  // An activity entry and its transcript share the question and, give or take the minutes the
-  // answer took, the time: the closest one within five minutes is it.
+  // An activity entry and its transcript share the request id. Transcripts written before it
+  // existed share only the question and, give or take the minutes the answer took, the time:
+  // the closest one within five minutes is it.
   function transcriptFor(entry, items) {
+    if (entry.request) {
+      const exact = items.find((i) => i && i.request === entry.request);
+      if (exact) return exact;
+    }
     const minutes = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
     if (!/^\d{2}:\d{2}$/.test(entry.time || "")) return items.find((i) => i.question === entry.question) || null;
     let best = null, gap = 6;

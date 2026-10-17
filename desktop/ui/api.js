@@ -43,7 +43,7 @@ window.GC = (function () {
   const deDE = (ctx) => { const c = JSON.parse(JSON.stringify(ctx)); c.game.locale = "deDE"; c.player.spec = "Wiederherstellung"; return c; };
 
   const LIVE_TRANSCRIPT = {
-    time: "2026-10-17T18:50:12", conv: "c41", question: "mark my target with skull",
+    time: "2026-10-17T18:50:12", conv: "c41", request: "m1:9", question: "mark my target with skull",
     ctx: withTarget(ZULAMAN, { name: "Amani Hexxer", level: 88, hostile: true, dead: false, player: false }),
     last: [], raw: '{"say": "Marked your target with a skull.", "actions": [{"type": "mark", "icon": 8, "unit": "target"}]}',
     reply: { say: "Marked your target with a skull.", actions: [{ type: "mark", icon: 8, unit: "target" }] },
@@ -54,7 +54,7 @@ window.GC = (function () {
     if (scenario !== "busy" && scenario !== "aiproblem") return [];
     const items = [
       {
-        time: "2026-10-17T18:44:09", conv: "c40", question: "markiere atal aman delve auf der map",
+        time: "2026-10-17T18:44:09", conv: "c40", request: "m1:4", question: "markiere atal aman delve auf der map",
         ctx: deDE(ZULAMAN), last: [{ type: "waypoint", ok: true, say: "Wegpunkt gesetzt" }],
         raw: '{"say": "Ich habe den Eingang der Tiefe Atal\'Aman auf deiner Karte markiert: im Südosten von Zul\'Aman, hinter der Brücke.", "actions": [{"type": "waypoint", "map": 2437, "x": 0.634, "y": 0.718, "title": "Atal\'Aman (Tiefe)"}]}',
         reply: { say: "Ich habe den Eingang der Tiefe Atal'Aman auf deiner Karte markiert: im Südosten von Zul'Aman, hinter der Brücke.",
@@ -62,7 +62,7 @@ window.GC = (function () {
         error: null, seconds: 4.8, model: "openai/gpt-6-luna", searched: true,
       },
       {
-        time: "2026-10-17T18:41:30", conv: "c39", question: "what was that error?",
+        time: "2026-10-17T18:41:30", conv: "c39", request: "m1:3", question: "what was that error?",
         ctx: Object.assign(JSON.parse(JSON.stringify(ZULAMAN)), { errors: { lua: [
           { msg: "Interface/AddOns/Foo/Foo.lua:12: attempt to index field 'db' (a nil value)", t: 1792255270, n: 3 },
         ], ui: [{ msg: "You can't do that yet", t: 1792255262 }] } }),
@@ -72,14 +72,14 @@ window.GC = (function () {
         error: null, seconds: 3.1, model: "openai/gpt-6-luna", searched: false,
       },
       {
-        time: "2026-10-17T18:39:02", conv: "c38", question: "take me to my quest", ctx: ZULAMAN, last: [],
+        time: "2026-10-17T18:39:02", conv: "c38", request: "m1:2", question: "take me to my quest", ctx: ZULAMAN, last: [],
         raw: '{"say": "Marked the next step of The Sunwell\'s Echo: speak to Magister Ilyndra.", "actions": [{"type": "waypoint", "map": 2393, "x": 0.381, "y": 0.552, "title": "The Sunwell\'s Echo"}]}',
         reply: { say: "Marked the next step of The Sunwell's Echo: speak to Magister Ilyndra.",
           actions: [{ type: "waypoint", map: 2393, x: 0.381, y: 0.552, title: "The Sunwell's Echo" }] },
         error: null, seconds: 2.6, model: "openai/gpt-6-luna", searched: false,
       },
       {
-        time: "2026-10-17T18:37:44", conv: "c37", question: "mouseover rejuvenation macro on slot 5, bound to shift-e", ctx: ZULAMAN, last: [],
+        time: "2026-10-17T18:37:44", conv: "c37", request: "m1:1", question: "mouseover rejuvenation macro on slot 5, bound to shift-e", ctx: ZULAMAN, last: [],
         raw: '{"say": "Here\'s a mouseover Rejuvenation macro on slot 5, bound to Shift-E.", "actions": [{"type": "macro", "name": "Rejuv", "body": "#showtooltip\\n/cast [@mouseover,help,nodead][] Rejuvenation"}, {"type": "bar", "slot": 5, "macro": "Rejuv"}, {"type": "bind", "key": "SHIFT-E", "macro": "Rejuv"}]}',
         reply: { say: "Here's a mouseover Rejuvenation macro on slot 5, bound to Shift-E.", actions: [
           { type: "macro", name: "Rejuv", body: "#showtooltip\n/cast [@mouseover,help,nodead][] Rejuvenation" },
@@ -89,7 +89,7 @@ window.GC = (function () {
     ];
     if (scenario === "aiproblem") {
       items.unshift({
-        time: "2026-10-17T18:46:51", conv: "c41", question: "where do i train flying?", ctx: ZULAMAN, last: [], raw: "",
+        time: "2026-10-17T18:46:51", conv: "c41", request: "m1:5", question: "where do i train flying?", ctx: ZULAMAN, last: [], raw: "",
         reply: { say: "Your account at openrouter.ai is out of credit. Add credit there, then try again.", actions: [] },
         error: "OpenRouter answered 402: insufficient credits", seconds: 0.4, model: "openai/gpt-6-luna", searched: false,
       });
@@ -127,14 +127,14 @@ window.GC = (function () {
         { id: "deepseek/deepseek-v4.1-flash", name: "DeepSeek V4.1 Flash", detail: "Lowest cost; some answers are slow." },
       ],
       activity: scenario === "busy" || scenario === "aiproblem" ? [
-        { id: 4, time: "18:44", question: "markiere atal aman delve auf der map", answer: "Ich habe den Eingang der Tiefe Atal'Aman auf deiner Karte markiert: im Südosten von Zul'Aman, hinter der Brücke.", actions: ["Waypoint: Atal'Aman (Tiefe) (63.4, 71.8)"], seconds: 4.8, model: "openai/gpt-6-luna" },
-        { id: 3, time: "18:41", question: "what was that error?", answer: "The error came from the addon Foo, in Foo.lua at line 12: it tried to read a value that was empty at that moment. Update Foo, or disable it to see whether the error stops.", actions: [], seconds: 3.1, model: "openai/gpt-6-luna" },
-        { id: 2, time: "18:39", question: "take me to my quest", answer: "Marked the next step of The Sunwell's Echo: speak to Magister Ilyndra.", actions: ["Waypoint: The Sunwell's Echo (38.1, 55.2)"], seconds: 2.6, model: "openai/gpt-6-luna" },
-        { id: 1, time: "18:37", question: "mouseover rejuvenation macro on slot 5, bound to shift-e", answer: "Here's a mouseover Rejuvenation macro on slot 5, bound to Shift-E. Shift-E currently steers your character, so the game asks before replacing it.", actions: ["Macro “Rejuv”", "“Rejuv” on action slot 5", "Shift-E bound to “Rejuv”"], seconds: 2.9, model: "openai/gpt-6-luna" },
+        { id: 4, time: "18:44", request: "m1:4", question: "markiere atal aman delve auf der map", answer: "Ich habe den Eingang der Tiefe Atal'Aman auf deiner Karte markiert: im Südosten von Zul'Aman, hinter der Brücke.", actions: ["Waypoint: Atal'Aman (Tiefe) (63.4, 71.8)"], seconds: 4.8, model: "openai/gpt-6-luna" },
+        { id: 3, time: "18:41", request: "m1:3", question: "what was that error?", answer: "The error came from the addon Foo, in Foo.lua at line 12: it tried to read a value that was empty at that moment. Update Foo, or disable it to see whether the error stops.", actions: [], seconds: 3.1, model: "openai/gpt-6-luna" },
+        { id: 2, time: "18:39", request: "m1:2", question: "take me to my quest", answer: "Marked the next step of The Sunwell's Echo: speak to Magister Ilyndra.", actions: ["Waypoint: The Sunwell's Echo (38.1, 55.2)"], seconds: 2.6, model: "openai/gpt-6-luna" },
+        { id: 1, time: "18:37", request: "m1:1", question: "mouseover rejuvenation macro on slot 5, bound to shift-e", answer: "Here's a mouseover Rejuvenation macro on slot 5, bound to Shift-E. Shift-E currently steers your character, so the game asks before replacing it.", actions: ["Macro “Rejuv”", "“Rejuv” on action slot 5", "Shift-E bound to “Rejuv”"], seconds: 2.9, model: "openai/gpt-6-luna" },
       ] : [],
     };
     if (scenario === "aiproblem") {
-      state.activity.unshift({ id: 5, time: "18:46", question: "where do i train flying?", answer: "Your account at openrouter.ai is out of credit. Add credit there, then try again.", actions: [], error: true, seconds: 0.4 });
+      state.activity.unshift({ id: 5, time: "18:46", request: "m1:5", question: "where do i train flying?", answer: "Your account at openrouter.ai is out of credit. Add credit there, then try again.", actions: [], error: true, seconds: 0.4 });
     }
     // The transcripts the companion saved for those questions, newest first (getHistory).
     const history = mockHistory(scenario);
@@ -177,10 +177,10 @@ window.GC = (function () {
     };
     // A question arriving from the game a few seconds after the dashboard opens.
     if (scenario === "live") {
-      setTimeout(() => emit({ type: "question", entry: { id: 9, time: "18:50", question: "mark my target with skull", pending: true } }), 1800);
+      setTimeout(() => emit({ type: "question", entry: { id: 9, time: "18:50", request: "m1:9", question: "mark my target with skull", pending: true } }), 1800);
       setTimeout(() => {
         history.unshift(LIVE_TRANSCRIPT);
-        emit({ type: "answer", entry: { id: 9, time: "18:50", question: "mark my target with skull", answer: "Marked your target with a skull.", actions: ["Skull on your target"], seconds: 1.9, model: "openai/gpt-6-luna" } });
+        emit({ type: "answer", entry: { id: 9, time: "18:50", request: "m1:9", question: "mark my target with skull", answer: "Marked your target with a skull.", actions: ["Skull on your target"], seconds: 1.9, model: "openai/gpt-6-luna" } });
       }, 3800);
     }
     return (name, args) => calls[name](args || {});

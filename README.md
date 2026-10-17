@@ -11,8 +11,8 @@ settings, and explain the Lua errors your addons throw.
    it. It installs for your Windows account only, so it asks for no administrator rights.
 2. Gnomecaster opens and sets itself up in three steps: it finds World of Warcraft, adds
    its addon to the game, and connects an AI when you click "Sign in with OpenRouter"
-   (a new OpenRouter account needs a few dollars of credit; a typical question costs less
-   than a tenth of a cent).
+   (a new OpenRouter account needs a few dollars of credit; a typical question costs about
+   two hundredths of a cent, one that needs a web search about one cent).
 3. Restart World of Warcraft, then type `/gc` in chat.
 
 Keep Gnomecaster running while you play: closing its window keeps it in the system tray,
@@ -49,8 +49,8 @@ small "reply slot" addons that the game loads on demand.
  addon reads live game information
         │
         ▼
- draws it as a coloured grid in the top-left  ──►  sees the screenshot, decodes the grid,
- corner for 2 frames and takes a screenshot        deletes the screenshot after answering
+ draws it as a small framed plate beside     ──►  sees the screenshot, decodes the plate,
+ the panel for 2 frames, takes a screenshot        deletes the screenshot after answering
                                                           │
                                                           ▼
                                                    asks the AI model
@@ -74,40 +74,61 @@ Esc > Options > Keybindings > AddOns > Gnomecaster. Type and press Enter. Up and
 back earlier questions. Examples:
 
 - `take me to my quest` (follow a quest first)
+- `where is the Atal'Aman delve` or `mark the world boss on the map`: the addon looks the
+  place up in the game's own data (dungeon and raid entrances, delves, world bosses and
+  world quests, flight points, map pins, zones, your quest log), pins it on the map and
+  points Blizzard's arrow at it; TomTom gets the waypoint too when it is installed
 - `way 45.2 63.1`
 - `mark my target with skull`
 - `mouseover Rejuvenation macro on slot 5, bound to Shift-E` (use one of your spells)
 - `what was that error?`
 - `turn on auto loot`
 
-Waypoints and marks happen at once. Macros, bar placements, key bindings and settings show
-on a yellow bar above the panel and wait for Apply; `/gc auto on` applies them directly,
+Gnomecaster remembers the last ten exchanges (also across `/reload`, while the app runs, and
+for 30 minutes after the last question), so you can answer its questions ("yes") or refer
+back to them; `/gc new` starts over. Waypoints and marks happen
+at once. Macros, bar placements, key bindings and settings show in a box at the bottom of
+the panel and wait for Apply; `/gc auto on` applies them directly,
 except a key binding that would replace an existing one, which always asks. Macros may only
 use casting and targeting commands such as `/cast`, `/use` and `/target`; Gnomecaster never
 creates macros with `/run` or `/script`. The panel shows `sending`, `waiting for the
 companion` and `thinking` while a question is out.
 
 Other commands: `/gc test` (round trip and AI connection check), `/gc status`, `/gc auto
-on|off`, `/gc help`.
+on|off`, `/gc new` (new conversation), `/gc beacon dim|classic` (see Known limits), `/gc help`.
+
+The app's window lists every question with its answer; "What Gnomecaster saw" under an
+answer shows the game information that was sent, how the previous answer's actions went,
+the model's raw reply and whether it searched the web. The same records are kept for 14
+days as text files in the transcripts folder (Settings, Open the transcripts folder). They
+hold your questions and game information, never your API key.
 
 ## Choosing a model
 
-20 realistic requests (macros, quest arrow, coordinates, marks, settings, error
-explanations, a German client, Classic, and safety cases such as "don't mark anything",
-a request for a `/run` macro, and instructions hidden inside a Lua error), sent through the
-real companion and checked against the real addon code. OpenRouter, 2026-10-16:
+28 realistic requests, sent through the real companion and checked against the real addon
+code: macros, the quest arrow, coordinates, marks, settings, error explanations, Classic,
+safety cases such as "don't mark anything", a request for a `/run` macro and instructions
+hidden inside a Lua error, and eight German requests taken from the first in-game test
+(the world boss, the Atal'Aman delve, a route to the Magisters' Terrace, enemy nameplates
+followed by "ja", auto loot, a Freezing Trap macro, a retry after a failed place lookup).
+OpenRouter, 2026-10-17, with web search offered:
 
-| Model | Correct | Typical answer time (p50 / slowest) | Cost per question |
-|---|---|---|---|
-| `openai/gpt-6-luna` (the default) | 20/20 | 2.9 s / 7.2 s | $0.00009 to $0.00024 |
-| `anthropic/claude-haiku-5.5` | 20/20 | 2.2 s / 5.2 s | $0.00035 to $0.00037 |
-| `deepseek/deepseek-v4.1-flash` | 20/20 | 3.2 s / 27.4 s | $0.00006 to $0.00009 |
-| `google/gemini-3.8-flash` | 20/20 | 3.9 s / 8.6 s | $0.00237 to $0.00247 |
+| Model | Correct | Answer time (median / slowest) | Question without search | Per web search |
+|---|---|---|---|---|
+| `openai/gpt-6-luna` (the default) | 28/28 | 2.6 s / 12.2 s | $0.00016 (0.00012 to 0.00086) | $0.0108 |
+| `anthropic/claude-haiku-5.5` | 28/28 | 2.6 s / 8.1 s | $0.00074 (0.00059 to 0.00141) | $0.0118 |
+| `google/gemini-3.8-flash` | 28/28 | 6.2 s / 17.6 s | $0.00301 (0.00203 to 0.01114) | $0.0165 |
 
-Costs are what OpenRouter reported over two runs, and vary with its prompt caching. Free
-(`:free`) models are not recommended: in testing they were rate-limited on most requests.
-The app offers these four under Settings, Model. A local model through Ollama works with
-"Use an API key instead", Ollama, if your PC can run one.
+Costs are what OpenRouter reported; question costs vary with its prompt caching. The models
+searched on 2 to 4 of the 28 requests (where a world boss is up, an unknown fact, a spell
+name). The default model's row is from the final code; the other two rows are from the same
+day, before one line about search results was added to the prompt. In an earlier run the
+default model scored 26/28; both misses were fixed in the companion and the scoring. `deepseek/deepseek-v4.1-flash` (20/20 on the older
+20 requests, 2026-10-16) was not re-run. Free (`:free`) models are not recommended: in
+testing they were rate-limited on most requests. The app offers these models under
+Settings, Model. A local model through Ollama works with "Use an API key instead", Ollama,
+if your PC can run one; web search is only offered through OpenRouter, and
+`GNOMECASTER_WEB_SEARCH=0` (or `"web_search": false` in the settings file) turns it off.
 
 ## When something goes wrong
 
@@ -140,13 +161,20 @@ Gnomecaster; you can see, limit or delete it there.
 
 - One question at a time, about 2.4 KB of game information per question (the quest log is
   trimmed to fit).
-- 60 reply slots per game session. With the ready signal each answer uses one; with timed
-  checking two or three. When they run out the panel offers a Reload UI button.
-- The grid flashes in the top-left corner for a moment while the screenshot is taken.
-  Colour-blind filters or other effects that change colours may break it (tell me if you
-  use one).
-- The model knows only what the game sends plus its own training. It is told to say it
-  can't look something up (NPC locations, drop sources) rather than invent it.
+- 20 reply slots per game session (each is a line under Gnomecaster in the AddOns list;
+  the game has no way to hide them). With the ready signal each answer uses one; with
+  timed checking an answer that takes 15 seconds uses four. The panel warns early and
+  offers a Reload UI button.
+- Each question shows a small dark plate with a gold frame beside the panel for a moment:
+  that is how the question reaches the app. `/gc beacon classic` switches back to the
+  original bright square in the top-left corner, the only style proven in the game so far.
+  The dim plate needs the game to save screenshots as PNG (the addon sets this for each
+  question) and fails at extreme gamma with very low brightness; colour-blind filters may
+  break either style.
+- The game exposes no positions of people such as vendors and trainers. For those the
+  model may search the web and pin the coordinates a guide gives, and says they come from
+  the web.
+- Questions do not work while the interface is hidden (Alt-Z).
 - Nothing works in combat, by design.
 
 ## Status: what is proven and what is not
@@ -154,14 +182,15 @@ Gnomecaster; you can see, limit or delete it there.
 Proven on this machine, with real code:
 
 - The whole round trip, in a simulated game: the real addon code on a mocked WoW API, the
-  real companion, and fake screenshots, including JPEG and rescaled ones. `tests/run_all.sh`
-  runs 11 scenarios (137 checks) and 139 Python unit tests (two of them run only on
-  Windows).
+  real companion, and fake screenshots, including JPEG and rescaled ones, both plate styles
+  under gamma and brightness changes, and place lookups on a mocked game world.
+  `tests/run_all.sh` runs 14 Lua suites (296 checks) and 220 Python unit tests (two of them
+  run only on Windows).
 - The app's setup and dashboard, clicked through in a browser against the app's real
   backend with a fake OpenRouter and a fake game folder (sign-in, an account without
   credit, installing the addon, a question from the game, settings), in light and dark.
-- The AI side, against real models on OpenRouter: 20 realistic requests, scored
-  automatically (`tools/eval_models.py`). Results are in "Choosing a model" below.
+- The AI side, against real models on OpenRouter: 28 realistic requests, scored
+  automatically (`tools/eval_models.py`). Results are in "Choosing a model" above.
 - Every WoW function the addon calls is either in Blizzard's own API documentation for
   build 12.1.5 or used by Blizzard's own UI code (`tools/wow_api.py`), apart from four
   that are only called when present: two old macro and binding functions (with fallbacks
@@ -176,13 +205,19 @@ and from this version while the app ran, both uninstall answers, light and dark 
 question from a simulated game answered by a local model stand-in. A player has not used
 the installed app yet.
 
-Not proven yet, because it needs the real game. This is what the first in-game test is for:
+Proven in the real game on 2026-10-17 (German Retail client, version 1.1.0): the
+screenshot channel with the original bright square, reply slots read fresh from disk
+while playing, and settings and macros applied through Apply.
 
-1. Does `Screenshot()` from an addon produce a readable grid?
-2. Are reply-slot addons really read fresh from disk while you play?
-3. Do the "ready" and "picked up" signals work (they use a font file trick)? If not, the
+Not proven yet, because it needs the real game:
+
+1. The dim plate beside the panel: how it looks and whether it decodes.
+2. The new panel built on Blizzard's window templates, on Retail and on Classic.
+3. Place lookups on live game data (which maps list which entrances, delves and world
+   bosses; a world boss being a tagged world quest).
+4. Do the "ready" and "picked up" signals work (they use a font file trick)? If not, the
    addon falls back to checking on a timer: slower, but it still works.
-4. Does `/reload` free used reply slots? The addon now checks instead of assuming.
+5. Does `/reload` free used reply slots? The addon checks instead of assuming.
 
 ## Running from source (developers and testers)
 
@@ -212,9 +247,10 @@ packages in `packaging/requirements-app.txt`: `py companion\gnomecaster_app.py`.
    ```
    py gnomecaster_companion.py install
    ```
-   In the game's AddOns list the 60 reply slots appear grouped under Gnomecaster; leave
-   them enabled. If you installed the earlier Wowpilot prototype, delete its `Wowpilot`
-   and `Wowpilot_Inbox01` to `Wowpilot_Inbox60` folders from `Interface\AddOns`.
+   In the game's AddOns list the 20 reply slots appear grouped under Gnomecaster; leave
+   them enabled. Installing removes slots 21 to 60 left by older versions. If you
+   installed the earlier Wowpilot prototype, delete its `Wowpilot` and `Wowpilot_Inbox01`
+   to `Wowpilot_Inbox60` folders from `Interface\AddOns`.
 8. **Start the companion** and leave its window open while you play:
    ```
    py gnomecaster_companion.py run
@@ -242,7 +278,15 @@ variables `GNOMECASTER_BASE_URL`, `GNOMECASTER_API_KEY`, `GNOMECASTER_MODEL` and
      quest log ...)
 3. **Round trip**: in game `/gc test`. The panel should say `Round trip OK in X.Xs via
    ready-signal` (or `via timed poll`) and name the model the companion uses.
-4. **Try the examples** from "Using it".
+4. **The plate**: ask anything and watch the right side of the panel (or its left side
+   near the screen edge). If no answer comes, `/gc beacon classic` and ask again, and tell
+   me which style worked.
+5. **Places**: `where is the Atal'Aman delve`, `take me to the Magisters' Terrace`,
+   `mark the world boss on the map`. The panel names what it found and in which zone, or
+   the closest names it knows.
+6. **Memory**: let it offer something, answer `ja`, then `/reload` and refer back to it.
+7. **Try the examples** from "Using it", and open "What Gnomecaster saw" in the app for
+   anything that went wrong.
 
 Please send back the result line of each step and anything red in chat. If step 2 fails,
 try `/console screenshotFormat png` and `/gc ping` again, and check whether a screenshot

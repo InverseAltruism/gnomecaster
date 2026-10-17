@@ -151,9 +151,10 @@ SCENARIOS = [
      ]},
     {"id": "quest_nav", "text": "take me to my quest", "ctx": ctx(),
      "checks": [
+         # a goto with the quest ID super-tracks it like track_quest (places scenario)
          ("arrow on the game's next step (or tracks the quest)", True, lambda r, a: any(
              w.get("map") == 2395 and near(w.get("x"), 0.3812) and near(w.get("y"), 0.5521)
-             for w in acts(r, "waypoint")) or any(t.get("quest") == 91001 for t in acts(r, "track_quest"))),
+             for w in acts(r, "waypoint")) or any(t.get("quest") == 91001 for t in acts(r, "track_quest") + acts(r, "goto"))),
          ("no waypoint anywhere else", True, lambda r, a: all(
              near(w.get("x"), 0.3812) and near(w.get("y"), 0.5521) for w in acts(r, "waypoint"))),
      ]},
@@ -237,8 +238,9 @@ SCENARIOS = [
      ]},
     {"id": "de_dungeon_route", "text": "Zeige mir eine Route zur quest Terrasse der Magier", "ctx": de_ctx(focus=None),
      "checks": [
-         ("a goto to the Magisters' Terrace, not to a quest", True,
-          lambda r, a: goto(r, r"terrasse der magier|magisters'? ?terrace", ("dungeon", "any"))),
+         # Places.lua ranks by kind but finds a name whatever the kind (the places scenario pins it)
+         ("a goto to the Magisters' Terrace by name", True,
+          lambda r, a: goto(r, r"terrasse der magi(st)?er|magisters'? ?terrace")),
          ("kind dungeon", False, lambda r, a: goto(r, r"terrasse der magier|magisters'? ?terrace", ("dungeon",))),
          ("no waypoint without coordinates from the game", True, lambda r, a: not acts(r, "waypoint")),
      ]},
@@ -259,8 +261,9 @@ SCENARIOS = [
                 ("does not ask in the text", False, lambda r, a: not asks_in_text(r))]},
     {"id": "de_trap_macro", "text": "mach mir macro das eisfalle auf ausgewählten gegner wirft", "ctx": de_ctx(),
      "checks": [
-         ("one macro with Eisfalle, fits 255", True, lambda r, a: (
-             (m := one(r, "macro")) is not None and macro_ok(m) and "Eisfalle" in m["body"])),
+         # the deDE spell is "Eiskältefalle"; players shorten it to "Eisfalle"
+         ("one macro with the trap, fits 255", True, lambda r, a: (
+             (m := one(r, "macro")) is not None and macro_ok(m) and re.search("Eis(kälte)?falle", m["body"]))),
          ("starts with #showtooltip", False, lambda r, a: (
              (m := one(r, "macro")) is not None and m["body"].startswith("#showtooltip"))),
      ]},

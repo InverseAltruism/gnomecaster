@@ -47,10 +47,16 @@ class Completion:
 
 
 def _search_report(data: dict, message: dict) -> tuple[bool, list[str]]:
-    """Whether a web search ran (usage.server_tool_use or url_citation annotations), and its sources."""
+    """Whether a web search ran, and its sources. The count is in usage.server_tool_use_details
+    (OpenRouter, openai/gpt-6-luna, 2026-10-17; the docs say server_tool_use); answers that
+    searched may carry no url_citation annotations."""
     usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
-    tool_use = usage.get("server_tool_use") if isinstance(usage.get("server_tool_use"), dict) else {}
-    count = tool_use.get("web_search_requests")
+    count = None
+    for field in ("server_tool_use_details", "server_tool_use"):
+        tool_use = usage.get(field)
+        if isinstance(tool_use, dict) and tool_use.get("web_search_requests") is not None:
+            count = tool_use.get("web_search_requests")
+            break
     notes = message.get("annotations") if isinstance(message.get("annotations"), list) else []
     sources: list[str] = []
     for note in notes:
@@ -233,11 +239,13 @@ class ModelClient:
             searching = search and self.web_search and remaining > SEARCH_RESERVE + SEARCH_MIN
             limit = remaining - SEARCH_RESERVE if searching else remaining
             body = {"model": self.model, "messages": messages, "temperature": 0.2, **self.extra}
-            if self.json_mode:
+            # providers refuse web search with JSON mode ("Web Search cannot be used with JSON
+            # mode", OpenRouter via OpenAI, 2026-10-17); the prompt asks for JSON either way
+            if self.json_mode and not searching:
                 body["response_format"] = {"type": "json_object"}
             if searching:
                 body.update(tools=[WEB_SEARCH_TOOL], max_tool_calls=MAX_TOOL_CALLS)
-            mode = {"json_mode": self.json_mode, "search": searching}
+            mode = {"json_mode": self.json_mode and not searching, "search": searching}
             t0 = time.monotonic()
             try:
                 data = _with_deadline(lambda: self._open("POST", "/chat/completions", body, min(READ_TIMEOUT, limit)),
@@ -254,7 +262,7 @@ class ModelClient:
                 if searching and e.code in TOOL_REFUSED:
                     self.web_search = False     # this model or route takes no server tools
                     continue
-                if searching and err.kind == "provider":
+                if searching and err.kind in ("provider", "timeout"):    # 408, 504 and 5xx: retry without search
                     search = False
                     continue
                 if e.code == 400 and self.json_mode:

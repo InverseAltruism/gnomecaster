@@ -9,6 +9,7 @@ import time
 
 from . import serve
 from .slots import Slots, find_probe_font
+from .transcript import request_of
 
 log = logging.getLogger("gnomecaster")
 KEEP = 50                           # activity entries kept for the window
@@ -66,7 +67,8 @@ class _Observed:
     def answer(self, packet: dict) -> dict:
         kind = packet.get("t")
         question = "/gc test" if kind == "selftest" else str(packet.get("text") or "")
-        entry = {"id": self.service.next_id(), "time": time.strftime("%H:%M"), "question": question, "pending": True}
+        entry = {"id": self.service.next_id(), "time": time.strftime("%H:%M"), "question": question,
+                 "request": request_of(packet), "pending": True}
         self.service.record("question", entry)
         started = time.monotonic()
         done = {k: v for k, v in entry.items() if k != "pending"}

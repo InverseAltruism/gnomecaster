@@ -25,7 +25,7 @@ CREDITS_URL = "https://openrouter.ai/credits"   # linked from OpenRouter's error
 WAIT_SECONDS = 600                  # the code itself expires after 10 minutes
 
 DONE_PAGE = """<!doctype html><meta charset="utf-8"><title>Gnomecaster</title>
-<body style="font:16px/1.5 system-ui,sans-serif;background:#160f33;color:#ede9ff;display:grid;place-items:center;height:100vh;margin:0">
+<body style="font:16px/1.5 system-ui,sans-serif;background:#1c242b;color:#ede4cf;display:grid;place-items:center;height:100vh;margin:0">
 <div style="max-width:28rem;text-align:center"><h1 style="font-size:1.5rem">{title}</h1><p>{text}</p></div></body>"""
 
 

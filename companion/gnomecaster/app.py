@@ -23,6 +23,7 @@ from . import __version__, config, game, winsys
 from .app_api import Api
 
 log = logging.getLogger("gnomecaster")
+BACKGROUND = "#1c242b"                  # before the page paints; the dark --bench in desktop/ui/styles.css
 MUTEX = "Gnomecaster.Running"           # the installer closes the app by it (packaging/gnomecaster.iss)
 
 
@@ -297,7 +298,7 @@ class Shell:
         width, height, x, y = window_geometry(screens)
         self.window = self.webview.create_window(
             "Gnomecaster", str(resource("desktop", "ui", "index.html")), js_api=self.api, width=width, height=height,
-            x=x, y=y, min_size=MIN_SIZE, hidden=self.background and self.icon is not None, background_color="#160F33")
+            x=x, y=y, min_size=MIN_SIZE, hidden=self.background and self.icon is not None, background_color=BACKGROUND)
         self.window.events.closing += self.on_closing
         self.window.events.loaded += self.on_loaded
         threading.Thread(target=self.pump, name="events", daemon=True).start()

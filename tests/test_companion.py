@@ -285,6 +285,27 @@ class Replies(ServerCase):
         with self.assertRaises(ModelError):
             prompt.sanitize({})
 
+    def test_citation_links_are_dropped_from_the_answer(self):
+        # searched answers cite in markdown, which the panel would show as raw text; the sources
+        # stay in the transcript
+        say = ("Cuzolth upgrades gear in the Bazaar (/way 48.6, 62). ([icy-veins.com](https://www.icy-veins.com/wow/x)) "
+               "See [Wowhead](https://www.wowhead.com/npc=1) too.")
+        self.assertEqual(prompt.sanitize({"say": say})["say"],
+                         "Cuzolth upgrades gear in the Bazaar (/way 48.6, 62). See Wowhead too.")
+        self.assertEqual(prompt.sanitize({"say": "[1] is fine (really)"})["say"], "[1] is fine (really)")
+
+    def test_prose_before_an_object_without_say_is_the_answer(self):
+        # without JSON mode (searching), openai/gpt-6-luna wrote this on 2026-10-17
+        text = ("Der Kartenname lautet offenbar „Atal'Aman“. Ich versuche es damit erneut."
+                '{"actions":[{"type":"goto","name":"Atal\'Aman","kind":"delve"}]}')
+        reply = prompt.sanitize(prompt.parse_reply(text))
+        self.assertEqual(reply["say"], "Der Kartenname lautet offenbar „Atal'Aman“. Ich versuche es damit erneut.")
+        self.assertEqual(reply["actions"], [{"type": "goto", "name": "Atal'Aman", "kind": "delve"}])
+        kept = prompt.parse_reply('Draft below. {"say": "the real answer"}')
+        self.assertEqual(kept["say"], "the real answer")
+        two = prompt.parse_reply('Draft {"actions": []} final {"actions": [{"type": "mark", "icon": 8}]}')
+        self.assertNotIn("say", two)                    # never another object's JSON as the answer
+
     def test_prose_without_json_is_the_answer(self):
         text = "Fireball is a Mage spell, so I haven't made a macro."
         self.assertEqual(prompt.sanitize(prompt.parse_reply(text)), {"say": text})

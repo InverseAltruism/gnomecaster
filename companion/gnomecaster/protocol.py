@@ -35,9 +35,10 @@ MARGIN = 8                          # of 255: the least difference that counts (
 # two cells each, with up to 3 blended pixels between them. Positions are taken from the
 # boundaries inside a marker, never from its outer edges, which can merge with what is next to it.
 # Every run is matched whole (the lookarounds), so a large area of one class costs one attempt
-# per run instead of backtracking through it.
+# per run instead of backtracking through it. The last run's far end is left open: right of
+# row 0 an unframed (classic) plate touches the game's picture, and purple there extends it.
 _RUNS = (rb"(?<!\x01)(\x01{3,64})(?!\x01)[^\x01\x02]{0,3}(\x02{3,64})(?!\x02)[^\x02\x03]{0,3}"
-         rb"(\x03{3,64})(?!\x03)[^\x03\x01]{0,3}(\x01{3,64})(?!\x01)")
+         rb"(\x03{3,64})(?!\x03)[^\x03\x01]{0,3}(\x01{3,64})")
 _MARKER = re.compile(_RUNS, re.S)
 _MARKER_LEN = 4 * 64 + 9            # the longest match of _RUNS
 # Row 0 has 80 off cells after the left marker. JPEG ringing can break them up next to the
@@ -131,20 +132,27 @@ def find_markers(img):
     w, h = img.size
     mask, stride = _hue_mask(img), w + 1
     px = img.load()
-    seen = []                                       # (x, first row, last row) of marker rows tried
+    # marker rows tried, as (x, first row, last row) by x // 8. Candidates come in row order, so
+    # an entry that ends above the current row can never match again and is dropped: every
+    # check stays short however many lookalikes the picture holds
+    seen: dict[int, list] = {}
     for m in _left_markers(mask, stride):
         y, inner = divmod(m.start(2), stride)      # inner: where cyan starts, two cells in
-        if any(abs(inner - sx) <= 4 and top <= y <= bottom + 1 for sx, top, bottom in seen):
+        near = []
+        for b in range((inner - 4) // 8, (inner + 4) // 8 + 1):
+            live = seen[b] = [e for e in seen.get(b, ()) if e[2] + 1 >= y]
+            near += live
+        if any(abs(inner - sx) <= 4 and top <= y for sx, top, _ in near):
             continue
-        rough = (m.end(4) - m.start(2)) / 6
-        if not all(rough < m.end(i) - m.start(i) < 3 * rough for i in (2, 3, 4)):
-            continue                                # each run is two cells long
+        rough = (m.start(4) - m.start(2)) / 4
+        if not (all(rough < m.end(i) - m.start(i) < 3 * rough for i in (2, 3)) and m.end(4) - m.start(4) > rough):
+            continue                                # each run is two cells long; the last at least
         # the marker row's height: down from here while magenta, cyan and yellow stay in place
         probes = [(int(inner + (i - 1.5) * rough), i // 2 + 1) for i in (0, 2, 4)]
         rows = 0
         while y + rows < h and rows < 64 and all(mask[(y + rows) * stride + cx] == v for cx, v in probes):
             rows += 1
-        seen.append((inner, y, y + rows))
+        seen.setdefault(inner // 8, []).append((inner, y, y + rows))
         if rows == 0 or rows > 1.5 * rough + 2:
             continue
         cy = int(y + rows / 2)                      # the middle row; the first may be blended

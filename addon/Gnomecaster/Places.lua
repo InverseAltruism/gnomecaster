@@ -163,6 +163,8 @@ end
 -- A point a user waypoint can hold. Places read on a map that takes none (a continent) move
 -- onto the zone under them, through that zone's rectangle on the continent.
 function Places.Pinnable(mapID, x, y)
+	-- callers print and pin the coordinates, so a map never comes back without them
+	if type(x) ~= "number" or type(y) ~= "number" then return nil end
 	if canPin(mapID) then return mapID, x, y end
 	if not C_Map.GetMapInfoAtPosition then return nil end
 	local zone = C_Map.GetMapInfoAtPosition(mapID, x, y)

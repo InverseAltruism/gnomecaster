@@ -190,7 +190,11 @@ function GetSubZoneText() return "Silvermoon City" end
 function IsInInstance() return false, "none" end
 function UnitExists(u) return (u == "target" and not M.noTarget) or u == "player" end
 M.targetGuid = "Creature-0-1-2-3-31146-0000000001"
-function UnitGUID(u) if u == "target" and not M.noTarget then return M.targetGuid end end
+M.playerGuid = "Player-1-00000001"
+function UnitGUID(u)
+	if u == "player" then return M.playerGuid end
+	if u == "target" and not M.noTarget then return M.targetGuid end
+end
 M.SECRET = setmetatable({}, { __tostring = function() return "<secret>" end,
 	__concat = function() error("attempt to concatenate a secret value") end,
 	__eq = function() error("compare secret") end, __lt = function() error("compare secret") end,

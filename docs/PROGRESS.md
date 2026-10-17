@@ -188,3 +188,67 @@ clicked through by hand, with screenshots.
   (15-minute load average 12.6) and the VM runs at a lower priority, so a starved VM is the
   likely cause (inferred, not proven). Worth timing on a real PC.
 - Still unverified: a player using the installed app, and anything in the real game.
+
+## 2026-10-17: rework after the first in-game test
+
+The owner played version 1.1.0 on a German Retail client; screenshots and the diagnosis
+are in `docs/PLAN.md` and `docs/field-test-2026-10-17/`. The transport worked; the helper
+did not (no memory, refusals by prompt, no places in the context, an alarming beacon, 60
+addon list entries, a generic look). Five tracks were built in parallel worktrees with
+fixed file ownership, then merged and checked together.
+
+- Companion: conversation memory per `conv` key (10 exchanges, 30 minutes idle, 32 keys,
+  in memory only, so it ends with the app); the results of the previous reply's actions
+  fed back as `last`; a new prompt (use own knowledge and say when unsure, act instead of
+  asking, answer in the player's language, explain `ctx.places`); OpenRouter web search
+  offered on each question; transcripts as JSON lines for 14 days with the key redacted;
+  `getHistory` and `openTranscripts` for the window, linked to the activity list by
+  `request` (`sid:rid`).
+- Found with the owner's test key on OpenRouter, each fixed with a test that fails without
+  it: providers refuse web search together with JSON mode ("Web Search cannot be used with
+  JSON mode"), so search was never used; the search count comes in
+  `usage.server_tool_use_details`, not `server_tool_use` as the docs say, and answers that
+  searched may have no citation annotations, so searches went unrecorded; searched answers
+  carry markdown citation links, now stripped from `say`; without JSON mode a model may put
+  its answer in prose before an object without `say`, which was dropped.
+- Decision (2026-10-17): with search, the model may pin coordinates a source gives for the
+  map the player is on, saying they come from the web. The game exposes no positions of
+  vendors or trainers, and "where can I upgrade my gear" was one of the owner's questions.
+- Addon: `Places.lua` and the `goto` action (name and kind, resolved from the game's own
+  data, kind ranks but never filters), the full quest log with zones and nearest
+  objectives, `ctx.places`, seven detail levels within 2400 bytes (25 German quests fit at
+  level 4, 40 at level 5), `/gc new`.
+- Transport: 20 reply slots (installing removes 21 to 60); the dim framed plate beside the
+  panel with decoding calibrated from the marker row and a whole-screenshot search;
+  `/gc beacon classic` keeps the proven look. Measured limits of the dim plate: PNG only
+  (12/12 decoded at JPEG quality 95, 0/12 at 85) and it fails at gamma 2.2 or more combined
+  with brightness -0.15 or less. The Reload warning now comes at 6 slots left without a
+  working ready signal (a 15 s answer spends four timed polls).
+- In-game panel: `ButtonFrameTemplate` with the icon as portrait, the conversation in the
+  template's inset, an engineering-gear status lamp, the Apply box inside the panel;
+  plain-frame fallbacks when a template or atlas is missing. Every template and atlas was
+  found in Blizzard's 12.1.5 and four Classic UI sources; the look is unverified.
+- Desktop window: "gnomish workshop" (iron and blueprint in dark, parchment and brass in
+  light; Marcellus and Alegreya Sans, both OFL), a new icon (tinker's hat with goggles),
+  the transcript view "What Gnomecaster saw". Checked in Chromium in both schemes at
+  1024 x 680 and 760 x 540 (100 screenshots, WCAG AA contrast, no page errors); the window
+  and the sign-in page now paint the same dark background before the page loads.
+- Flaky test found: `test_quitting_the_app_does_not_wait_for_an_answer` failed under load
+  because the screenshot watcher was created inside the worker thread; it is now created
+  before the thread starts (80 of 80 parallel runs passed under load average 28 to 34).
+- Real models, OpenRouter, 28 scenarios (eight from the field test): `openai/gpt-6-luna`
+  28/28 (an earlier run 26/28, both misses fixed in the companion and the scoring),
+  `anthropic/claude-haiku-5.5` 28/28, `google/gemini-3.8-flash` 28/28; after the review
+  fixes below the default model again 28/28. A question costs $0.00016 (median, default
+  model, final code) without search and about $0.0108 per web search. The owner's test key
+  was charged $0.46 for all runs and probes.
+- An independent review of the merged rework found a Lua error on one `goto` path, a
+  quadratic decoder case (109 s of CPU on one synthetic image) and three low issues; all
+  five fixed with tests, two low ones declined (`docs/REVIEW.md`, E1 to E7). A cross-model
+  review then found that purple next to a classic plate hid it (a regression against the old
+  decoder) and that gateway timeouts skipped the no-search retry; both fixed (E8, E9).
+- Checks after those fixes: `tests/run_all.sh` passes (14 Lua suites, 296 checks; 220
+  Python tests, two of them only on Windows); `wow_api.py check`, `make_icons.py --check`
+  and `lock.py --check` pass.
+- Not proven until the next in-game test: the dim plate, the new panel, place lookups on
+  live data, memory across a real `/reload`.

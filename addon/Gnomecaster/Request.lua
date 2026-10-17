@@ -36,18 +36,33 @@ local function startStatus(stage)
 end
 
 -- The conversation key lets the companion tell one conversation from the next. It is kept
--- in the saved variables, so it survives /reload; /gc new starts another.
+-- in the saved variables, so it survives /reload; /gc new starts another. Those are shared
+-- by the account, so each character has its own key.
 local function newKey()
 	return string.format("%04x%06x%06x", (time() or 0) % 0x10000, math.random(0, 0xFFFFFF), math.random(0, 0xFFFFFF))
 end
 
+local function character()
+	local guid = ns.Plain(UnitGUID("player"))
+	if type(guid) == "string" and guid ~= "" then return guid end
+	return "name:" .. tostring(ns.Plain(UnitName("player")))
+end
+
 function Request.Conversation()
-	if type(ns.db.conv) ~= "string" or ns.db.conv == "" or #ns.db.conv > 16 then ns.db.conv = newKey() end
-	return ns.db.conv
+	if type(ns.db.convs) ~= "table" then ns.db.convs = {} end
+	ns.db.conv = nil                               -- the account-wide key of earlier builds
+	local who = character()
+	local key = ns.db.convs[who]
+	if type(key) ~= "string" or key == "" or #key > 16 then
+		key = newKey()
+		ns.db.convs[who] = key
+	end
+	return key
 end
 
 function Request.NewConversation()
-	ns.db.conv = newKey()
+	Request.Conversation()
+	ns.db.convs[character()] = newKey()
 	ns.Actions.ClearResults()
 	ns.UI.Reveal()
 	ns.UI.AddLine("|cff888888New conversation: the assistant starts over from here.|r")
@@ -83,7 +98,7 @@ local function onReply(msg, seconds, how, slot, request)
 			seconds, how, slot, ns.Inbox.Remaining()))
 	end
 	ns.Actions.Handle(msg.actions, request)
-	if ns.Inbox.Remaining() <= 3 then
+	if ns.Inbox.Remaining() <= ns.Inbox.LowMark() then
 		ns.UI.AddLine("|cffffaa00Reply slots are almost used up for this session. Reload your UI to refresh them.|r")
 		ns.UI.ShowReload(true)
 	end

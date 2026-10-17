@@ -174,3 +174,28 @@ Pillow is installed with an unpinned `pip install pillow`; there is no requireme
 4. R4's startup skip, which is safe whatever the in-game test shows.
 5. R5, R6 and R8: tests for the model path, the mirrored constants, and test isolation.
 6. The low findings as they come up; R7 before the brain grows.
+
+## Review of the rework after the first in-game test, 2026-10-17
+
+An independent review with a fresh context read the whole uncommitted rework (`docs/PLAN.md`)
+and reproduced its findings in a copy. Trust boundary: no way found to inject `|` codes,
+pass a macro outside `MACRO_COMMANDS`, leak the key into transcripts or `getHistory`, or
+inject HTML into the window.
+
+| Finding | Status | Evidence |
+|---|---|---|
+| E1 `goto` to an active world quest the game gives no position for raised a Lua error in `describe`, skipping the reply's other actions (medium) | fixed | `Places.Pinnable` never returns a map without numeric coordinates; `places` scenario, red without it with the reported error |
+| E2 decoder quadratic on rows of marker lookalikes: 109 s of CPU for a 1920 x 540 image (medium) | fixed | candidates bucketed by x and dropped once no later row can reach them, same matching rule; 0.95 s; `test_rows_of_marker_lookalikes_are_scanned_quickly` |
+| E3 the conversation key was account-wide, so another character continued the last one's conversation (low) | fixed | one key per character (`GnomecasterDB.convs` by player GUID); `conversation` scenario |
+| E4 a settings change during an answer could turn it into an internal error (low) | fixed | the brain reads its client once per answer; `SettingsChangeMidAnswer`, red without it |
+| E5 no rule against instructions inside search results (low) | fixed | prompt rule; `SystemPrompt` test |
+| E6 any HTTP 400 on a search attempt turns search off for the session, and a timed-out search may still be billed (low) | declined | needs a provider error first, and costs one app session without search; revisit if transcripts show it |
+| E7 up to 12 `goto` actions in one reply each run a full place search (low) | declined | worst case about 360 ms once, out of combat |
+
+A cross-model review (a different model family, adversarial, on the same uncommitted tree
+after E1 to E5) then found two more:
+
+| Finding | Status | Evidence |
+|---|---|---|
+| E8 purple touching the right end of a classic (unframed) plate's row 0 merged with its last magenta run, and the plate was not found; the decoder before the rework read it (medium) | fixed | the last run's far end is left open and the cell size comes from the inner runs; `test_purple_touching_a_classic_plate_does_not_hide_it`, red without it |
+| E9 HTTP 408 and 504 on a search attempt failed the question instead of asking again without search (medium) | fixed | `timeout` joins `provider` in the search fallback; `test_a_gateway_timeout_while_searching_is_retried_without_search`, red without it |

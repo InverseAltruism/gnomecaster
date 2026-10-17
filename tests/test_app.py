@@ -18,7 +18,7 @@ from unittest import mock
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "companion"))
 
-from gnomecaster import __version__, app, app_api, config, game, oauth, serve, service, winsys  # noqa: E402
+from gnomecaster import __version__, app, app_api, config, game, oauth, serve, service, transcript, winsys  # noqa: E402
 from gnomecaster.brain import Brain  # noqa: E402
 from test_companion import FakeServer, beacon_png, completion  # noqa: E402
 from test_oauth import FakeOpenRouter  # noqa: E402
@@ -110,6 +110,20 @@ class Contract(unittest.TestCase):
         public = {n for n in dir(app_api.Api) if not n.startswith("_")}
         self.assertEqual(public, mock_calls)
         self.assertLessEqual(used, public)
+
+    def test_native_backgrounds_match_the_dark_bench(self):
+        # the window paints app.BACKGROUND before the page loads, and the sign-in page shows in the
+        # browser: both must be the stylesheet's dark bench, or the switch flashes another colour
+        css = (ROOT / "desktop" / "ui" / "styles.css").read_text()
+        bench = re.search(r"--bench:\s*(#[0-9a-fA-F]{6})", css).group(1).lower()
+        self.assertEqual(app.BACKGROUND.lower(), bench)
+        self.assertIn(f"background:{bench}", oauth.DONE_PAGE.lower())
+
+    def test_the_mock_defines_each_call_once(self):
+        # in an object literal the later of two same-named methods silently wins
+        source = (ROOT / "desktop" / "ui" / "api.js").read_text()
+        names = re.findall(r"^\s+async (\w+)\(", source, re.M)
+        self.assertEqual(sorted(n for n in set(names) if names.count(n) > 1), [])
 
     def test_the_window_reads_transcripts_through_its_two_calls(self):
         # "What Gnomecaster saw" under each answer and the transcripts folder button: the mock
@@ -682,6 +696,21 @@ class History(AppCase):
         self.assertEqual(len(api.getHistory({"limit": 1})["items"]), 1)
         self.assertEqual(len(api.getHistory({"limit": "junk"})["items"]), 2)
         self.assertEqual(api.getHistory({"limit": -3})["items"], [])
+
+    def test_an_answer_and_its_transcript_share_the_request(self):
+        # the window opens "What Gnomecaster saw" by this id; the same question asked twice
+        # ("ja", "ja") must not show the other one's transcript
+        api, _ = self.connected({"body": completion('{"say": "second"}')})
+        companion = service.Companion()
+        observed = service._Observed(api._brain, companion)
+        for rid in (7, 8):
+            observed.answer({"t": "ask", "rid": rid, "sid": "s1", "conv": "c", "text": "ja", "ctx": {}})
+        items = api.getHistory({"limit": 2})["items"]
+        self.assertEqual([e["request"] for e in companion.activity], ["s1:8", "s1:7"])
+        self.assertEqual([i["request"] for i in items], ["s1:8", "s1:7"])
+        self.assertEqual(transcript.request_of({"sid": "a<b>", "rid": 3}), "ab:3")
+        self.assertIsNone(transcript.request_of({"sid": "s", "rid": True}))
+        self.assertIsNone(transcript.request_of({}))
 
     def test_nothing_yet(self):
         self.assertEqual(self.api().getHistory({}), {"ok": True, "items": []})

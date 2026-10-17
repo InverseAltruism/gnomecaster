@@ -122,6 +122,9 @@ return function(t)
 		handle({ { type = "goto", name = "Terrasse der Magier", kind = "dungeon" } })
 		check(pinAt(2424, 0.61, 0.31), "goto finds the dungeon \"Terrasse der Magister\" from \"Terrasse der Magier\"")
 		check(said("Terrasse der Magister %(dungeon%) in Insel von Quel'Danas"), "the dungeon's zone is named")
+		-- the player said "quest", and models pass that on (openai/gpt-6-luna did, 2026-10-17)
+		handle({ { type = "goto", name = "Terrasse der Magier", kind = "quest" } })
+		check(pinAt(2424, 0.61, 0.31), "a wrong kind still finds the dungeon by its name")
 
 		handle({ { type = "goto", name = "Sonnenbrunnen", kind = "raid" } })
 		check(pinAt(2424, 0.6, 0.3), "a raid listed only on the continent is moved onto the zone under it")
@@ -164,6 +167,16 @@ return function(t)
 		check(said("Following quest: The Sunwell's Echo in Immersangwald at 38%.1, 55%.2"), "and names the quest and where it leads")
 		handle({ { type = "goto", quest = 92001 } })
 		check(has("SetSuperTrackedQuestID", 92001), "a world quest that is up is super-tracked too")
+		-- GetQuestLocation may return nothing (MayReturnNothing in Blizzard's docs)
+		local location, nextStep = C_TaskQuest.GetQuestLocation, C_QuestLog.GetNextWaypoint
+		C_TaskQuest.GetQuestLocation, C_QuestLog.GetNextWaypoint = function() end, function() end
+		local ok, err = pcall(handle, { { type = "goto", quest = 92001 }, { type = "waypoint", map = 2393, x = 0.5, y = 0.5 } })
+		check(ok, "a world quest without a position raises no error (" .. tostring(err) .. ")")
+		check(has("SetSuperTrackedQuestID", 92001) and has("SetUserWaypoint", 2393),
+			"it is followed, and the reply's other actions still run")
+		check(ns.Places.Pinnable(2424, nil, nil) == nil and ns.Places.Pinnable(2393, nil, 0.5) == nil,
+			"no map comes back without coordinates")
+		C_TaskQuest.GetQuestLocation, C_QuestLog.GetNextWaypoint = location, nextStep
 		handle({ { type = "goto", quest = 99999 } })
 		check(not has("SetSuperTrackedQuestID") and said("neither in your quest log"), "an unknown quest ID says so")
 		handle({ { type = "goto", quest = 99999, name = "Sunwell's Echo", kind = "quest" } })
@@ -305,10 +318,22 @@ return function(t)
 		check(#ns.lastResults == 6, "at most six results are kept")
 		ns.Actions.ClearResults()
 
+		-- the reload warning comes early enough for the next wait: timed polls spend a slot each
+		ns.Inbox.probeState = "unknown"
+		check(ns.Inbox.LowMark() == 6, "without a working ready signal the warning comes at 6 slots left")
+		ns.Inbox.probeState = "works"
+		check(ns.Inbox.LowMark() == 3, "with it, at 3")
+		local remaining, lowMark = ns.Inbox.Remaining, ns.Inbox.LowMark
+		ns.Inbox.Remaining, ns.Inbox.LowMark = function() return 5 end, function() return 6 end
+		M.chat = {}
+		ask("where am i")
+		check(said("almost used up"), "an answer with fewer slots left than the next wait may need warns")
+		ns.Inbox.Remaining, ns.Inbox.LowMark = remaining, lowMark
+
 		-- the conversation key
 		ask("where am i")
 		local conv = lastPacket().conv
-		check(type(conv) == "string" and #conv >= 8 and #conv <= 16 and conv == ns.db.conv, "the question carries a conversation key (" .. tostring(conv) .. ")")
+		check(type(conv) == "string" and #conv >= 8 and #conv <= 16 and conv == ns.Request.Conversation(), "the question carries a conversation key (" .. tostring(conv) .. ")")
 		ask("where am i")
 		check(lastPacket().conv == conv, "the key stays the same for the next question")
 
@@ -321,18 +346,23 @@ return function(t)
 		end
 		GnomecasterDB = copy(GnomecasterDB)
 		ns = M.LoadAddon(work .. "/AddOns/Gnomecaster")
-		check(ns.db.conv == conv, "the key survives a reload")
+		check(ns.Request.Conversation() == conv, "the key survives a reload")
+		-- the saved variables are account-wide; another character must not continue this talk
+		M.playerGuid = "Player-1-00000002"
+		check(ns.Request.Conversation() ~= conv, "another character has its own conversation")
+		M.playerGuid = "Player-1-00000001"
+		check(ns.Request.Conversation() == conv, "and switching back resumes this one")
 		ask("where am i")
 		check(lastPacket().conv == conv, "and the first question after the reload carries it")
 
 		M.chat = {}
 		ns.Actions.Handle({ { type = "mark", icon = 99 } }, { hasTarget = false })
 		SlashCmdList.GNOMECASTER("new")
-		check(ns.db.conv ~= conv and #ns.db.conv <= 16, "/gc new makes a new key")
+		check(ns.Request.Conversation() ~= conv and #ns.Request.Conversation() <= 16, "/gc new makes a new key")
 		check(said("New conversation"), "and says so in the panel")
 		ask("where am i")
 		p = lastPacket()
-		check(p.conv == ns.db.conv, "the next question carries the new key")
+		check(p.conv == ns.Request.Conversation(), "the next question carries the new key")
 		check(p.last == nil, "and nothing from the conversation before")
 		M.chat = {}
 		SlashCmdList.GNOMECASTER("help")

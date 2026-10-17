@@ -45,6 +45,12 @@ function Inbox.Remaining()
 	return ns.NUM_SLOTS - Inbox.next + 1
 end
 
+-- Warn about running out with this many slots left: without the ready signal every timed
+-- poll spends a slot, and an answer that takes 15 s spends four.
+function Inbox.LowMark()
+	return Inbox.probeState == "works" and 3 or 6
+end
+
 -- Load the next slot. Returns msg (table, or false/nil if empty), slot, error.
 function Inbox.LoadNext()
 	local i = Inbox.next

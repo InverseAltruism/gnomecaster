@@ -19,6 +19,16 @@ log = logging.getLogger("gnomecaster")
 KEEP_DAYS = 14
 MAX_LIST = 200                      # entries one getHistory call returns at most
 NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})\.jsonl$")
+SID_UNSAFE = re.compile(r"[^A-Za-z0-9_.-]")
+
+
+def request_of(packet: dict) -> str | None:
+    """"<sid>:<rid>", the id a transcript line shares with the window's entry for the same
+    question; None when the packet lacks either (both come from the game, so untrusted)."""
+    sid, rid = packet.get("sid"), packet.get("rid")
+    if isinstance(sid, bool) or not isinstance(sid, (str, int)) or isinstance(rid, bool) or not isinstance(rid, int):
+        return None
+    return f"{SID_UNSAFE.sub('', str(sid))[:24]}:{rid}"
 
 
 class Transcript:

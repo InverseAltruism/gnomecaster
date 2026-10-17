@@ -164,6 +164,26 @@ class Decode(unittest.TestCase):
         self.assertIsNone(protocol.decode_image(path))
         self.assertLess(time.process_time() - started, 5.0)
 
+    def test_purple_touching_a_classic_plate_does_not_hide_it(self):
+        # the classic plate is unframed: what is right of row 0 merges with its last magenta
+        # run (found by the cross-model review, 2026-10-17; the decoder before the rework read it)
+        rects, _ = plate(self.packet, 0, 0, CLASSIC, framed=False)
+        purple = Image.new("RGB", (1920, 1080), (90, 40, 150))
+        self.assertEqual(self.shot(rects, background=purple), self.packet)
+
+    def test_rows_of_marker_lookalikes_are_scanned_quickly(self):
+        # Every row repeats magenta, cyan, yellow, magenta runs after an off stretch: each is a
+        # candidate. Checking each against all earlier ones took 109 s of CPU for this image
+        # (2026-10-17); against the few above it in the same columns, 0.95 s.
+        pattern = [(20, 20, 20)] * 16 + [(200, 20, 200)] * 3 + [(20, 200, 200)] * 3 + [(200, 200, 20)] * 3 + [(200, 20, 200)] * 3
+        # wrapped across rows, so each row's candidates sit at new x positions
+        img = Image.frombytes("RGB", (1920, 540), (b"".join(bytes(p) for p in pattern) * (1920 * 540 // len(pattern) + 1))[:1920 * 540 * 3])
+        path = self.tmp / "stripes.png"
+        img.save(path)
+        started = time.process_time()
+        self.assertIsNone(protocol.decode_image(path))
+        self.assertLess(time.process_time() - started, 5.0)
+
     def test_full_intensity_plates_survive_jpeg(self):
         # The addon asks for PNG; if the game writes JPEG anyway, full intensity is the fallback
         # (/gc beacon classic). Measuring the on level as the mean of the marker cells, which

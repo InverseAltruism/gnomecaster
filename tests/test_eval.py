@@ -74,8 +74,10 @@ class Checks(unittest.TestCase):
     def test_the_owners_bad_answers_fail(self):
         self.assertFalse(passes("de_nameplates_yes", {"say": "Wozu sagst du ja?"}))
         self.assertFalse(passes("de_worldboss", {"say": "Das kann ich noch nicht nachschlagen."}))
+        # in game it refused; a goto by name with kind "quest" still finds the dungeon (places scenario)
+        self.assertFalse(passes("de_dungeon_route", {"say": "Ich kann die Route noch nicht anzeigen."}))
         self.assertFalse(passes("de_dungeon_route", {"say": "x", "actions": [
-            {"type": "goto", "name": "Terrasse der Magier", "kind": "quest"}]}))
+            {"type": "goto", "name": "Atal'Aman", "kind": "dungeon"}]}))
         self.assertFalse(passes("de_delve", {"say": "x", "actions": [
             {"type": "waypoint", "map": 1, "x": 0.5, "y": 0.5}, {"type": "goto", "name": "Atal'Aman", "kind": "delve"}]}))
 
@@ -84,6 +86,8 @@ class Checks(unittest.TestCase):
         self.assertTrue(passes("de_delve", {"say": "x", "actions": [{"type": "goto", "name": "Atal'Aman", "kind": "delve"}]}))
         self.assertTrue(passes("de_dungeon_route", {"say": "x", "actions": [
             {"type": "goto", "name": "Terrasse der Magier", "kind": "dungeon"}]}))
+        self.assertTrue(passes("quest_nav", {"say": "x", "actions": [
+            {"type": "goto", "name": "The Sunwell's Echo", "kind": "quest", "quest": 91001}]}))
         self.assertTrue(passes("de_autoloot", {"say": "An.", "actions": [
             {"type": "setting", "name": "autoLootDefault", "value": "1"}]}))
         self.assertTrue(passes("de_trap_macro", {"say": "x", "actions": [
