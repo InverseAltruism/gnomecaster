@@ -122,6 +122,28 @@ def claim_instance(name: str) -> bool | None:
     return ctypes.get_last_error() != ERROR_ALREADY_EXISTS
 
 
+ERROR_FILE_NOT_FOUND = 2
+SYNCHRONIZE = 0x00100000
+
+
+def instance_held(name: str) -> bool | None:
+    """Whether some process still holds the mutex claim_instance creates: it goes only when
+    that process has exited, after its window and instance file are gone. None: no answer."""
+    if sys.platform != "win32":
+        return None
+    import ctypes
+    from ctypes import wintypes
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel32.OpenMutexW.restype = wintypes.HANDLE
+    kernel32.OpenMutexW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = kernel32.OpenMutexW(SYNCHRONIZE, False, name)
+    if handle:
+        kernel32.CloseHandle(handle)
+        return True
+    return False if ctypes.get_last_error() == ERROR_FILE_NOT_FOUND else None
+
+
 def data_dir() -> pathlib.Path:
     """Where the app keeps logs and its instance file (not the settings, see config.py)."""
     if sys.platform == "win32":

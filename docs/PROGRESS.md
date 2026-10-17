@@ -124,7 +124,8 @@ The owner asked for nothing unpolished: smooth animations, good design, intuitiv
   under a millisecond; the backend's sign-in winds down behind it); the out-of-credit state
   as an alert above the questions with Add credit and Check again; examples that copy
   "/gc ..." for the game's chat; action lines grouped by "done" and "waiting for Apply";
-  custom radios and selects; a key form with Get a key, Cancel and no key field for Ollama.
+  custom radios and selects; a key form with Get a key, Cancel and no key field for Ollama;
+  the window sized to the screen.
 - In the game: answers type out in place (at most 1.4 s) under a gold "Gnomecaster:" label,
   lines that arrive meanwhile wait their turn, and colour codes, links and UTF-8 characters
   are never cut; the panel uses the app's violet, the brand icon and a glowing spark as its

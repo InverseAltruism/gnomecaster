@@ -7,6 +7,13 @@
   #error Pass the version: iscc /DAppVersion=x.y.z packaging\gnomecaster.iss
 #endif
 
+; one image per screen scaling; both are dark artwork, so dark mode uses the same ones
+; (without the DynamicDark directives Inno shows its own stock image there)
+#define SideImages "..\assets\brand\installer\side-202.png,..\assets\brand\installer\side-269.png,..\assets\brand\installer\side-336.png,..\assets\brand\installer\side-403.png,..\assets\brand\installer\side-430.png,..\assets\brand\installer\side-534.png"
+; the app holds this mutex while it runs (app.MUTEX); Setup and Uninstall close the app first
+#define AppMutex "Gnomecaster.Running"
+#define SmallImages "..\assets\brand\installer\small-58.png,..\assets\brand\installer\small-77.png,..\assets\brand\installer\small-97.png,..\assets\brand\installer\small-116.png,..\assets\brand\installer\small-124.png,..\assets\brand\installer\small-159.png"
+
 [Setup]
 ; AppId identifies the app across versions: never change it, or updates install side by side
 AppId={{6D1B6C4E-3F0A-4C1E-9B7D-5A2E8F4C9D21}
@@ -22,6 +29,7 @@ PrivilegesRequired=lowest
 DefaultDirName={autopf}\Gnomecaster
 DefaultGroupName=Gnomecaster
 DisableProgramGroupPage=yes
+DisableWelcomePage=no
 DisableDirPage=yes
 DisableReadyPage=yes
 ArchitecturesAllowed=x64compatible
@@ -33,10 +41,10 @@ SetupIconFile=..\assets\brand\gnomecaster.ico
 UninstallDisplayIcon={app}\Gnomecaster.exe
 UninstallDisplayName=Gnomecaster
 WizardStyle=modern dynamic
-WizardImageFile=..\assets\brand\installer\side-202.png,..\assets\brand\installer\side-269.png,..\assets\brand\installer\side-336.png,..\assets\brand\installer\side-403.png,..\assets\brand\installer\side-430.png,..\assets\brand\installer\side-534.png
-WizardSmallImageFile=..\assets\brand\installer\small-58.png,..\assets\brand\installer\small-77.png,..\assets\brand\installer\small-97.png,..\assets\brand\installer\small-116.png,..\assets\brand\installer\small-124.png,..\assets\brand\installer\small-159.png
-; the app creates this mutex while it runs, so Setup and Uninstall ask to quit it first
-AppMutex=Gnomecaster.Running
+WizardImageFile={#SideImages}
+WizardSmallImageFile={#SmallImages}
+WizardImageFileDynamicDark={#SideImages}
+WizardSmallImageFileDynamicDark={#SmallImages}
 CloseApplications=no
 Compression=lzma2/max
 SolidCompression=yes
@@ -46,7 +54,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Messages]
 WelcomeLabel2=This installs Gnomecaster, an AI helper you talk to inside World of Warcraft.%n%nAfter installing, Gnomecaster finds the game, adds its addon and connects an AI, in three short steps.
-FinishedLabel=Gnomecaster is installed. It opens now to finish the setup.
+SelectTasksLabel2=Choose whether you want a desktop shortcut, then click Install.
+FinishedLabel=Gnomecaster is installed. Open it to finish the setup: it finds World of Warcraft, adds the addon and connects an AI.
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Shortcuts:"; Flags: unchecked
@@ -59,7 +68,7 @@ Source: "..\dist\Gnomecaster\*"; DestDir: "{app}"; Flags: ignoreversion recurses
 Type: filesandordirs; Name: "{app}\_internal"
 
 [Icons]
-Name: "{autoprograms}\Gnomecaster"; Filename: "{app}\Gnomecaster.exe"
+Name: "{autoprograms}\Gnomecaster"; Filename: "{app}\Gnomecaster.exe"; AppUserModelID: "InverseAltruism.Gnomecaster"
 Name: "{autodesktop}\Gnomecaster"; Filename: "{app}\Gnomecaster.exe"; Tasks: desktopicon
 
 [Registry]
@@ -79,6 +88,66 @@ const
 
 var
   DownloadPage: TDownloadWizardPage;
+
+// Called once the player has chosen to install or uninstall, before any file changes. Asks a
+// running Gnomecaster to quit (--quit returns when its process has exited); if it still runs,
+// as 1.0.0 does since it has no --quit, asks the player to quit it. False when they cancel.
+// Inno's own AppMutex check would run before the Welcome page, so it is not used.
+function CloseRunning: Boolean;
+var
+  ResultCode: Integer;
+begin
+  if CheckForMutexes('{#AppMutex}') and FileExists(ExpandConstant('{app}\Gnomecaster.exe')) then
+    Exec(ExpandConstant('{app}\Gnomecaster.exe'), '--quit', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Result := True;
+  while Result and CheckForMutexes('{#AppMutex}') do
+    Result := SuppressibleMsgBox('Gnomecaster is still running. Right-click its icon next to the clock, choose Quit Gnomecaster, then click OK.',
+                                 mbError, MB_OKCANCEL, IDCANCEL) = IDOK;
+end;
+
+// An update: the player has set Gnomecaster up already, so there is nothing to choose (the
+// shortcut choice is kept) and the pages say what an update does.
+function IsUpdate: Boolean;
+begin
+  Result := WizardForm.PrevAppDir <> '';
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = wpSelectTasks) and IsUpdate;
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  // the Ready page is off, so the page before it starts the install: its button says so
+  if ((CurPageID = wpSelectTasks) or ((CurPageID = wpWelcome) and IsUpdate)) then
+    WizardForm.NextButton.Caption := SetupMessage(msgButtonInstall);
+  if (CurPageID = wpWelcome) and IsUpdate then
+    WizardForm.WelcomeLabel2.Caption := 'This updates Gnomecaster to version {#AppVersion}. Your settings and the AI connection stay as they are.'
+      + #13#10#13#10 + 'Click Install to update, or Cancel to exit Setup.';
+  if (CurPageID = wpFinished) and IsUpdate then
+    WizardForm.FinishedLabel.Caption := 'Gnomecaster is updated and keeps your settings.'
+      + #13#10#13#10 + SetupMessage(msgClickFinish);
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  if not CloseRunning then
+    Result := 'Gnomecaster is still running, so Setup cannot replace it. Quit it from its icon next to the clock, then run Setup again.';
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  ResultCode: Integer;
+begin
+  if (CurUninstallStep = usAppMutexCheck) and not CloseRunning then
+    Abort;
+  if (CurUninstallStep = usUninstall) and not UninstallSilent then
+    if MsgBox('Also remove the Gnomecaster addon from World of Warcraft, and your Gnomecaster settings (including the AI connection)?',
+              mbConfirmation, MB_YESNO) = IDYES then
+      Exec(ExpandConstant('{app}\Gnomecaster.exe'), '--remove-everything', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
 
 function HasVersion(Root: Integer; Key: String): Boolean;
 var

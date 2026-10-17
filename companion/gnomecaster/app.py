@@ -13,16 +13,17 @@ import os
 import pathlib
 import queue
 import secrets
+import shutil
 import socket
 import sys
 import threading
 import time
 
-from . import __version__, winsys
+from . import __version__, config, game, winsys
 from .app_api import Api
 
 log = logging.getLogger("gnomecaster")
-MUTEX = "Gnomecaster.Running"           # also the installer's AppMutex (packaging/gnomecaster.iss)
+MUTEX = "Gnomecaster.Running"           # the installer closes the app by it (packaging/gnomecaster.iss)
 
 
 def resource(*parts: str) -> pathlib.Path:
@@ -53,16 +54,20 @@ class SingleInstance:
         self.server: socket.socket | None = None
         self.token: str | None = None
 
-    def ask_running_to_show(self) -> bool:
+    def ask(self, command: str = "show") -> bool:
+        """Sends "show" or "quit" to the running app; True when it acknowledged."""
         try:
             info = json.loads(self.file.read_text(encoding="utf-8"))
             with socket.create_connection(("127.0.0.1", int(info["port"])), timeout=2) as s:
-                s.sendall((info["token"] + "\n").encode())
-                return s.recv(16).startswith(b"shown")
+                s.sendall(f"{info['token']} {command}\n".encode())
+                return s.recv(16).startswith(b"ok")
         except (OSError, ValueError, KeyError, TypeError):
             return False
 
-    def listen(self, on_show) -> None:
+    def ask_running_to_show(self) -> bool:
+        return self.ask("show")
+
+    def listen(self, on_show, on_quit=lambda: None) -> None:
         token = self.token = secrets.token_hex(16)
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(("127.0.0.1", 0))
@@ -80,9 +85,10 @@ class SingleInstance:
                 with conn:
                     conn.settimeout(2)
                     try:
-                        if conn.recv(64).decode(errors="replace").strip() == token:
-                            on_show()
-                            conn.sendall(b"shown")
+                        sent, _, command = conn.recv(80).decode(errors="replace").strip().partition(" ")
+                        if sent == token and command in ("show", "quit"):
+                            conn.sendall(b"ok")
+                            (on_quit if command == "quit" else on_show)()
                     except OSError:
                         pass
 
@@ -111,6 +117,61 @@ def defer_to_running(instance: SingleInstance, claimed: bool | None, wait: float
     while not instance.ask_running_to_show() and time.monotonic() < deadline:
         time.sleep(0.25)
     return True
+
+
+SIZE, MIN_SIZE = (1040, 700), (760, 540)
+
+
+def window_geometry(screens) -> tuple[int, int, int | None, int | None]:
+    """Width, height and position: the full size where it fits, else most of the main screen,
+    centred in its work area (the screen without the taskbar). A 1366 x 768 laptop at 125 %
+    scaling has about 1093 x 614 logical pixels. Windows' own placement can put a tall window
+    under the taskbar, so the position is set; None leaves it to the system."""
+    width, height, x, y = SIZE[0], SIZE[1], None, None
+    try:
+        main = screens[0]
+        area = getattr(main, "frame", None)       # on Windows, the WinForms WorkingArea
+        if area is not None and hasattr(area, "Width"):
+            ax, ay, aw, ah = int(area.X), int(area.Y), int(area.Width), int(area.Height)
+        else:
+            ax, ay, aw, ah = int(main.x), int(main.y), int(main.width), int(main.height)
+        width, height = min(width, int(aw * 0.92)), min(height, int(ah * 0.92))
+        width, height = max(MIN_SIZE[0], width), max(MIN_SIZE[1], height)
+        x, y = ax + max(0, (aw - width) // 2), ay + max(0, (ah - height) // 2)
+    except (IndexError, AttributeError, TypeError, ValueError):
+        pass
+    return width, height, x, y
+
+
+def quit_running(instance: "SingleInstance", wait: float = 15.0) -> bool:
+    """For the installer and uninstaller: asks a running Gnomecaster to quit and waits until its
+    process has exited. Setup checks the mutex right after this returns, and the process still
+    holds it for a moment after removing its instance file. True when one was running."""
+    if not instance.ask("quit"):
+        return False
+    deadline = time.monotonic() + wait
+    while (instance.file.exists() or winsys.instance_held(MUTEX)) and time.monotonic() < deadline:
+        time.sleep(0.2)
+    return True
+
+
+def remove_everything(config_path: pathlib.Path, folder: pathlib.Path) -> list[str]:
+    """For the uninstaller, when the player asks: the addon from every game version the app
+    knows, then the settings (with the API key) and the logs. Returns what was removed."""
+    removed = []
+    try:
+        data = config.load_file(config_path)
+    except config.ConfigError:
+        data = {}
+    roots = list(data.get("roots") or []) + ([data["wow"]] if data.get("wow") else [])
+    for g in winsys.find_games(roots):
+        for name in game.remove(pathlib.Path(g["path"])):
+            removed.append(f"{g['path']}\\Interface\\AddOns\\{name}")
+    for target in (config_path.parent, folder):
+        if target.is_dir() and target.name.lower() == "gnomecaster":
+            shutil.rmtree(target, ignore_errors=True)
+            removed.append(str(target))
+    return removed
 
 
 PAGE_PROBE = ("JSON.stringify({ready: document.body.dataset.ready || '', "
@@ -178,14 +239,17 @@ class Shell:
         if self.icon is not None and not self.tray_hint_shown:
             self.tray_hint_shown = True
             try:
-                self.icon.notify("Gnomecaster keeps answering from the tray. Quit it from the tray icon's menu.",
-                                 "Still running")
+                self.icon.notify("Gnomecaster keeps answering in the background. Its icon is under the arrow "
+                                 "next to the clock; right-click it to open or quit.", "Still running")
             except Exception:  # noqa: BLE001 - notifications are optional
                 pass
         return False                            # cancels the close
 
     def quit(self) -> None:
         self.quitting = True
+        if self.window is None:                 # asked to quit before the window exists
+            self.shutdown()
+            return
         self.window.destroy()                   # fires closing, which shuts down
 
     def shutdown(self) -> None:
@@ -226,9 +290,14 @@ class Shell:
         except Exception:  # noqa: BLE001 - without a tray the window still works; closing it quits
             log.exception("no tray icon")
             self.icon = None
+        try:
+            screens = self.webview.screens
+        except Exception:  # noqa: BLE001 - the default size is a fine fallback
+            screens = []
+        width, height, x, y = window_geometry(screens)
         self.window = self.webview.create_window(
-            "Gnomecaster", str(resource("desktop", "ui", "index.html")), js_api=self.api, width=1040, height=700,
-            min_size=(720, 520), hidden=self.background and self.icon is not None, background_color="#160F33")
+            "Gnomecaster", str(resource("desktop", "ui", "index.html")), js_api=self.api, width=width, height=height,
+            x=x, y=y, min_size=MIN_SIZE, hidden=self.background and self.icon is not None, background_color="#160F33")
         self.window.events.closing += self.on_closing
         self.window.events.loaded += self.on_loaded
         threading.Thread(target=self.pump, name="events", daemon=True).start()
@@ -272,12 +341,20 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="Gnomecaster")
     ap.add_argument("--background", action="store_true", help="start in the tray (used when starting with Windows)")
     ap.add_argument("--smoke-test", metavar="FOLDER", type=pathlib.Path, help=argparse.SUPPRESS)
+    ap.add_argument("--quit", action="store_true", help="ask a running Gnomecaster to quit (the installer uses it)")
+    ap.add_argument("--remove-everything", action="store_true",
+                    help="remove the addon from the game, the settings and the logs (the uninstaller uses it)")
     args = ap.parse_args(argv)
+    folder = winsys.data_dir()
+    if args.quit or args.remove_everything:        # no window, no log file, no instance claim
+        quit_running(SingleInstance(folder))
+        if args.remove_everything:
+            remove_everything(config.config_path(), folder)
+        return 0
     if sys.platform == "win32":                 # taskbar grouping and the name on notifications
         import ctypes
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("InverseAltruism.Gnomecaster")
     claimed = winsys.claim_instance(MUTEX)
-    folder = winsys.data_dir()
     logfile = setup_logging(folder / "logs")
     log.info("Gnomecaster %s starting, log %s", __version__, logfile)
     instance = SingleInstance(folder)
@@ -285,7 +362,7 @@ def main(argv=None) -> int:
         log.info("already running: asked the other window to show")
         return 0
     shell = Shell(background=args.background, smoke_dir=args.smoke_test)
-    instance.listen(shell.show)
+    instance.listen(shell.show, shell.quit)
     try:
         shell.run()
     finally:

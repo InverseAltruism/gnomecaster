@@ -6,6 +6,15 @@ shortcuts, and gets Microsoft Edge WebView2 first if the PC lacks it. The app is
 companion, its window and a tray icon in one program; see `docs/PLAN-distribution.md` for
 why it is built this way.
 
+A running Gnomecaster is closed only once the player has chosen to go ahead: when Setup
+starts copying files (`PrepareToInstall`) and after the uninstaller's "Are you sure?"
+(`usAppMutexCheck`). Both run `Gnomecaster.exe --quit`, which returns once the process has
+let go of the `Gnomecaster.Running` mutex. If the app still runs (1.0.0 has no `--quit`),
+the player is asked to quit it from its tray icon. Inno's own `AppMutex` check is not used:
+it runs before the Welcome page. An update skips the shortcut page and says it keeps the
+settings. Uninstalling asks whether to remove the addon and the settings as well
+(`--remove-everything`); a silent uninstall keeps them.
+
 `.github/workflows/windows.yml` does everything below on GitHub's `windows-2025` runner for
 each push to main and each pull request, and keeps the installer and the smoke test's
 results as the run's artifacts. Pushing a tag `v<version>` (it must equal

@@ -119,9 +119,30 @@ class Contract(unittest.TestCase):
             self.assertTrue(all(callable(getattr(api, n)) for n in exposed))
             self.assertEqual(exposed, {n for n in dir(app_api.Api) if not n.startswith("_")})
 
-    def test_the_installer_waits_for_the_mutex_the_app_holds(self):
+    def test_the_installer_closes_the_app_by_the_mutex_it_holds(self):
         iss = (ROOT / "packaging" / "gnomecaster.iss").read_text()
-        self.assertEqual(re.search(r"^AppMutex=(\S+)", iss, re.M).group(1), app.MUTEX)
+        self.assertEqual(re.search(r'^#define AppMutex "([^"]+)"', iss, re.M).group(1), app.MUTEX)
+
+    def test_the_installer_closes_the_app_only_once_the_player_has_chosen(self):
+        # Inno checks AppMutex, and runs InitializeSetup and InitializeUninstall, before the
+        # player has confirmed anything; PrepareToInstall and usAppMutexCheck come after
+        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text()
+        self.assertIsNone(re.search(r"^AppMutex=", iss, re.M))
+        calls = {m.group(1) for m in re.finditer(r"^(?:function|procedure) (\w+)[^\n]*\n(?:(?!^(?:function|procedure) ).*\n)*?.*\bCloseRunning\b", iss, re.M)}
+        self.assertEqual(calls, {"PrepareToInstall", "CurUninstallStepChanged"})
+        self.assertIn("usAppMutexCheck) and not CloseRunning", iss)
+
+    def test_the_installer_shows_its_own_images_in_dark_mode(self):
+        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text()
+        directives = dict(re.findall(r"^(Wizard\w*ImageFile\w*)=(.+)$", iss, re.M))
+        self.assertEqual(directives, {"WizardImageFile": "{#SideImages}", "WizardSmallImageFile": "{#SmallImages}",
+                                      "WizardImageFileDynamicDark": "{#SideImages}",
+                                      "WizardSmallImageFileDynamicDark": "{#SmallImages}"})
+        for name in ("SideImages", "SmallImages"):
+            files = re.search(rf'^#define {name} "([^"]+)"', iss, re.M).group(1).split(",")
+            self.assertTrue(files)
+            for f in files:
+                self.assertTrue((ROOT / "packaging" / f.replace("\\", "/")).is_file(), f)
 
     def test_addon_and_app_share_one_version(self):
         toc = (ROOT / "addon" / "Gnomecaster" / "Gnomecaster.toc").read_text()
@@ -609,6 +630,66 @@ class Smoke(unittest.TestCase):
         self.assertFalse(app.smoke_passed({"ready": "", "screen": "loading"}))
 
 
+class WindowSize(unittest.TestCase):
+    @staticmethod
+    def screen(w, h, taskbar=48):
+        area = types.SimpleNamespace(X=0, Y=0, Width=w, Height=h - taskbar)      # WinForms WorkingArea
+        return types.SimpleNamespace(x=0, y=0, width=w, height=h, frame=area)
+
+    def test_centred_in_the_work_area_above_the_taskbar(self):
+        # measured in the Windows test VM: 1280 x 800 with a 48 px taskbar
+        w, h, x, y = app.window_geometry([self.screen(1280, 800)])
+        self.assertEqual((w, h), (1040, 691))
+        self.assertEqual((x, y), (120, 30))
+        self.assertLessEqual(y + h, 752)                                          # bottom above the taskbar
+
+    def test_fits_small_and_large_screens(self):
+        self.assertEqual(app.window_geometry([self.screen(1920, 1080)])[:2], (1040, 700))
+        self.assertEqual(app.window_geometry([self.screen(1093, 614)])[:2], (1005, 540))   # 1366 x 768 at 125 %
+        self.assertEqual(app.window_geometry([]), (1040, 700, None, None))
+
+    def test_without_a_work_area_the_whole_screen_counts(self):
+        w, h, x, y = app.window_geometry([types.SimpleNamespace(x=0, y=0, width=1920, height=1080)])
+        self.assertEqual((w, h, x, y), (1040, 700, 440, 190))
+
+
+class Removal(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = pathlib.Path(tmp.name)
+        self.wow = self.root / "World of Warcraft"
+        self.addons = self.wow / "_retail_" / "Interface" / "AddOns"
+        for name in ("Gnomecaster", "Gnomecaster_Inbox01", "Gnomecaster_Inbox60", "GnomecasterFan", "WeakAuras",
+                     "Gnomecaster_Inbox61"):
+            (self.addons / name).mkdir(parents=True)
+
+    def test_only_our_folders_are_removed(self):
+        removed = game.remove(self.wow / "_retail_")
+        self.assertEqual(removed, ["Gnomecaster", "Gnomecaster_Inbox01", "Gnomecaster_Inbox60"])
+        self.assertEqual(sorted(p.name for p in self.addons.iterdir()), ["GnomecasterFan", "Gnomecaster_Inbox61", "WeakAuras"])
+
+    def test_remove_everything(self):
+        settings = self.root / "Roaming" / "Gnomecaster" / "config.json"
+        config.save_file({"api_key": "k", "roots": [str(self.wow)], "wow": str(self.wow / "_retail_")}, settings)
+        data = self.root / "Local" / "Gnomecaster"
+        (data / "logs").mkdir(parents=True)
+        with mock.patch.object(winsys, "registry_wow_root", return_value=None), mock.patch.object(game, "GUESSES", []):
+            removed = app.remove_everything(settings, data)
+        self.assertFalse(settings.exists())
+        self.assertFalse(data.exists())
+        self.assertFalse((self.addons / "Gnomecaster").exists())
+        self.assertTrue((self.addons / "WeakAuras").exists())
+        self.assertEqual(len(removed), 5)
+
+    def test_a_folder_not_named_gnomecaster_is_never_deleted(self):
+        settings = self.root / "elsewhere" / "settings.json"          # GNOMECASTER_CONFIG pointing anywhere
+        config.save_file({"api_key": "k"}, settings)
+        with mock.patch.object(winsys, "registry_wow_root", return_value=None), mock.patch.object(game, "GUESSES", []):
+            app.remove_everything(settings, self.root / "Local" / "data")
+        self.assertTrue(settings.exists())
+
+
 class Folders(unittest.TestCase):
     def test_version_folders(self):
         for name in ("_retail_", "_classic_era_", "_xptr_"):
@@ -784,11 +865,70 @@ class SingleInstance(unittest.TestCase):
         self.assertEqual(claims, ["Gnomecaster.Running"])
         self.assertTrue(shown.wait(5))
 
+    def test_quit_asks_the_running_app_and_waits_for_it(self):
+        running = app.SingleInstance(self.folder)
+        quits = []
+
+        def on_quit():
+            quits.append(1)
+            threading.Timer(0.4, running.close).start()     # quitting takes a moment
+        running.listen(lambda: None, on_quit)
+        started = time.monotonic()
+        self.assertTrue(app.quit_running(app.SingleInstance(self.folder)))
+        self.assertEqual(quits, [1])
+        self.assertGreaterEqual(time.monotonic() - started, 0.3)
+        self.assertFalse((self.folder / "instance.json").exists())
+
+    def test_quit_waits_until_the_process_lets_go_of_the_mutex(self):
+        running = app.SingleInstance(self.folder)
+        running.listen(lambda: None, running.close)          # the file goes at once
+        exits_at = time.monotonic() + 0.6                    # the process a moment later
+        probes = []
+
+        def held(name):
+            probes.append(name)
+            return time.monotonic() < exits_at
+        with mock.patch.object(winsys, "instance_held", held):
+            self.assertTrue(app.quit_running(app.SingleInstance(self.folder)))
+        self.assertGreaterEqual(time.monotonic(), exits_at)
+        self.assertEqual(set(probes), {app.MUTEX})
+
+    def test_quit_does_not_wait_past_its_limit(self):
+        running = app.SingleInstance(self.folder)
+        running.listen(lambda: None, running.close)
+        started = time.monotonic()
+        with mock.patch.object(winsys, "instance_held", return_value=True):
+            self.assertTrue(app.quit_running(app.SingleInstance(self.folder), wait=0.5))
+        self.assertLess(time.monotonic() - started, 3)
+
+    def test_quit_with_nothing_running(self):
+        self.assertFalse(app.quit_running(app.SingleInstance(self.folder), wait=1))
+
+    def test_the_quit_command_line(self):
+        running = app.SingleInstance(self.folder)
+        quits = []
+        running.listen(lambda: None, lambda: (quits.append(1), running.close()))
+        with mock.patch.object(winsys, "data_dir", return_value=self.folder), \
+                mock.patch.object(app, "Shell", side_effect=AssertionError("--quit must not open a window")):
+            self.assertEqual(app.main(["--quit"]), 0)
+        self.assertEqual(quits, [1])
+
     @unittest.skipUnless(sys.platform == "win32", "a real Windows mutex")
     def test_the_windows_mutex_admits_one(self):
         name = f"Gnomecaster.Test.{os.getpid()}"
         self.assertIs(winsys.claim_instance(name), True)
         self.assertIs(winsys.claim_instance(name), False)
+
+    @unittest.skipUnless(sys.platform == "win32", "a real Windows mutex")
+    def test_the_windows_mutex_shows_who_holds_it(self):
+        name = f"Gnomecaster.Test.Held.{os.getpid()}"
+        self.assertIs(winsys.instance_held(name), False)
+        winsys.claim_instance(name)
+        self.assertIs(winsys.instance_held(name), True)
+
+    @unittest.skipIf(sys.platform == "win32", "elsewhere there is no mutex to ask")
+    def test_without_windows_the_mutex_has_no_answer(self):
+        self.assertIsNone(winsys.instance_held(app.MUTEX))
 
 
 class FakeWindow:

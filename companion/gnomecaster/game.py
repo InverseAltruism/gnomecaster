@@ -103,6 +103,19 @@ def install(flavor: pathlib.Path) -> Installed:
     return Installed(dest, count, old)
 
 
+def remove(flavor: pathlib.Path) -> list[str]:
+    """Deletes the addon and its reply slots from a game version, nothing else: only folders
+    named Gnomecaster or Gnomecaster_Inbox01 to 60. Returns the names removed."""
+    addons = flavor / "Interface" / "AddOns"
+    ours = {"Gnomecaster"} | {f"Gnomecaster_Inbox{n:02d}" for n in range(1, 61)}
+    removed = []
+    for folder in sorted(addons.glob("Gnomecaster*")) if addons.is_dir() else []:
+        if folder.name in ours and folder.is_dir() and not folder.is_symlink():
+            shutil.rmtree(folder)
+            removed.append(folder.name)
+    return removed
+
+
 def install_notes(done: Installed, restart: bool = True) -> list[str]:
     notes = [f"Installed {done.count} folders into {done.dest}."]
     if done.old:

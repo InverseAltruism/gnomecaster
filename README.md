@@ -18,6 +18,10 @@ settings, and explain the Lua errors your addons throw.
 Keep Gnomecaster running while you play: closing its window keeps it in the system tray,
 and it can start with Windows. Its window shows each question from the game and the answer.
 
+To update, run the new `Gnomecaster-Setup-<version>.exe`; it closes Gnomecaster for you and
+keeps your settings. Uninstall from Windows Settings, Apps; it asks whether to remove the
+addon and your settings too.
+
 Each release is built and tested on Windows by `.github/workflows/windows.yml` and published
 with a `SHA256SUMS.txt`. Until the installer is signed or comes from the Microsoft Store,
 Windows shows "Windows protected your PC" for it: click "More info", then "Run anyway".

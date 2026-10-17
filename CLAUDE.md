@@ -46,7 +46,7 @@ Model output is untrusted. The companion's `sanitize()` keeps only known action 
 | timed polls vs signalled slots | `Inbox.lua` `BLIND` | `slots.PROBE_AHEAD` (must exceed the poll count) |
 | TOC Interface list | `Gnomecaster.toc` | `tools/make_inboxes.py` |
 | version | `Gnomecaster.toc` `## Version` | `gnomecaster.__version__` (also read by the PyInstaller spec and the installer build) |
-| installer's running-app check | `packaging/gnomecaster.iss` `AppMutex` | `app.py` `CreateMutexW` (`tests/test_app.py`) |
+| installer's running-app check | `packaging/gnomecaster.iss` `#define AppMutex` | `app.MUTEX`, held through `winsys.claim_instance` (`tests/test_app.py`) |
 
 After changing the slot count or the Interface list, run `python3 tools/make_inboxes.py`; the contract test also compares the committed slots with the generator.
 
