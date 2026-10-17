@@ -5,7 +5,7 @@ explain Lua errors from your addons.
 
 ## Install (Windows 10 or 11)
 
-1. Download `Gnomecaster-Setup-1.0.0.exe` below and run it. It installs for your Windows
+1. Download `Gnomecaster-Setup-1.1.0.exe` below and run it. It installs for your Windows
    account only and asks for no administrator rights.
 2. The installer is not signed yet, so Windows shows "Windows protected your PC". Click
    "More info", then "Run anyway". `SHA256SUMS.txt` below lets you check the download.
@@ -17,6 +17,15 @@ explain Lua errors from your addons.
 Keep Gnomecaster running while you play. Closing its window keeps it in the system tray;
 "Quit Gnomecaster" in the tray icon's menu ends it.
 
+## Updating from 1.0
+
+1. Run `Gnomecaster-Setup-1.1.0.exe`. Version 1.0 cannot be closed by the installer, so
+   when it asks, right-click the Gnomecaster icon next to the clock, choose
+   "Quit Gnomecaster", then click OK. Your settings and AI connection are kept.
+2. In the Gnomecaster window, click "Update addon", then restart World of Warcraft.
+
+From 1.1 on, the installer closes Gnomecaster by itself.
+
 ## First test in the game
 
 1. `/gc test`: the panel should say `Round trip OK` and name the AI model. The
@@ -27,19 +36,24 @@ Keep Gnomecaster running while you play. Closing its window keeps it in the syst
 3. If something fails, send the panel's message, the output of `/gc status`, and the log
    file from the app (Settings, "Open the log folder", `gnomecaster.log`).
 
-## What is new in 1.0
+## What is new in 1.1
 
-- The Windows app and its installer: no Python, no terminal.
-- Sign in with OpenRouter in the browser instead of copying an API key; an API key or a
-  local Ollama model still work under "Use an API key instead".
-- The app shows each question from the game and its answer, starts with Windows if you
-  want, and explains what to do when the AI connection fails.
+- In the game: answers type out in the panel under a gold "Gnomecaster:" label, the panel
+  uses Gnomecaster's colours and icon, and a glowing spark shows while it waits.
+- The app's setup: smoother step changes, every step fits the window, a sign-in you can
+  cancel, a clearer API key form with a "Get a key" link, and an out-of-credit OpenRouter
+  account named as such with an "Add credit" button.
+- The window opens centred on your screen; closing it says where its icon went.
+- The installer closes a running Gnomecaster by itself, and only after you click Install.
+  Uninstalling asks whether to remove the addon and your settings as well.
+- Retail is listed first when several game versions are installed.
+- Ollama answers about 2 seconds sooner per question on Windows.
 
 ## Known limits
 
-- This is the first release that runs on a player's PC. Its parts were tested on a
-  simulated game and against real AI models, and the build is tested on Windows by an
-  automatic install, launch and uninstall; it has not yet been tried in the real game.
+- Its parts were tested on a simulated game and against real AI models, the build is
+  tested on Windows by an automatic install, launch and uninstall, and the installer and
+  app were tried by hand on Windows 11; it has not yet been tried in the real game.
 - The coloured grid flashes in the top-left corner for a moment while a question is sent.
 - One question at a time; follow-up questions do not remember the earlier ones yet.
 - Nothing works in combat, by design.
