@@ -26,8 +26,8 @@ def main(out_dir: str) -> None:
         name = f"Gnomecaster_Inbox{n:02d}"
         d = root / name
         d.mkdir(parents=True, exist_ok=True)
-        (d / f"{name}.toc").write_text(TOC.format(iface=INTERFACE, n=n), encoding="utf-8")
-        (d / "inbox.lua").write_text(PLACEHOLDER, encoding="utf-8")
+        (d / f"{name}.toc").write_text(TOC.format(iface=INTERFACE, n=n), encoding="utf-8", newline="\n")
+        (d / "inbox.lua").write_text(PLACEHOLDER, encoding="utf-8", newline="\n")
         (d / "ready.ttf").write_bytes(b"")  # must exist at login; companion fills it when a reply is ready
     print(f"wrote {NUM_SLOTS} inbox slots to {root}")
 

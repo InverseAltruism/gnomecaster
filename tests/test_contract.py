@@ -76,7 +76,8 @@ class Contract(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             make_inboxes.main(tmp)
             generated = {p.relative_to(tmp): p.read_bytes() for p in pathlib.Path(tmp).rglob("*") if p.is_file()}
-        committed = {p.relative_to(ROOT / "addon"): p.read_bytes()
+        # a Windows checkout may turn LF into CRLF (git's core.autocrlf); the generator must not
+        committed = {p.relative_to(ROOT / "addon"): p.read_bytes().replace(b"\r\n", b"\n")
                      for p in (ROOT / "addon").glob("Gnomecaster_Inbox*/*") if p.is_file()}
         self.assertEqual(sorted(map(str, committed)), sorted(map(str, generated)))
         for path, data in generated.items():

@@ -445,6 +445,19 @@ class Settings(ServerCase):
         s = config.resolve()
         self.assertEqual((s.base_url, s.model, s.api_key), ("https://a.example/v1", "env-model", "k"))
 
+    def test_ollama_is_reached_where_it_listens(self):
+        # Ollama binds 127.0.0.1:11434 unless OLLAMA_HOST says otherwise (its envconfig.Host)
+        self.assertEqual(config.PRESETS["ollama"]["base_url"], "http://127.0.0.1:11434/v1")
+
+    def test_settings_from_1_0_0_reach_ollama_where_it_listens(self):
+        config.save_file({"provider": "ollama", "base_url": "http://localhost:11434/v1", "model": "llama3.1"})
+        self.assertEqual(config.load_file()["base_url"], "http://127.0.0.1:11434/v1")
+        self.assertEqual(config.resolve().base_url, "http://127.0.0.1:11434/v1")
+        for own in ({"provider": "custom", "base_url": "http://localhost:11434/v1", "model": "m"},
+                    {"provider": "custom", "base_url": "http://localhost:8080/v1", "model": "m"}):
+            config.save_file(own)                                   # an address the player chose
+            self.assertEqual(config.load_file()["base_url"], own["base_url"])
+
     @unittest.skipIf(sys.platform == "win32", "POSIX permissions")
     def test_settings_file_is_private(self):
         config.save_file({"api_key": "k"})

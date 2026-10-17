@@ -18,12 +18,15 @@ PRESETS = {
     "openai": {"label": "OpenAI", "name": "OpenAI", "base_url": "https://api.openai.com/v1", "model": "gpt-6-luna",
                "key": True, "key_url": "https://platform.openai.com/api-keys",
                "key_hint": "create one at https://platform.openai.com/api-keys"},
+    # Ollama listens on 127.0.0.1 only; Windows tries "localhost" as ::1 first, and each refused
+    # IPv6 connection there costs about 2 s before IPv4 is tried
     "ollama": {"label": "Ollama: a free local model on this PC (needs a strong graphics card)",
-               "name": "Ollama (a model on this PC)", "base_url": "http://localhost:11434/v1", "model": "llama3.1",
+               "name": "Ollama (a model on this PC)", "base_url": "http://127.0.0.1:11434/v1", "model": "llama3.1",
                "key": False, "key_hint": ""},
     "custom": {"label": "Another OpenAI-compatible endpoint", "base_url": "", "model": "", "key": True,
                "key_hint": ""},
 }
+OLD_OLLAMA_URL = "http://localhost:11434/v1"         # 1.0.0's preset; settings files still hold it
 
 # The models the desktop app offers per provider, best first. The OpenRouter ones scored 20 of
 # 20 in tools/eval_models.py (README, "Choosing a model"); the others are the presets' defaults.
@@ -89,6 +92,8 @@ def load_file(path: pathlib.Path | None = None) -> dict:
         raise ConfigError(f"Can't read the settings file {path} ({e}). Run setup again or delete the file.") from None
     if not isinstance(data, dict):
         raise ConfigError(f"The settings file {path} is not a JSON object. Run setup again.")
+    if data.get("provider") == "ollama" and data.get("base_url") == OLD_OLLAMA_URL:     # saved by 1.0.0
+        data["base_url"] = PRESETS["ollama"]["base_url"]
     return data
 
 

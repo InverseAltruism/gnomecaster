@@ -39,10 +39,13 @@ def registry_wow_root() -> pathlib.Path | None:
 
 
 def flavors_in(root: pathlib.Path) -> list[dict]:
-    """The game versions installed in a game folder, as the interface lists them."""
+    """The game versions installed in a game folder, as the interface lists them: the known
+    ones in game.FLAVORS order (Retail first), then any others by name."""
     found = []
+    known = {name: i for i, name in enumerate(game.FLAVORS)}
     try:
-        subdirs = sorted(p for p in root.iterdir() if p.is_dir())
+        subdirs = sorted((p for p in root.iterdir() if p.is_dir()),
+                         key=lambda p: (known.get(p.name, len(known)), p.name))
     except OSError:
         return found
     for sub in subdirs:

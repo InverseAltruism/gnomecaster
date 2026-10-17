@@ -155,7 +155,7 @@ Proven on this machine, with real code:
 
 - The whole round trip, in a simulated game: the real addon code on a mocked WoW API, the
   real companion, and fake screenshots, including JPEG and rescaled ones. `tests/run_all.sh`
-  runs 10 scenarios (130 checks) and 119 Python unit tests (one of them runs only on
+  runs 11 scenarios (137 checks) and 139 Python unit tests (two of them run only on
   Windows).
 - The app's setup and dashboard, clicked through in a browser against the app's real
   backend with a fake OpenRouter and a fake game folder (sign-in, an account without
@@ -170,7 +170,11 @@ Proven on this machine, with real code:
 The packaged app on Windows is checked by the Windows build workflow on each push: it
 builds the app and the installer, opens the app and checks that its window (WebView2)
 rendered from the backend's state with the tray icon present, then installs, opens and
-uninstalls it like a player would. A person has not used the installed app yet.
+uninstalls it like a player would. On a Windows 11 test machine the installer and the app
+were also clicked through by hand, with screenshots: a fresh install, an update from 1.0.0
+and from this version while the app ran, both uninstall answers, light and dark mode, and a
+question from a simulated game answered by a local model stand-in. A player has not used
+the installed app yet.
 
 Not proven yet, because it needs the real game. This is what the first in-game test is for:
 

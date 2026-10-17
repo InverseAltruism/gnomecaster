@@ -132,3 +132,59 @@ The owner asked for nothing unpolished: smooth animations, good design, intuitiv
   busy indicator, and rises as it fades in. Clients without TransformMessages show answers
   at once. Nothing here can render WoW's UI, so the panel's look is unverified.
 
+## 2026-10-17: the installer and the app on a Windows 11 test machine
+
+A Windows 11 Enterprise evaluation (build 26100) now runs in QEMU/KVM on the development
+server, off unless started and without network access unless a test needs it. Its tooling
+lives outside this repository. The installer was built inside it from this source and
+clicked through by hand, with screenshots.
+
+- Worked as intended: a fresh install, the window inside the screen's work area, the game
+  found through the registry, the addon installed, a local model stand-in connected, a
+  question from a simulated game answered and its screenshot deleted, light and dark mode
+  switched live, and an update from the published 1.0.0 that kept settings and addon.
+- Found there and fixed, each with a test that fails without the fix:
+  - Updating while the app ran showed Inno's "Gnomecaster is currently running" error even
+    though Setup had just quit the app: Inno checks `AppMutex` right after
+    `InitializeSetup`, and the process holds the mutex for a moment after its instance file
+    is gone. `--quit` now waits for the mutex to be released, and the app is closed only
+    once the player has chosen to go ahead (`PrepareToInstall`, and for uninstalling after
+    "Are you sure?"; before, answering No had already closed it). If it still runs, as
+    1.0.0 does since it has no `--quit`, Setup asks the player to quit it from the tray.
+  - In dark mode the wizard showed Inno's stock image: the dark image directives now point
+    at the same artwork.
+  - With the Ready page off, the button that starts the install said Next: it now says
+    Install. An update skips the shortcut page and says it keeps the settings.
+  - Classic Era was listed above Retail (alphabetical): known game versions now come in
+    `game.FLAVORS` order.
+  - The reply slot generator wrote CRLF line ends on Windows, so the slot contract test
+    failed there: it writes LF everywhere, and the test ignores CRLF from a Windows checkout.
+  - Each request to Ollama through `localhost` cost about 2 s (Windows tries IPv6 first;
+    Ollama listens on 127.0.0.1 only): measured in the VM, 2.08 s against 0.01 s per request,
+    and the test question took 3.1 s against 1.0 s. The preset uses 127.0.0.1, and settings
+    saved by 1.0.0 are moved to it when read.
+  - The API key form on the AI step kept "Sign in with OpenRouter" above it, so two primary
+    buttons competed and the step overflowed the default window (15 px at the VM's
+    1024 x 652 page). The form now replaces the sign-in button and the failed key's fixes
+    while it is open; models sit in two columns (one model fills the row); a step on its
+    way out no longer takes part in the layout. Every setup step now fits 1024 x 623,
+    652 and 661 pages; at the smallest window two states scroll, with their buttons kept in
+    view. Scroll areas keep their scrollbar gutter (content no longer shifts sideways when a
+    scrollbar appears) and show a slim scrollbar in the app's colours.
+- Checks this round: `tests/run_all.sh` passes (11 scenarios, 137 checks; 139 Python tests,
+  two of them only on Windows); the Python tests also passed on the test machine,
+  including both real-mutex tests (before the last Ollama test was added);
+  `wow_api.py check`, `make_icons.py --check` and `lock.py --check` pass. A local browser
+  harness drove the window against the real backend in 14 scenario runs (48 checks, both
+  themes, no page errors), and layout checks measured overflow at the sizes above and the
+  step change frame by frame (the leaving step moves at most 2 px per frame; never two steps
+  visible). Each window change was also run against a mutation that undoes it, and failed
+  there.
+- Start-up time in the VM: three starts within six minutes took 19 to 22 s from process
+  start to window, one of them run from source and not after an install; later starts took
+  2 to 6 s, and eight timed ones 2.4 to 3.3 s. Stack dumps of a slow start show the time in
+  CPython's WMI query for `platform.machine()` (called by pywebview) and in WebView2 setup,
+  outside Gnomecaster's code; that query alone took 0.08 to 0.45 s. The host was busy then
+  (15-minute load average 12.6) and the VM runs at a lower priority, so a starved VM is the
+  likely cause (inferred, not proven). Worth timing on a real PC.
+- Still unverified: a player using the installed app, and anything in the real game.

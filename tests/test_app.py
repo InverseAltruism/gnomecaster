@@ -203,7 +203,8 @@ class Setup(AppCase):
         r = api.installAddon({"id": self.retail})
         self.assertTrue(r["ok"])
         self.assertTrue(r["message"].startswith("Installed."))
-        self.assertEqual(api.getState()["games"][1]["addon"], "current")
+        self.assertEqual({g["id"]: g["addon"] for g in api.getState()["games"]},
+                         {self.retail: "current", str(self.wow / "_classic_era_"): "missing"})
         core = self.wow / "_retail_" / "Interface" / "AddOns" / "Gnomecaster" / "Core.lua"
         core.write_text("-- changed")
         retail = next(g for g in api.getState()["games"] if g["id"] == self.retail)
@@ -698,6 +699,13 @@ class Folders(unittest.TestCase):
             self.assertFalse(game.is_flavor(pathlib.Path("/w") / name))
         self.assertEqual(game.game_root(pathlib.Path("/w/_retail_")), pathlib.Path("/w"))
         self.assertEqual(game.game_root(pathlib.Path("/w")), pathlib.Path("/w"))
+
+    def test_retail_is_listed_first(self):
+        with tempfile.TemporaryDirectory() as d:
+            for name in ("_anniversary_", "_xptr_", "_classic_era_", "_retail_", "_classic_", "_beta_", "Data"):
+                (pathlib.Path(d) / name).mkdir()
+            self.assertEqual([pathlib.Path(f["path"]).name for f in winsys.flavors_in(pathlib.Path(d))],
+                             ["_retail_", "_classic_", "_classic_era_", "_anniversary_", "_beta_", "_xptr_"])
 
 
 class Describe(unittest.TestCase):
