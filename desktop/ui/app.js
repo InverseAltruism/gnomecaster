@@ -8,6 +8,8 @@
   let step = "game";
   let focusAfterMove = false;
   let signInAttempt = 0;           // a sign-in's result counts only while it is the latest attempt
+  let transcripts = null;          // a promise of the saved transcripts; dropped when a new answer arrives
+  const opened = new Set();        // entries whose transcript is open, kept across re-renders
 
   // ---------------------------------------------------------------- helpers
 
@@ -255,6 +257,7 @@
     $("game-value").textContent = g ? g.name : "Not found";
     const note = $("game-note");
     $("update-addon").hidden = !g || g.addon === "current";
+    $("rail-game").dataset.state = !g ? "error" : g.addon === "current" ? "ok" : "warn";
     if (!g) { note.textContent = "Choose the game folder in settings."; note.className = "rail-note warn"; }
     else if (g.addon === "current") { note.textContent = "Addon installed"; note.className = "rail-note"; }
     else { note.textContent = g.addon === "outdated" ? "A newer addon is ready to install" : "Addon not installed"; note.className = "rail-note warn"; }
@@ -265,6 +268,7 @@
     // a problem's details and fixes are in the alert above the questions; the rail only says so
     $("ai-note").textContent = !ai ? "Not connected." : ai.ok === false ? "Not answering right now." : [ai.note, ai.credit].filter(Boolean).join(". ");
     $("ai-note").className = "rail-note" + (aiProblem ? " error" : "");
+    $("rail-ai").dataset.state = !ai || ai.ok === false ? "error" : ai.ok === null ? "pending" : "ok";
     renderAlert(ai, aiProblem);
 
     const c = state.companion;
@@ -272,6 +276,7 @@
     $("companion-note").textContent = c.running ? "Since " + c.since + ". Keep it running while you play." : "Questions asked in the game while paused get no answer.";
     $("toggle-companion").textContent = c.running ? "Pause" : "Resume";
     $("toggle-companion").classList.toggle("primary", !c.running);
+    $("rail-companion").dataset.state = c.running ? "ok" : "off";
 
     const live = $("live");
     const problem = aiProblem || !g || g.addon !== "current";
@@ -288,29 +293,161 @@
     $("alert-check").hidden = !ai;
   }
 
+  function modelName(id) {
+    return id && (state.models.find((m) => m.id === id) || { name: id }).name;
+  }
+
   function entryNode(e) {
     const q = el("div", { class: "entry-q" }, [el("span", { class: "who", text: "You" }), el("span", { class: "text", text: e.question }), el("time", { text: e.time })]);
-    const node = el("li", { class: "entry" + (e.error ? " error" : ""), "data-id": e.id }, [q]);
+    const sheet = el("div", { class: "entry-sheet" });
+    const node = el("li", { class: "entry" + (e.error ? " error" : ""), "data-id": e.id }, [q, sheet]);
     if (e.pending) {
       const dots = el("span", { class: "dots", "aria-hidden": "true" }, [el("i"), el("i"), el("i")]);
-      node.append(el("p", { class: "entry-a thinking" }, [dots, document.createTextNode("Thinking")]));
+      sheet.append(el("p", { class: "entry-a thinking" }, [dots, document.createTextNode("Thinking")]));
+      return node;
     }
-    else {
-      node.append(el("p", { class: "entry-a", text: e.answer }));
-      // what the answer asked the game to do; whether it happened, and when, the game decides
-      if (e.actions && e.actions.length) node.append(el("ul", { class: "entry-actions" }, e.actions.map((a) => el("li", { text: a }))));
-      const model = e.model && (state.models.find((m) => m.id === e.model) || { name: e.model }).name;
-      const took = e.seconds ? e.seconds.toFixed(1) + " s" : "";
-      if (took) node.append(el("p", { class: "entry-meta", text: e.error ? `Failed after ${took}` : `Answered in ${took}` + (model ? ` by ${model}` : "") }));
-    }
+    sheet.append(el("p", { class: "entry-a", text: e.answer }));
+    // what the answer asked the game to do; whether it happened, and when, the game decides
+    if (e.actions && e.actions.length) sheet.append(el("ul", { class: "entry-actions" }, e.actions.map((a) => el("li", { text: a }))));
+    const model = modelName(e.model);
+    const took = e.seconds ? e.seconds.toFixed(1) + " s" : "";
+    const meta = el("p", { class: "entry-meta", text: !took ? "" : e.error ? `Failed after ${took}` : `Answered in ${took}` + (model ? ` by ${model}` : "") });
+    const panelId = "saw-" + e.id;
+    const toggle = el("button", { class: "saw-toggle", type: "button", "aria-expanded": "false", "aria-controls": panelId, text: "What Gnomecaster saw" });
+    const panel = el("div", { class: "saw", id: panelId, hidden: true });
+    toggle.addEventListener("click", () => showTranscript(e, toggle, panel, !opened.has(e.id)));
+    sheet.append(el("div", { class: "entry-foot" }, [meta, toggle]), panel);
+    if (opened.has(e.id)) showTranscript(e, toggle, panel, true);
     return node;
+  }
+
+  // ---------------------------------------------------------------- transcripts
+
+  // The saved transcripts are read once and shared until the next answer arrives.
+  function loadTranscripts() {
+    if (!transcripts) {
+      transcripts = GC.call("getHistory", { limit: 100 }).then((r) => {
+        if (!r || r.ok === false || !Array.isArray(r.items)) throw new Error((r && r.message) || "The transcripts could not be read.");
+        return r.items;
+      });
+      transcripts.catch(() => { transcripts = null; });     // a failed read is tried again next time
+    }
+    return transcripts;
+  }
+
+  // "HH:MM" of a transcript's time: an ISO string, "HH:MM[:SS]" or seconds since 1970.
+  function clock(t) {
+    if (typeof t === "number") {
+      const d = new Date(t * 1000);
+      return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    }
+    const m = /(\d{1,2}):(\d{2})/.exec(String(t || ""));
+    return m ? m[1].padStart(2, "0") + ":" + m[2] : "";
+  }
+
+  // An activity entry and its transcript share the question and, give or take the minutes the
+  // answer took, the time: the closest one within five minutes is it.
+  function transcriptFor(entry, items) {
+    const minutes = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+    if (!/^\d{2}:\d{2}$/.test(entry.time || "")) return items.find((i) => i.question === entry.question) || null;
+    let best = null, gap = 6;
+    for (const item of items) {
+      const at = clock(item && item.time);
+      if (!item || item.question !== entry.question || !at) continue;
+      const d = Math.abs(minutes(at) - minutes(entry.time));
+      if (Math.min(d, 1440 - d) < gap) { best = item; gap = Math.min(d, 1440 - d); }
+    }
+    return best;
+  }
+
+  async function showTranscript(entry, toggle, panel, open) {
+    toggle.setAttribute("aria-expanded", String(open));
+    panel.hidden = !open;
+    if (!open) { opened.delete(entry.id); return; }
+    opened.add(entry.id);
+    if (panel.dataset.filled) return;
+    panel.replaceChildren(el("p", { class: "saw-note", text: "Reading the transcript…" }));
+    try {
+      const item = transcriptFor(entry, await loadTranscripts());
+      panel.replaceChildren(...(item ? transcriptNodes(item) : [el("p", { class: "saw-note", text: "No transcript was saved for this question." })]));
+      panel.dataset.filled = "true";
+    } catch (err) {
+      panel.replaceChildren(el("p", { class: "saw-note error", text: err.message }));
+    }
+  }
+
+  // Transcripts hold game and model text: every value is read defensively and shown as text.
+  const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+  const list = (v) => (Array.isArray(v) ? v : []);
+  const text = (v) => (v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v));
+  const pct = (v) => (typeof v === "number" && isFinite(v) ? (v <= 1 ? v * 100 : v).toFixed(1) : "");
+  const capital = (s) => text(s).toLowerCase().replace(/(^|[\s_])\w/g, (c) => c.toUpperCase()).replace(/_/g, " ");
+  const spaced = (s) => text(s).replace(/([a-z])([A-Z])/g, "$1 $2");
+
+  // The game context (Context.lua) as a few readable lines; the full JSON is one click further.
+  function contextFacts(ctx) {
+    const facts = [];
+    const add = (label, value) => { if (value) facts.push([label, value]); };
+    const loc = obj(ctx.location), p = obj(ctx.player), g = obj(ctx.game);
+    const place = [...new Set([loc.subzone, loc.zone].map(text).filter(Boolean))].join(", ") || text(loc.map);
+    const at = pct(loc.x) && pct(loc.y) ? ` (${pct(loc.x)}, ${pct(loc.y)})` : "";
+    add("Where", place && place + at);
+    if (loc.instance && loc.instance !== "none") add("Instance", capital(loc.instance));
+    add("Character", [p.level ? "Level " + text(p.level) : "", spaced(p.race), text(p.spec), capital(p.class)].filter(Boolean).join(" "));
+    if (p.combat === true) add("Combat", "In combat");
+    const t = ctx.target && typeof ctx.target === "object" ? obj(ctx.target) : null;
+    add("Target", t ? [text(t.name), t.level ? "level " + text(t.level) : "", t.player ? "a player" : "",
+      t.dead ? "dead" : t.hostile ? "hostile" : "friendly"].filter(Boolean).join(", ") : "None");
+    const f = ctx.focus && typeof ctx.focus === "object" ? obj(ctx.focus) : null;
+    if (f) add("Following", (text(f.title) || "Quest " + text(f.quest)) + (list(f.obj).length ? ": " + text(f.obj[0]) : ""));
+    if (Array.isArray(ctx.quests)) {
+      const done = ctx.quests.filter((q) => obj(q).done).length;
+      add("Quest log", `${ctx.quests.length} quests sent` + (done ? `, ${done} ready to turn in` : ""));
+    }
+    const errors = obj(ctx.errors);
+    for (const [key, label] of [["lua", "Lua error"], ["blocked", "Blocked action"], ["ui", "Game message"]]) {
+      list(errors[key]).slice(0, 3).forEach((e) => add(label, text(obj(e).msg || e) + (obj(e).n > 1 ? ` (${text(obj(e).n)} times)` : "")));
+    }
+    add("Game", [text(g.version), text(g.locale)].filter(Boolean).join(", "));
+    return facts;
+  }
+
+  function actionLine(a) {
+    const { type, ...rest } = obj(a);
+    const args = Object.entries(rest).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("  ");
+    return el("li", {}, [el("span", { class: "tag", text: text(type) || "?" }), el("span", { class: "args", text: args })]);
+  }
+
+  const part = (title, children) => el("section", {}, [el("h4", { text: title }), ...children]);
+
+  function transcriptNodes(item) {
+    const nodes = [];
+    const ctx = obj(item.ctx);
+    const facts = contextFacts(ctx);
+    nodes.push(part("In the game", [facts.length
+      ? el("dl", { class: "saw-facts" }, facts.flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { text: v })]))
+      : el("p", { class: "saw-note", text: "The game sent no details with this question." })]));
+    const last = list(item.last).map(obj);
+    if (last.length) {
+      nodes.push(part("How the previous answer went", [el("ul", { class: "saw-list" }, last.map((l) => el("li", {}, [
+        el("span", { class: "tag " + (l.ok ? "ok" : "fail"), text: (text(l.type) || "action") + (l.ok ? " done" : " failed") }),
+        el("span", { text: text(l.say) }),
+      ])))]));
+    }
+    const actions = list(obj(item.reply).actions);
+    const reply = [el("p", { class: "saw-note", text: item.searched ? "Searched the web before answering." : "Answered without searching the web." })];
+    if (item.error) reply.push(el("p", { class: "saw-note error", text: "Error: " + text(item.error) }));
+    reply.push(actions.length ? el("ul", { class: "saw-list" }, actions.map(actionLine)) : el("p", { class: "saw-note", text: "No actions." }));
+    nodes.push(part("The reply", reply));
+    if (item.raw) nodes.push(el("details", {}, [el("summary", { text: "Model output, as received" }), el("pre", { class: "raw", text: text(item.raw) })]));
+    nodes.push(el("details", {}, [el("summary", { text: "Game context, as sent" }), el("pre", { class: "raw", text: JSON.stringify(ctx, null, 2) })]));
+    return nodes;
   }
 
   function renderFeed() {
     const list = $("feed-list");
     list.replaceChildren(...state.activity.map(entryNode));
     $("feed-empty").hidden = state.activity.length > 0;
-    $("feed-title").hidden = state.activity.length === 0;
   }
 
   function flare() {
@@ -323,6 +460,7 @@
   function onEvent(event) {
     if (!state) return;
     if (event.type === "question" || event.type === "answer") {
+      if (event.type === "answer") transcripts = null;     // a new transcript was saved
       const i = state.activity.findIndex((e) => e.id === event.entry.id);
       if (i >= 0) state.activity[i] = event.entry; else state.activity.unshift(event.entry);
       renderFeed();
@@ -435,6 +573,8 @@
     $("settings-autostart").addEventListener("change", (e) => GC.call("setSetting", { name: "autostart", value: e.target.checked }));
     $("settings-tray").addEventListener("change", (e) => GC.call("setSetting", { name: "tray", value: e.target.checked }));
     $("settings-logs").addEventListener("click", () => GC.call("openLogs"));
+    $("settings-transcripts").addEventListener("click", () => GC.call("openTranscripts"));
+    $("open-transcripts").addEventListener("click", () => GC.call("openTranscripts"));
   }
 
   // ---------------------------------------------------------------- start

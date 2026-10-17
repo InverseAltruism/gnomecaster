@@ -111,6 +111,14 @@ class Contract(unittest.TestCase):
         self.assertEqual(public, mock_calls)
         self.assertLessEqual(used, public)
 
+    def test_the_window_reads_transcripts_through_its_two_calls(self):
+        # "What Gnomecaster saw" under each answer and the transcripts folder button: the mock
+        # offers both calls and the page uses both, so the backend must offer them as well
+        source = (ROOT / "desktop" / "ui" / "api.js").read_text()
+        mock_calls = set(re.findall(r"^\s+async (\w+)\(", source, re.M))
+        used = set(re.findall(r'GC\.call\("(\w+)"', (ROOT / "desktop" / "ui" / "app.js").read_text()))
+        self.assertLessEqual({"getHistory", "openTranscripts"}, mock_calls & used)
+
     def test_nothing_else_is_exposed_to_the_page(self):
         # pywebview exposes public attributes recursively; only the calls may be public
         with tempfile.TemporaryDirectory() as d:

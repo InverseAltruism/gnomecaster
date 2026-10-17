@@ -1,40 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 164 314" preserveAspectRatio="xMidYMid slice">
-  <!-- The installer's welcome and finish pages: night sky, the app mark, sparks rising to it.
-       Inno Setup shows it at 164:314; tools/make_icons.py renders one PNG per screen scaling. -->
+  <!-- The installer's welcome and finish pages: a workshop blueprint with two drafted cogs and
+       the app mark pinned above them. Inno Setup shows it at 164:314; tools/make_icons.py
+       renders one PNG per screen scaling. -->
   <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0.35" y2="1">
-      <stop offset="0" stop-color="#3B1F8F"/>
-      <stop offset="0.5" stop-color="#21134F"/>
-      <stop offset="1" stop-color="#140B33"/>
+    <linearGradient id="sheet" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#1E4470"/>
+      <stop offset="0.6" stop-color="#173658"/>
+      <stop offset="1" stop-color="#112941"/>
     </linearGradient>
-    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#7C5CFF" stop-opacity="0.55"/>
-      <stop offset="1" stop-color="#7C5CFF" stop-opacity="0"/>
+    <pattern id="fine" width="8" height="8" patternUnits="userSpaceOnUse">
+      <path d="M8 0H0V8" fill="none" stroke="#8FC3F2" stroke-opacity="0.10" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="major" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#8FC3F2" stroke-opacity="0.22" stroke-width="0.7"/>
+    </pattern>
+    <radialGradient id="lamp" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFE3A0" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#FFE3A0" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="spark" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#F0FFFF"/>
-      <stop offset="0.4" stop-color="#6CF5FF" stop-opacity="0.8"/>
-      <stop offset="1" stop-color="#6CF5FF" stop-opacity="0"/>
+    <linearGradient id="brass" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E9C47A"/>
+      <stop offset="0.5" stop-color="#B98A3A"/>
+      <stop offset="1" stop-color="#6E4C1A"/>
+    </linearGradient>
+    <radialGradient id="rivet" cx="0.35" cy="0.3" r="0.75">
+      <stop offset="0" stop-color="#FFE6A3"/>
+      <stop offset="0.6" stop-color="#B8853A"/>
+      <stop offset="1" stop-color="#4A320F"/>
     </radialGradient>
   </defs>
-  <rect width="164" height="314" fill="url(#sky)"/>
-  <circle cx="82" cy="118" r="78" fill="url(#glow)"/>
-  <!-- sparks rising to the mark -->
-  <circle cx="70" cy="262" r="3" fill="url(#spark)"/>
-  <circle cx="86" cy="232" r="4.5" fill="url(#spark)"/>
-  <circle cx="78" cy="203" r="6.5" fill="url(#spark)"/>
-  <!-- stars -->
-  <g fill="#C9F9FF">
-    <circle cx="22" cy="30" r="1.1" fill-opacity="0.8"/>
-    <circle cx="140" cy="22" r="1.4" fill-opacity="0.7"/>
-    <circle cx="118" cy="58" r="0.9" fill-opacity="0.6"/>
-    <circle cx="34" cy="76" r="0.8" fill-opacity="0.5"/>
-    <circle cx="150" cy="96" r="1" fill-opacity="0.55"/>
-    <circle cx="14" cy="150" r="1.2" fill-opacity="0.5"/>
-    <circle cx="146" cy="178" r="0.9" fill-opacity="0.5"/>
-    <circle cx="92" cy="232" r="0.8" fill-opacity="0.45"/>
-    <circle cx="20" cy="286" r="1" fill-opacity="0.4"/>
-    <circle cx="150" cy="292" r="1.1" fill-opacity="0.4"/>
+  <rect width="164" height="314" fill="url(#sheet)"/>
+  <rect width="164" height="314" fill="url(#fine)"/>
+  <rect width="164" height="314" fill="url(#major)"/>
+
+  <!-- drafted cogs, meshing, with centre marks and a dimension line -->
+  <g fill="none" stroke="#B9DBFA" stroke-linejoin="round">
+    <path stroke-opacity="0.55" stroke-width="1.1" d="M33.3 206.4 L34.2 196.3 L45.8 196.3 L46.7 206.4 L55.1 208.1 L59.8 199.0 L70.5 203.5 L67.4 213.2 L74.6 218.0 L82.4 211.4 L90.6 219.6 L84.0 227.4 L88.8 234.6 L98.5 231.5 L103.0 242.2 L93.9 246.9 L95.6 255.3 L105.7 256.2 L105.7 267.8 L95.6 268.7 L93.9 277.1 L103.0 281.8 L98.5 292.5 L88.8 289.4 L84.0 296.6 L90.6 304.4 L82.4 312.6 L74.6 306.0 L67.4 310.8 L70.5 320.5 L59.8 325.0 L55.1 315.9 L46.7 317.6 L45.8 327.7 L34.2 327.7 L33.3 317.6 L24.9 315.9 L20.2 325.0 L9.5 320.5 L12.6 310.8 L5.4 306.0 L-2.4 312.6 L-10.6 304.4 L-4.0 296.6 L-8.8 289.4 L-18.5 292.5 L-23.0 281.8 L-13.9 277.1 L-15.6 268.7 L-25.7 267.8 L-25.7 256.2 L-15.6 255.3 L-13.9 246.9 L-23.0 242.2 L-18.5 231.5 L-8.8 234.6 L-4.0 227.4 L-10.6 219.6 L-2.4 211.4 L5.4 218.0 L12.6 213.2 L9.5 203.5 L20.2 199.0 L24.9 208.1 Z"/>
+    <circle cx="40" cy="262" r="40" stroke-opacity="0.35" stroke-width="0.8" stroke-dasharray="3 3"/>
+    <circle cx="40" cy="262" r="12" stroke-opacity="0.55" stroke-width="1.1"/>
+    <path stroke-opacity="0.55" stroke-width="1.1" d="M129.2 186.4 L129.6 180.3 L138.4 180.3 L138.8 186.4 L144.8 188.2 L148.6 183.3 L155.9 188.0 L153.0 193.4 L157.1 198.1 L162.9 196.0 L166.5 204.0 L161.1 206.9 L162.0 213.1 L168.0 214.5 L166.8 223.1 L160.6 222.7 L158.0 228.4 L162.3 232.8 L156.6 239.4 L151.7 235.7 L146.4 239.1 L147.7 245.1 L139.3 247.6 L137.1 241.8 L130.9 241.8 L128.7 247.6 L120.3 245.1 L121.6 239.1 L116.3 235.7 L111.4 239.4 L105.7 232.8 L110.0 228.4 L107.4 222.7 L101.2 223.1 L100.0 214.5 L106.0 213.1 L106.9 206.9 L101.5 204.0 L105.1 196.0 L110.9 198.1 L115.0 193.4 L112.1 188.0 L119.4 183.3 L123.2 188.2 Z"/>
+    <circle cx="134" cy="214" r="8" stroke-opacity="0.55" stroke-width="1.1"/>
+    <g stroke-opacity="0.4" stroke-width="0.6">
+      <path d="M40 246V278M24 262H56M134 204V224M124 214H144"/>
+      <path d="M40 262L134 214" stroke-dasharray="5 2 1 2"/>
+    </g>
+    <g stroke-opacity="0.45" stroke-width="0.6">
+      <path d="M12 184H152M12 180V188M152 180V188"/>
+      <path d="M12 184l5 -2v4zM152 184l-5 -2v4z" fill="#B9DBFA" fill-opacity="0.45" stroke="none"/>
+    </g>
   </g>
-  <image x="34" y="70" width="96" height="96" href="gnomecaster-icon.svg" xlink:href="gnomecaster-icon.svg"/>
+
+  <!-- the mark, lit from above, on a brass mount -->
+  <circle cx="82" cy="104" r="86" fill="url(#lamp)"/>
+  <rect x="26" y="150" width="112" height="10" rx="2" fill="url(#brass)"/>
+  <circle cx="34" cy="155" r="2.2" fill="url(#rivet)"/>
+  <circle cx="130" cy="155" r="2.2" fill="url(#rivet)"/>
+  <image x="34" y="50" width="96" height="96" href="gnomecaster-icon.svg" xlink:href="gnomecaster-icon.svg"/>
 </svg>

@@ -8,11 +8,18 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- One cog outline, drawn by every cog on the page (the settings button, the empty bench) -->
+  <svg width="0" height="0" class="defs" aria-hidden="true" focusable="false">
+    <defs>
+      <path id="cog-24" d="M10.4 4.4 L10.4 2.1 L13.6 2.1 L13.6 4.4 L15.2 4.9 L16.5 3.1 L19.1 4.9 L17.8 6.8 L18.7 8.1 L20.9 7.5 L21.9 10.4 L19.8 11.2 L19.8 12.8 L21.9 13.6 L20.9 16.5 L18.7 15.9 L17.8 17.2 L19.1 19.1 L16.5 20.9 L15.2 19.1 L13.6 19.6 L13.6 21.9 L10.4 21.9 L10.4 19.6 L8.8 19.1 L7.5 20.9 L4.9 19.1 L6.2 17.2 L5.3 15.9 L3.1 16.5 L2.1 13.6 L4.2 12.8 L4.2 11.2 L2.1 10.4 L3.1 7.5 L5.3 8.1 L6.2 6.8 L4.9 4.9 L7.5 3.1 L8.8 4.9 Z"/>
+    </defs>
+  </svg>
+
   <div class="app" id="app" data-screen="loading">
 
     <!-- Setup: three steps the first time the app starts -->
     <section class="setup" id="setup" aria-labelledby="setup-title">
-      <aside class="setup-side">
+      <aside class="setup-side plate riveted">
         <div class="brand">
           <img class="brand-mark" src="icon.png" alt="" width="56" height="56">
           <div>
@@ -26,9 +33,10 @@
           <li data-step="ai"><span class="step-num">3</span><span class="step-label">Connect an AI</span></li>
         </ol>
         <div class="spark-trail" aria-hidden="true"><span class="halo"></span></div>
+        <svg class="side-cog" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#cog-24"/><circle cx="12" cy="12" r="4.2"/></svg>
       </aside>
 
-      <div class="setup-main">
+      <div class="setup-main bench">
         <div class="steps-mini" aria-hidden="true">
           <span class="bar"></span><span class="bar"></span><span class="bar"></span>
           <span class="steps-mini-text" id="steps-mini-text">Step 1 of 3</span>
@@ -66,7 +74,7 @@
           </div>
 
           <div class="pane" data-pane="ai">
-            <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 3.5l1.9 5.1 5.1 1.9-5.1 1.9L11 17.5l-1.9-5.1L4 10.5l5.1-1.9z"/><path d="M18 14.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span>
+            <span class="step-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6.2L10 21.5l8.8-11.3h-6.3z"/></svg></span>
             <h2>Connect an AI</h2>
             <p class="lead" id="ai-lead">OpenRouter gives one account access to many AI models. You pay OpenRouter directly; a typical question costs under a tenth of a cent.</p>
             <div id="ai-connect">
@@ -114,8 +122,8 @@
 
           <div class="pane" data-pane="done">
             <svg class="done-mark" viewBox="0 0 64 64" aria-hidden="true">
-              <circle class="ring" cx="32" cy="32" r="28"/>
-              <path class="tick" d="M20 33l8 8 16-17"/>
+              <path class="ring" d="M27.6 9.4 L28.1 4.3 L35.9 4.3 L36.4 9.4 L41.7 11.2 L45.1 7.3 L51.5 11.9 L48.8 16.3 L52.1 20.9 L57.1 19.7 L59.6 27.2 L54.8 29.2 L54.8 34.8 L59.6 36.8 L57.1 44.3 L52.1 43.1 L48.8 47.7 L51.5 52.1 L45.1 56.7 L41.7 52.8 L36.4 54.6 L35.9 59.7 L28.1 59.7 L27.6 54.6 L22.3 52.8 L18.9 56.7 L12.5 52.1 L15.2 47.7 L11.9 43.1 L6.9 44.3 L4.4 36.8 L9.2 34.8 L9.2 29.2 L4.4 27.2 L6.9 19.7 L11.9 20.9 L15.2 16.3 L12.5 11.9 L18.9 7.3 L22.3 11.2 Z" pathLength="100"/>
+              <path class="tick" d="M21 33l7.5 7.5L44 24.5" pathLength="100"/>
             </svg>
             <h2>You're set</h2>
             <ol class="next-steps">
@@ -133,42 +141,42 @@
 
     <!-- Main: status and what was asked in the game -->
     <section class="main" id="main" aria-labelledby="main-title">
-      <header class="topbar">
+      <header class="topbar plate riveted">
         <div class="brand small">
-          <img class="brand-mark" src="icon.png" alt="" width="32" height="32">
+          <img class="brand-mark" src="icon.png" alt="" width="34" height="34">
           <h1 class="brand-name" id="main-title">Gnomecaster</h1>
         </div>
         <div class="live" id="live" role="status">
-          <span class="spark"></span>
+          <span class="lamp" aria-hidden="true"></span>
           <span id="live-text">Starting</span>
         </div>
         <button class="btn ghost icon-btn" id="open-settings" type="button" aria-label="Settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.4 2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7.6 7.6 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.4zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#cog-24"/><circle cx="12" cy="12" r="3.6"/></svg>
         </button>
       </header>
 
       <div class="main-body">
-        <aside class="rail" aria-label="Status">
+        <aside class="rail plate" aria-label="Status">
           <div class="rail-item" id="rail-game">
-            <h2>World of Warcraft</h2>
+            <h2><span class="lamp" aria-hidden="true"></span>World of Warcraft</h2>
             <p class="rail-value" id="game-value"></p>
             <p class="rail-note" id="game-note"></p>
             <button class="btn small" id="update-addon" type="button" hidden>Update addon</button>
           </div>
           <div class="rail-item" id="rail-ai">
-            <h2>AI</h2>
+            <h2><span class="lamp" aria-hidden="true"></span>AI</h2>
             <p class="rail-value" id="ai-value"></p>
             <p class="rail-note" id="ai-note"></p>
           </div>
           <div class="rail-item" id="rail-companion">
-            <h2>Companion</h2>
+            <h2><span class="lamp" aria-hidden="true"></span>Companion</h2>
             <p class="rail-value" id="companion-value"></p>
             <p class="rail-note" id="companion-note"></p>
             <button class="btn small" id="toggle-companion" type="button">Pause</button>
           </div>
         </aside>
 
-        <div class="feed" aria-labelledby="feed-title">
+        <div class="feed bench" aria-labelledby="feed-title">
           <div class="feed-alert" id="feed-alert" role="alert" hidden>
             <p class="feed-alert-text" id="feed-alert-text"></p>
             <div class="row">
@@ -177,10 +185,21 @@
               <button class="btn small ghost" id="alert-settings" type="button">Open settings</button>
             </div>
           </div>
-          <h2 class="feed-title" id="feed-title">Questions from the game</h2>
+          <div class="feed-head" id="feed-head">
+            <h2 class="feed-title" id="feed-title">Questions from the game</h2>
+            <button class="btn small ghost" id="open-transcripts" type="button">Open transcripts folder</button>
+          </div>
           <ol class="feed-list" id="feed-list" aria-live="polite"></ol>
-          <div class="feed-empty" id="feed-empty">
-            <img class="feed-empty-mark" src="icon.png" alt="" width="64" height="64">
+          <div class="feed-empty blueprint" id="feed-empty">
+            <svg class="schematic" viewBox="0 0 150 110" aria-hidden="true" focusable="false">
+              <path class="cog" d="M55.5 29.3 L56.0 22.2 L64.0 22.2 L64.5 29.3 L70.1 30.6 L73.6 24.4 L80.9 27.9 L78.2 34.5 L82.8 38.1 L88.6 34.0 L93.6 40.3 L88.4 45.1 L90.9 50.4 L97.9 49.2 L99.7 57.1 L92.9 59.1 L92.9 64.9 L99.7 66.9 L97.9 74.8 L90.9 73.6 L88.4 78.9 L93.6 83.7 L88.6 90.0 L82.8 85.9 L78.2 89.5 L80.9 96.1 L73.6 99.6 L70.1 93.4 L64.5 94.7 L64.0 101.8 L56.0 101.8 L55.5 94.7 L49.9 93.4 L46.4 99.6 L39.1 96.1 L41.8 89.5 L37.2 85.9 L31.4 90.0 L26.4 83.7 L31.6 78.9 L29.1 73.6 L22.1 74.8 L20.3 66.9 L27.1 64.9 L27.1 59.1 L20.3 57.1 L22.1 49.2 L29.1 50.4 L31.6 45.1 L26.4 40.3 L31.4 34.0 L37.2 38.1 L41.8 34.5 L39.1 27.9 L46.4 24.4 L49.9 30.6 Z"/>
+              <path class="cog turn" d="M105.7 15.8 L105.9 11.2 L112.1 11.2 L112.3 15.8 L116.4 17.1 L119.3 13.6 L124.3 17.2 L121.8 21.1 L124.3 24.5 L128.8 23.3 L130.7 29.2 L126.4 30.8 L126.4 35.2 L130.7 36.8 L128.8 42.7 L124.3 41.5 L121.8 44.9 L124.3 48.8 L119.3 52.4 L116.4 48.9 L112.3 50.2 L112.1 54.8 L105.9 54.8 L105.7 50.2 L101.6 48.9 L98.7 52.4 L93.7 48.8 L96.2 44.9 L93.7 41.5 L89.2 42.7 L87.3 36.8 L91.6 35.2 L91.6 30.8 L87.3 29.2 L89.2 23.3 L93.7 24.5 L96.2 21.1 L93.7 17.2 L98.7 13.6 L101.6 17.1 Z"/>
+              <circle class="cog" cx="60" cy="62" r="10"/>
+              <circle class="cog" cx="109" cy="33" r="6"/>
+              <circle class="guide" cx="60" cy="62" r="25"/>
+              <path class="guide" d="M60 50v24M48 62h24M109 25v16M101 33h16M60 62L109 33"/>
+              <path class="guide" d="M12 106h96M12 103v6M108 103v6"/>
+            </svg>
             <h3>Ask your first question in the game</h3>
             <p>Open the panel with <kbd>/gc</kbd>, type a question and press Enter. Each question and its answer shows up here.</p>
             <ul class="examples" aria-label="Examples to copy into the game's chat">
@@ -196,17 +215,19 @@
     </section>
 
     <!-- When the window cannot reach the app behind it -->
-    <section class="fatal" id="fatal" aria-labelledby="fatal-title">
-      <img class="brand-mark" src="icon.png" alt="" width="56" height="56">
-      <h1 id="fatal-title">Gnomecaster couldn't start</h1>
-      <p class="lead" id="fatal-text"></p>
-      <p class="hint">Quit Gnomecaster from its tray icon and open it again. If this keeps happening, the log folder in %LOCALAPPDATA%\Gnomecaster\logs says why.</p>
+    <section class="fatal bench" id="fatal" aria-labelledby="fatal-title">
+      <div class="fatal-plate plate riveted">
+        <span class="lamp" data-state="error" aria-hidden="true"></span>
+        <h1 id="fatal-title">Gnomecaster couldn't start</h1>
+        <p class="lead" id="fatal-text"></p>
+        <p class="hint">Quit Gnomecaster from its tray icon and open it again. If this keeps happening, the log folder in %LOCALAPPDATA%\Gnomecaster\logs says why.</p>
+      </div>
     </section>
 
     <!-- Settings drawer -->
     <div class="scrim" id="scrim" hidden></div>
-    <aside class="drawer" id="drawer" aria-labelledby="drawer-title" hidden>
-      <header class="drawer-head">
+    <aside class="drawer plate" id="drawer" aria-labelledby="drawer-title" hidden>
+      <header class="drawer-head riveted">
         <h2 id="drawer-title">Settings</h2>
         <button class="btn ghost icon-btn" id="close-settings" type="button" aria-label="Close settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -257,6 +278,7 @@
         </section>
         <section class="about">
           <p class="hint" id="settings-version"></p>
+          <button class="link" id="settings-transcripts" type="button">Open the transcripts folder</button>
           <button class="link" id="settings-logs" type="button">Open the log folder</button>
         </section>
       </div>
