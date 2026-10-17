@@ -11,10 +11,11 @@ import subprocess
 import sys
 import time
 
-from . import config, game, protocol, serve
+from . import config, game, protocol, serve, winsys
 from .brain import Brain
 from .model import ModelClient, ModelError
 from .slots import Slots, find_probe_font
+from .transcript import Transcript
 
 USAGE = """Gnomecaster companion: answers the questions you type in the game.
 
@@ -28,9 +29,10 @@ USAGE = """Gnomecaster companion: answers the questions you type in the game.
 """
 
 
-def make_brain(settings: config.Settings) -> Brain:
-    client = ModelClient(settings.base_url, settings.model, settings.api_key, settings.extra) if settings.has_model else None
-    return Brain(client, game.ADDON_DIR)
+def make_brain(settings: config.Settings, transcripts: pathlib.Path | None = None) -> Brain:
+    client = ModelClient(settings.base_url, settings.model, settings.api_key, settings.extra,
+                         web_search=settings.web_search) if settings.has_model else None
+    return Brain(client, game.ADDON_DIR, Transcript(transcripts) if transcripts else None)
 
 
 def ask(question: str, default: str = "") -> str:
@@ -172,11 +174,13 @@ def cmd_run(args) -> None:
         raise SystemExit(f"Reply slots missing in {slots.addons} (e.g. {slots.dir(missing[0]).name}). "
                          "Run the install command first, then restart the game.")
     slots.clear_probes()
-    brain = make_brain(settings)
+    transcripts = winsys.data_dir() / "transcripts"
+    brain = make_brain(settings, transcripts)
     shots = flavor / "Screenshots"
     shots.mkdir(exist_ok=True)
     print(f"Gnomecaster companion watching {shots}")
-    print(f"  AI: {brain.describe()}")
+    print(f"  AI: {brain.describe()}" + (", may search the web" if brain.client and brain.client.web_search else ""))
+    print(f"  transcripts: {transcripts}")
     print(f"  ready signal font: {'yes' if slots.font else 'none found (timed polling only)'}")
     if brain.client and not args.no_check:
         print("  checking the AI connection ...")

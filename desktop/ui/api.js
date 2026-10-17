@@ -85,6 +85,8 @@ window.GC = (function () {
       async setCompanion({ running }) { state.companion.running = running; return { ok: true }; },
       async setSetting({ name, value }) { state.settings[name] = value; return { ok: true }; },
       async openLogs() { return { ok: true }; },
+      async getHistory() { return { ok: true, items: [] }; },
+      async openTranscripts() { return { ok: true }; },
       async openCredits() { return { ok: true }; },
       async openKeyPage() { return { ok: true }; },
     };

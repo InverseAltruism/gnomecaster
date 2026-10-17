@@ -1,18 +1,37 @@
-"""Turns a request from the game into a reply: the model when one is set up, else the demo."""
+"""Turns a request from the game into a reply: the model when one is set up, else the demo.
+
+The model sees the conversation so far (conversation.Memory) and the game's report on its
+previous actions; every exchange goes into the transcript when there is one.
+"""
 from __future__ import annotations
 
+import datetime
 import pathlib
+import time
 
 from . import demo, prompt
+from .conversation import Memory, key_of
 from .model import ModelClient, ModelError
+from .slots import text_safe
+from .transcript import Transcript
+
+QUESTION_LIMIT = 2000               # characters of the player's text sent on; the beacon carries less
 
 
 class Brain:
-    def __init__(self, client: ModelClient | None, addon_dir: pathlib.Path):
+    def __init__(self, client: ModelClient | None, addon_dir: pathlib.Path, transcript: Transcript | None = None,
+                 memory: Memory | None = None):
         self.client = client
-        self.system = prompt.system_prompt(*prompt.addon_lists(addon_dir))
+        self.lists = prompt.addon_lists(addon_dir)
+        self.transcript = transcript
+        self.memory = memory or Memory()
         self.check_note: str | None = None      # result of the last connection check
         self.check_ok: bool | None = None
+
+    @property
+    def system(self) -> str:
+        """The system prompt for the next question; it names web search only while it is offered."""
+        return prompt.system_prompt(*self.lists, search=bool(self.client and self.client.web_search))
 
     def describe(self) -> str:
         if not self.client:
@@ -38,6 +57,25 @@ class Brain:
         return f"The AI connection has a problem: {self.check_note}"
 
     def answer(self, packet: dict) -> dict:
+        started = time.monotonic()
+        record = {"time": datetime.datetime.now().isoformat(timespec="seconds"), "conv": key_of(packet),
+                  "kind": packet.get("t"), "question": text_safe(str(packet.get("text") or ""))[:QUESTION_LIMIT],
+                  "ctx": packet.get("ctx") or {}, "last": prompt.last_results(packet), "raw": None,
+                  "searched": False, "sources": [], "model": self.client.model if self.client else "demo"}
+        try:
+            reply = self._reply(packet, record)
+        except Exception as e:
+            record.update(reply=None, error=f"internal: {type(e).__name__}")
+            raise
+        else:
+            record.update(reply=reply, error=reply.get("error"))
+        finally:
+            record["seconds"] = round(time.monotonic() - started, 2)
+            if self.transcript is not None:
+                self.transcript.write(record, self.client.key if self.client else "")
+        return reply
+
+    def _reply(self, packet: dict, record: dict) -> dict:
         if packet.get("t") == "selftest":
             self.run_check()                    # fresh: the key may have changed since startup
             reply = {"say": "Companion here. " + self.status()}
@@ -45,10 +83,15 @@ class Brain:
                 reply["error"] = "setup"
             return reply
         if not self.client:
-            return demo.answer(str(packet.get("text") or ""), packet.get("ctx") or {})
+            return demo.answer(record["question"], record["ctx"])
+        key = record["conv"]
+        messages = [{"role": "system", "content": self.system}, *self.memory.history(key),
+                    {"role": "user", "content": prompt.user_message({**packet, "text": record["question"]}, record["last"])}]
         try:
-            content = self.client.complete([{"role": "system", "content": self.system},
-                                            {"role": "user", "content": prompt.user_message(packet)}])
-            return prompt.sanitize(prompt.parse_reply(content))
+            done = self.client.chat(messages, search=True)
+            record.update(raw=done.text, searched=done.searched, sources=done.sources)
+            reply = prompt.sanitize(prompt.parse_reply(done.text))
         except ModelError as e:
             return {"say": e.message, "error": e.kind}
+        self.memory.add(key, record["question"], reply)
+        return reply

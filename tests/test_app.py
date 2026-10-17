@@ -18,7 +18,7 @@ from unittest import mock
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "companion"))
 
-from gnomecaster import __version__, app, app_api, config, game, oauth, service, winsys  # noqa: E402
+from gnomecaster import __version__, app, app_api, config, game, oauth, serve, service, winsys  # noqa: E402
 from gnomecaster.brain import Brain  # noqa: E402
 from test_companion import FakeServer, beacon_png, completion  # noqa: E402
 from test_oauth import FakeOpenRouter  # noqa: E402
@@ -443,6 +443,9 @@ class Running(AppCase):
         self.assertEqual(answer["question"], "mark skull")
         self.assertTrue(answer["answer"].startswith("(demo)"))
         self.assertEqual(api.getState()["activity"], [answer])
+        [item] = api.getHistory({"limit": 5})["items"]
+        self.assertEqual((item["question"], item["conv"], item["model"]), ("mark skull", "sid:s", "demo"))
+        self.assertTrue(item["reply"]["say"].startswith("(demo)"))
         api.setCompanion({"running": False})
         self.assertFalse(api.getState()["companion"]["running"])
         self.assertEqual(self.companion_changes, [True, False])
@@ -502,6 +505,32 @@ class Lifecycle(AppCase):
         self.assertEqual(len(companion_threads(before)), 1)
         companion.stop()
         self.assertEqual(companion_threads(before), [])
+
+    def test_a_question_asked_right_after_start_is_answered_however_late_the_thread_runs(self):
+        # The worker thread may first run after the game took the screenshot (seen on a
+        # loaded machine); the folder must already have been looked at when start() returns.
+        written, answered = threading.Event(), threading.Event()
+        real = serve.Watcher
+
+        def late_watcher(folder):
+            if threading.current_thread().name == "companion":
+                written.wait(10)            # this thread got to run only after the screenshot
+            return real(folder)
+
+        class Answers:
+            client = None
+
+            def answer(self, packet):
+                answered.set()
+                return {"say": "x"}
+        companion = service.Companion()
+        flavor = self.flavor()
+        with mock.patch.object(serve, "Watcher", late_watcher):
+            companion.start(flavor, Answers())
+            beacon_png(flavor / "Screenshots" / "WoWScrnShot_5.png", {"t": "ask", "rid": 5, "sid": "s", "slot": 1, "text": "hi", "ctx": {}})
+            written.set()
+            self.assertTrue(answered.wait(10))
+        companion.stop()
 
     def test_pausing_waits_for_the_question_in_progress(self):
         entered, release = threading.Event(), threading.Event()
@@ -621,6 +650,44 @@ class Robustness(AppCase):
         self.api().openLogs()
         self.assertEqual(self.system.opened, [self.tmp / "data" / "logs"])
 
+    def test_open_transcripts(self):
+        self.assertEqual(self.api().openTranscripts({"path": "/etc"}), {"ok": True})
+        self.assertEqual(self.system.opened, [self.tmp / "data" / "transcripts"])
+
+
+class History(AppCase):
+    def connected(self, *script):
+        server = self.model_server({"body": completion('{"say": "ok"}')}, *script)
+        api = self.api()
+        self.assertTrue(api.saveKey({"provider": "openrouter", "key": "sk-or-v1-history-key"})["ok"])
+        return api, server
+
+    def test_questions_and_answers_newest_first_without_the_key(self):
+        api, _ = self.connected({"body": completion('{"say": "first"}')}, {"body": completion('{"say": "second"}')})
+        for n, text in enumerate(("one", "two sk-or-v1-history-key"), 1):
+            api._brain.answer({"t": "ask", "rid": n, "sid": "s", "conv": "c", "text": text, "ctx": {"zone": "Z"}})
+        r = api.getHistory({"limit": 10})
+        self.assertTrue(r["ok"])
+        self.assertEqual([i["reply"]["say"] for i in r["items"]], ["second", "first"])
+        self.assertEqual(r["items"][1]["ctx"], {"zone": "Z"})
+        self.assertNotIn("sk-or-v1-history-key", json.dumps(r))
+        self.assertEqual(len(api.getHistory({"limit": 1})["items"]), 1)
+        self.assertEqual(len(api.getHistory({"limit": "junk"})["items"]), 2)
+        self.assertEqual(api.getHistory({"limit": -3})["items"], [])
+
+    def test_nothing_yet(self):
+        self.assertEqual(self.api().getHistory({}), {"ok": True, "items": []})
+
+    def test_web_search_follows_the_provider_and_the_setting(self):
+        api, _ = self.connected()
+        self.assertFalse(api._brain.client.web_search)           # the fake server is not openrouter.ai
+        api._data.update(base_url="https://openrouter.ai/api/v1")
+        api._rebuild()
+        self.assertTrue(api._brain.client.web_search)
+        api._data["web_search"] = False
+        api._rebuild()
+        self.assertFalse(api._brain.client.web_search)
+
 
 class Smoke(unittest.TestCase):
     def test_only_a_rendered_screen_passes(self):
@@ -719,6 +786,8 @@ class Describe(unittest.TestCase):
         self.assertEqual(service.describe({"type": "mark", "icon": 8}), "Skull on your target")
         self.assertEqual(service.describe({"type": "mark", "icon": 1, "unit": "focus"}), "Star on your focus")
         self.assertEqual(service.describe({"type": "mark", "icon": 0}), "Marker cleared from your target")
+        self.assertEqual(service.describe({"type": "goto", "name": "Atal'Aman", "kind": "delve"}),
+                         "Map pin: “Atal'Aman”")
 
 
 class FakeWinreg(types.ModuleType):

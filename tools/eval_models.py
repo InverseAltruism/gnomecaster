@@ -16,7 +16,10 @@ Options:
   --max-cost USD   stop starting requests once reported cost passes this (default 1.0)
   --jobs N         parallel requests per model (default 4)
   --out DIR        write the raw results as JSON into DIR
+  --no-search      do not offer OpenRouter's web search (on by default there, as in the app)
+  --no-key         the endpoint needs no API key (a local model)
 Needs LUA=<lua5.1 interpreter>: every reply is checked against the addon's own code.
+Without GNOMECASTER_API_KEY (and without --no-key) it stops before the first request.
 """
 from __future__ import annotations
 
@@ -36,30 +39,61 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 sys.path.insert(0, str(ROOT / "companion"))
 import eval_scenarios as sc  # noqa: E402
+from gnomecaster import config  # noqa: E402
 from gnomecaster.brain import Brain  # noqa: E402
+from gnomecaster.conversation import key_of  # noqa: E402
 from gnomecaster.game import ADDON_DIR  # noqa: E402
 from gnomecaster.model import ModelClient  # noqa: E402
 from gnomecaster.slots import lua_value  # noqa: E402
 
 
-def run_one(base, model, key, extra, scenario):
-    """One scenario through the companion's own Brain and ModelClient, recording each HTTP attempt."""
+def packet(scenario, text, last=None):
+    """A request as the addon sends it; every turn of a scenario is one conversation."""
+    p = {"t": "ask", "sid": "eval", "conv": "eval-" + scenario["id"][:11], "text": text, "ctx": scenario["ctx"]}
+    if last:
+        p["last"] = last
+    return p
+
+
+def run_one(base, model, key, extra, scenario, search=None):
+    """One scenario through the companion's own Brain and ModelClient, recording each HTTP attempt.
+    Earlier turns with a scripted reply go straight into the memory; the others ask the model."""
     attempts = []
     if "openrouter.ai" in base:
         extra = {**extra, "usage": {"include": True}}     # OpenRouter reports the cost per request
-    brain = Brain(ModelClient(base, model, key, extra, observer=attempts.append), ADDON_DIR)
+    client = ModelClient(base, model, key, extra, observer=attempts.append, web_search=config.web_search(base, search))
+    brain = Brain(client, ADDON_DIR)
     started = time.time()
-    reply = brain.answer({"t": "ask", "text": scenario["text"], "ctx": scenario["ctx"]})
+    for turn in scenario.get("turns", []):
+        if "reply" in turn:
+            brain.memory.add(key_of(packet(scenario, turn["text"])), turn["text"], turn["reply"])
+        else:
+            brain.answer(packet(scenario, turn["text"], turn.get("last")))
+    reply = brain.answer(packet(scenario, scenario["text"], scenario.get("last")))
     seconds = time.time() - started
     cost = sum(((a.get("usage") or {}).get("cost") or 0) for a in attempts)
-    return {"scenario": scenario["id"], "seconds": seconds, "reply": reply, "attempts": attempts, "cost": cost}
+    searched = any(a.get("searched") for a in attempts)
+    return {"scenario": scenario["id"], "seconds": seconds, "reply": reply, "attempts": attempts, "cost": cost,
+            "searched": searched}
+
+
+def preflight(args, key, scenarios):
+    """Everything that can fail without spending money, checked before the first request."""
+    if not os.environ.get("LUA"):
+        sys.exit("set LUA to a Lua 5.1 interpreter: every reply is checked against the addon's own code")
+    ids = [s["id"] for s in sc.SCENARIOS]
+    if len(ids) != len(set(ids)):
+        sys.exit("eval_scenarios.py has duplicate scenario ids")
+    if not scenarios:
+        sys.exit("no scenario matches --only")
+    if not key and not args.no_key:
+        sys.exit(f"GNOMECASTER_API_KEY is not set, so no request was sent ({len(scenarios)} scenarios ready). "
+                 "Set it, or pass --no-key for an endpoint that needs none.")
 
 
 def addon_check(results):
     """Feeds every reply through the addon's Actions code; returns one outcome per result."""
-    lua = os.environ.get("LUA")
-    if not lua:
-        sys.exit("set LUA to a Lua 5.1 interpreter: every reply is checked against the addon's own code")
+    lua = os.environ["LUA"]             # preflight made sure it is set
     parts = []
     for i, r in enumerate(results, 1):
         try:
@@ -105,7 +139,7 @@ def pct(values, q):
     return values[min(len(values) - 1, int(round(q * (len(values) - 1))))]
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--base-url", default="https://openrouter.ai/api/v1")
     ap.add_argument("--model", action="append", required=True)
@@ -114,11 +148,15 @@ def main():
     ap.add_argument("--max-cost", type=float, default=1.0)
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--out")
-    args = ap.parse_args()
+    ap.add_argument("--no-search", action="store_true")
+    ap.add_argument("--no-key", action="store_true")
+    args = ap.parse_args(argv)
     key = os.environ.get("GNOMECASTER_API_KEY", "")
     extra = json.loads(args.extra)
     wanted = {s for s in args.only.split(",") if s}
     scenarios = [s for s in sc.SCENARIOS if not wanted or s["id"] in wanted]
+    preflight(args, key, scenarios)
+    search = False if args.no_search else None
     by_id = {s["id"]: s for s in scenarios}
     spent, lock, report = 0.0, threading.Lock(), {}
 
@@ -130,7 +168,7 @@ def main():
             with lock:
                 if spent >= args.max_cost:
                     return {"scenario": scenario["id"], "skipped": "budget"}
-            r = run_one(args.base_url, model, key, extra, scenario)
+            r = run_one(args.base_url, model, key, extra, scenario, search)
             with lock:
                 spent += r["cost"]
             return r
@@ -152,7 +190,8 @@ def main():
         usage = [a.get("usage") or {} for r in done for a in r["attempts"] if a.get("usage")]
         print(f"\n=== {model}  {' '.join(f'{k}={v}' for k, v in extra.items())}")
         print(f"  hard pass: {sum(r['pass'] for r in done)}/{len(done)}   model errors: {fallbacks}"
-              f"   JSON-mode retries: {retries}   skipped for budget: {len(results) - len(done)}")
+              f"   retried (JSON mode, search, errors): {retries}   searched the web: "
+              f"{sum(r['searched'] for r in done)}   skipped for budget: {len(results) - len(done)}")
         kinds = sorted({r["reply"].get("error") for r in done if r["reply"].get("error")})
         if kinds:
             print(f"  error kinds: {', '.join(kinds)}")

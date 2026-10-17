@@ -1,7 +1,9 @@
 """Companion settings: a config file written by `setup`, overridden by environment variables.
 
 Precedence, lowest first: config file, GNOMECASTER_* environment variables, command-line
-flags. GNOMECASTER_CONFIG names another config file (the tests use it).
+flags. GNOMECASTER_CONFIG names another config file (the tests use it). The file's
+"web_search" (or GNOMECASTER_WEB_SEARCH=0/1) turns OpenRouter's web search off or on; it is
+on by default through OpenRouter and never offered elsewhere.
 """
 from __future__ import annotations
 
@@ -10,6 +12,7 @@ import json
 import os
 import pathlib
 import sys
+import urllib.parse
 
 PRESETS = {
     "openrouter": {"label": "OpenRouter: one key, hundreds of models (recommended)", "name": "OpenRouter",
@@ -54,6 +57,23 @@ class ConfigError(Exception):
 
 ENV = {"base_url": "GNOMECASTER_BASE_URL", "api_key": "GNOMECASTER_API_KEY",
        "model": "GNOMECASTER_MODEL", "wow": "GNOMECASTER_WOW"}
+WEB_SEARCH_ENV = "GNOMECASTER_WEB_SEARCH"           # 0 or 1; the settings file key is web_search
+SEARCH_HOSTS = ("openrouter.ai",)                   # the web search tool is OpenRouter's
+
+
+def web_search(base_url: str, setting=None) -> bool:
+    """Whether the model may search the web: only through OpenRouter, on unless turned off."""
+    host = (urllib.parse.urlsplit(base_url or "").hostname or "").lower()
+    return host in SEARCH_HOSTS and _flag(setting) is not False
+
+
+def _flag(value) -> bool | None:
+    """True or False from a settings file or environment value; None when unset or unreadable."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str) and value.strip().lower() in ("0", "1", "false", "true", "off", "on"):
+        return value.strip().lower() in ("1", "true", "on")
+    return None
 
 
 def config_path() -> pathlib.Path:
@@ -76,10 +96,15 @@ class Settings:
     api_key: str = ""
     wow: str = ""
     extra: dict = dataclasses.field(default_factory=dict)
+    search: bool | None = None          # None: the default, on for OpenRouter
 
     @property
     def has_model(self) -> bool:
         return bool(self.base_url and self.model)
+
+    @property
+    def web_search(self) -> bool:
+        return web_search(self.base_url, self.search)
 
 
 def load_file(path: pathlib.Path | None = None) -> dict:
@@ -116,10 +141,13 @@ def resolve(wow: str | None = None) -> Settings:
     data = load_file()
     s = Settings(provider=str(data.get("provider") or ""), base_url=str(data.get("base_url") or ""),
                  model=str(data.get("model") or ""), api_key=str(data.get("api_key") or ""),
-                 wow=str(data.get("wow") or ""), extra=data.get("extra") if isinstance(data.get("extra"), dict) else {})
+                 wow=str(data.get("wow") or ""), extra=data.get("extra") if isinstance(data.get("extra"), dict) else {},
+                 search=_flag(data.get("web_search")))
     for field, var in ENV.items():
         if os.environ.get(var):
             setattr(s, field, os.environ[var])
+    if _flag(os.environ.get(WEB_SEARCH_ENV)) is not None:
+        s.search = _flag(os.environ[WEB_SEARCH_ENV])
     if wow:
         s.wow = wow
     return s

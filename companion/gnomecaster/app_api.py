@@ -16,6 +16,7 @@ import webbrowser
 from . import __version__, config, game, oauth, service, winsys
 from .brain import Brain
 from .model import ModelClient, ModelError
+from .transcript import Transcript
 
 log = logging.getLogger("gnomecaster")
 KEY_PROVIDERS = ("openrouter", "openai", "ollama")      # the choices in the window's key form, in order
@@ -56,7 +57,8 @@ class Api:
         self._sign_in_cancel: threading.Event | None = None
         self._check = self._unchecked()
         self._data = self._load()
-        self._brain = Brain(self._client(), game.ADDON_DIR)
+        self._transcript = Transcript(system.data_dir() / "transcripts")
+        self._brain = Brain(self._client(), game.ADDON_DIR, self._transcript)
         self._companion = service.Companion(on_event=self._emit_safe, on_change=on_companion)
 
     # ------------------------------------------------------------------ internals
@@ -88,7 +90,8 @@ class Api:
         if not (d.get("base_url") and d.get("model")):
             return None
         return ModelClient(d["base_url"], d["model"], d.get("api_key", ""),
-                           d.get("extra") if isinstance(d.get("extra"), dict) else None)
+                           d.get("extra") if isinstance(d.get("extra"), dict) else None,
+                           web_search=config.web_search(d["base_url"], d.get("web_search")))
 
     def _rebuild(self) -> None:
         """The settings changed: answer with the new model from the next question on."""
@@ -374,6 +377,20 @@ class Api:
     @_call
     def openLogs(self, args):
         self._system.open_folder(self._system.data_dir() / "logs")
+        return {"ok": True}
+
+    @_call
+    def getHistory(self, args):
+        """The latest exchanges with the model from the transcript, newest first."""
+        try:
+            limit = int(args.get("limit") or 50)
+        except (TypeError, ValueError):
+            limit = 50
+        return {"ok": True, "items": self._transcript.recent(limit)}
+
+    @_call
+    def openTranscripts(self, args):
+        self._system.open_folder(self._transcript.folder)
         return {"ok": True}
 
     @property

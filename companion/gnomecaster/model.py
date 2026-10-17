@@ -5,6 +5,7 @@ takes longer than the deadline: the addon stops waiting after 60 seconds.
 """
 from __future__ import annotations
 
+import dataclasses
 import difflib
 import json
 import re
@@ -19,6 +20,46 @@ from .slots import text_safe
 DEADLINE = 40.0                     # seconds per question, retries included
 READ_TIMEOUT = 30.0                 # per socket operation, inside the deadline
 KEY_LIKE = re.compile(r"\b(sk|key|pk)[-_][A-Za-z0-9_-]{8,}")
+# OpenRouter's web search server tool (openrouter.ai/docs/guides/features/server-tools/web-search):
+# OpenRouter runs a search whenever the model calls the tool, billed per search: $0.007 with
+# Exa (the engine for models without native search), the provider's price with native search.
+# So the prompt asks for a search only when the model is unsure.
+WEB_SEARCH_TOOL = {"type": "openrouter:web_search", "parameters": {"max_results": 3, "search_context_size": "low"}}
+MAX_TOOL_CALLS = 2                  # server-tool steps per request (OpenRouter's max_tool_calls)
+SEARCH_RESERVE = 12.0               # seconds of the deadline kept for one more try without search
+SEARCH_MIN = 5.0                    # a search attempt gets at least this long, or none is made
+TOOL_REFUSED = (400, 404, 422)      # how endpoints refuse a tool the model or route cannot use
+
+
+def redact(text: str, secret: str = "") -> str:
+    """Text that may echo a request: no lone surrogates and never an API key."""
+    text = text_safe(str(text))
+    if secret:
+        text = text.replace(secret, "<your key>")
+    return KEY_LIKE.sub("<key>", text)
+
+
+@dataclasses.dataclass
+class Completion:
+    text: str
+    searched: bool = False          # the provider reports that a web search ran
+    sources: list = dataclasses.field(default_factory=list)
+
+
+def _search_report(data: dict, message: dict) -> tuple[bool, list[str]]:
+    """Whether a web search ran (usage.server_tool_use or url_citation annotations), and its sources."""
+    usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
+    tool_use = usage.get("server_tool_use") if isinstance(usage.get("server_tool_use"), dict) else {}
+    count = tool_use.get("web_search_requests")
+    notes = message.get("annotations") if isinstance(message.get("annotations"), list) else []
+    sources: list[str] = []
+    for note in notes:
+        cite = note.get("url_citation") if isinstance(note, dict) and note.get("type") == "url_citation" else None
+        url = cite.get("url") if isinstance(cite, dict) else None
+        if isinstance(url, str) and url[:300] not in sources:
+            sources.append(url[:300])
+    ran = isinstance(count, int) and not isinstance(count, bool) and count > 0
+    return ran or bool(sources), sources[:5]
 
 
 class ModelError(Exception):
@@ -52,7 +93,7 @@ def _with_deadline(fn, seconds: float):
 
 class ModelClient:
     def __init__(self, base_url: str, model: str, api_key: str = "", extra: dict | None = None,
-                 deadline: float = DEADLINE, observer=None):
+                 deadline: float = DEADLINE, observer=None, web_search: bool = False):
         self.base = base_url.rstrip("/")
         self.model = model
         self.key = api_key
@@ -60,6 +101,7 @@ class ModelClient:
         self.deadline = deadline
         self.observer = observer        # called with a dict per HTTP attempt (tools/eval_models.py)
         self.json_mode = True           # turned off for the session after the endpoint rejects it
+        self.web_search = web_search    # offered on questions; off for the session once the endpoint refuses it
 
     @property
     def host(self) -> str:
@@ -88,10 +130,7 @@ class ModelClient:
 
     def _clean(self, text: str) -> str:
         """Provider text shown to the player: no lone surrogates and never the API key."""
-        text = text_safe(str(text))
-        if self.key:
-            text = text.replace(self.key, "<your key>")
-        return KEY_LIKE.sub("<key>", text)
+        return redact(text, self.key)
 
     # ---------------------------------------------------------------- errors
 
@@ -172,30 +211,52 @@ class ModelClient:
         if self.observer:
             self.observer(fields)
 
+    def _timeout(self) -> ModelError:
+        return ModelError("timeout", f"The model took longer than {self.deadline:.0f} seconds. "
+                                     "Try again, or choose a faster model in the Gnomecaster app.")
+
     def complete(self, messages: list[dict]) -> str:
         """The text of the model's answer. Raises ModelError; never runs past the deadline."""
+        return self.chat(messages).text
+
+    def chat(self, messages: list[dict], search: bool = False) -> Completion:
+        """The model's answer. With search (and web_search on), the model may call OpenRouter's
+        web search. That attempt gets the deadline minus SEARCH_RESERVE; when it fails in a way
+        the search may have caused, the question is asked once more without it."""
         started = time.monotonic()
         attempt = 0
         while True:
             attempt += 1
             remaining = self.deadline - (time.monotonic() - started)
             if remaining < 1:
-                raise ModelError("timeout", f"The model took longer than {self.deadline:.0f} seconds. "
-                                            "Try again, or choose a faster model in the Gnomecaster app.")
+                raise self._timeout()
+            searching = search and self.web_search and remaining > SEARCH_RESERVE + SEARCH_MIN
+            limit = remaining - SEARCH_RESERVE if searching else remaining
             body = {"model": self.model, "messages": messages, "temperature": 0.2, **self.extra}
             if self.json_mode:
                 body["response_format"] = {"type": "json_object"}
+            if searching:
+                body.update(tools=[WEB_SEARCH_TOOL], max_tool_calls=MAX_TOOL_CALLS)
+            mode = {"json_mode": self.json_mode, "search": searching}
             t0 = time.monotonic()
             try:
-                data = _with_deadline(lambda: self._open("POST", "/chat/completions", body, min(READ_TIMEOUT, remaining)),
-                                      remaining)
+                data = _with_deadline(lambda: self._open("POST", "/chat/completions", body, min(READ_TIMEOUT, limit)),
+                                      limit)
             except TimeoutError:
-                self._record(status=None, error="deadline", seconds=time.monotonic() - t0, json_mode=self.json_mode)
-                raise ModelError("timeout", f"The model took longer than {self.deadline:.0f} seconds. "
-                                            "Try again, or choose a faster model in the Gnomecaster app.") from None
+                self._record(status=None, error="deadline", seconds=time.monotonic() - t0, **mode)
+                if searching:
+                    search = False              # the reserve is left for an answer without searching
+                    continue
+                raise self._timeout() from None
             except urllib.error.HTTPError as e:
                 err = self._http_error(e)
-                self._record(status=e.code, error=err.message, seconds=time.monotonic() - t0, json_mode=self.json_mode)
+                self._record(status=e.code, error=err.message, seconds=time.monotonic() - t0, **mode)
+                if searching and e.code in TOOL_REFUSED:
+                    self.web_search = False     # this model or route takes no server tools
+                    continue
+                if searching and err.kind == "provider":
+                    search = False
+                    continue
                 if e.code == 400 and self.json_mode:
                     self.json_mode = False      # this endpoint or model rejects JSON mode; the prompt still asks for JSON
                     continue
@@ -206,23 +267,27 @@ class ModelClient:
                         continue
                 raise err from None
             except urllib.error.URLError as e:
-                self._record(status=None, error=str(e), seconds=time.monotonic() - t0, json_mode=self.json_mode)
+                self._record(status=None, error=str(e), seconds=time.monotonic() - t0, **mode)
                 raise self._network_error(e) from None
             except (TimeoutError, OSError) as e:
-                self._record(status=None, error=str(e), seconds=time.monotonic() - t0, json_mode=self.json_mode)
+                self._record(status=None, error=str(e), seconds=time.monotonic() - t0, **mode)
                 raise ModelError("timeout", f"{self.host} stopped responding. Try again.") from None
             except ValueError:
-                self._record(status=200, error="unreadable body", seconds=time.monotonic() - t0, json_mode=self.json_mode)
+                self._record(status=200, error="unreadable body", seconds=time.monotonic() - t0, **mode)
                 raise ModelError("format", f"{self.host} sent an answer this companion cannot read.") from None
             choice = (data.get("choices") or [{}])[0] if isinstance(data, dict) and isinstance(data.get("choices"), list) else {}
             message = choice.get("message") if isinstance(choice, dict) and isinstance(choice.get("message"), dict) else {}
-            self._record(status=200, seconds=time.monotonic() - t0, json_mode=self.json_mode,
+            searched, sources = _search_report(data, message) if isinstance(data, dict) else (False, [])
+            self._record(status=200, seconds=time.monotonic() - t0, **mode, searched=searched,
                          usage=data.get("usage") if isinstance(data, dict) else None,
                          finish=choice.get("finish_reason") if isinstance(choice, dict) else None,
                          content=message.get("content"), reasoning_chars=len(str(message.get("reasoning") or "")))
             try:
-                return self._content(data)
+                return Completion(self._content(data), searched, sources)
             except ModelError as err:
+                if searching and err.kind not in ("auth", "credit", "rate_limit", "filtered"):
+                    search = False              # e.g. a tool error, or only a tool call and no answer
+                    continue
                 if err.kind == "provider" and attempt == 1 and self.deadline - (time.monotonic() - started) > 10:
                     continue
                 raise

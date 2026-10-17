@@ -48,6 +48,8 @@ def describe(action: dict) -> str:
         return f"{marker} on your {unit}"
     if t == "track_quest":
         return f'Following quest {action.get("quest")}'
+    if t == "goto":
+        return f'Map pin: \u201c{action.get("name")}\u201d'
     return str(t)
 
 
@@ -140,9 +142,11 @@ class Companion:
         observed = _Observed(brain, self)
         self._stop = threading.Event()
         stop = self._stop
+        # Taken before the thread starts: every screenshot that appears after start() returns
+        # is new to the watcher, however late the thread gets to run.
+        watcher = serve.Watcher(shots)
 
         def loop():
-            watcher = serve.Watcher(shots)
             log.info("listening in %s", shots)
             while not stop.is_set():
                 for p in watcher.ready():
