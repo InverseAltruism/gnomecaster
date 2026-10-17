@@ -103,3 +103,31 @@ trustworthy, with clean icons. Nearly every player is on Windows, so Windows com
   InverseAltruism / Gnomecaster / 1.0.0, no Authenticode signature) and `SHA256SUMS.txt`.
   The repository is private, so only accounts with access can download it.
 - Still unverified: a person using the installed app, and anything in the real game.
+
+## 2026-10-16: polish pass on the app window and the in-game panel
+
+The owner asked for nothing unpolished: smooth animations, good design, intuitive flows.
+
+- Inventory first: every window state in both themes at three sizes, plus filmstrips of
+  each animation. Problems found by looking: setup content floating above a mostly empty
+  window, buttons cut off at the minimum size, no progress indicator once the step list
+  hides, steps jumping when content appears (19 px and 110 px, measured), two steps visible
+  at once during a change, a sign-in that could only be escaped by waiting 10 minutes, and a
+  default window taller than a 1366 x 768 laptop at 125 % scaling.
+- An independent design review (a separate agent, read-only) then ranked 16 issues, plus
+  low-priority notes; all but two were fixed. Declined: the slashed zero (a deliberate
+  legibility feature of Atkinson Hyperlegible) and dropping "You" from questions (it
+  matches the in-game panel's "You:").
+- Window: steps hang from a fixed top with their buttons beneath and stay reachable on
+  short windows; a compact step bar on narrow ones; a drawn tick when the addon is
+  installed and a drawn check on "You're set"; Cancel during the browser sign-in (answers in
+  under a millisecond; the backend's sign-in winds down behind it); the out-of-credit state
+  as an alert above the questions with Add credit and Check again; examples that copy
+  "/gc ..." for the game's chat; action lines grouped by "done" and "waiting for Apply";
+  custom radios and selects; a key form with Get a key, Cancel and no key field for Ollama.
+- In the game: answers type out in place (at most 1.4 s) under a gold "Gnomecaster:" label,
+  lines that arrive meanwhile wait their turn, and colour codes, links and UTF-8 characters
+  are never cut; the panel uses the app's violet, the brand icon and a glowing spark as its
+  busy indicator, and rises as it fades in. Clients without TransformMessages show answers
+  at once. Nothing here can render WoW's UI, so the panel's look is unverified.
+

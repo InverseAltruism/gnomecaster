@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The icon's spark as a soft glow: the in-game busy indicator (drawn additively). -->
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F0FFFF"/>
+      <stop offset="0.28" stop-color="#9CF8FF"/>
+      <stop offset="0.6" stop-color="#5CF3FF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#5CF3FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="16" cy="16" r="16" fill="url(#glow)"/>
+</svg>

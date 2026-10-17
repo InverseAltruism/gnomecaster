@@ -253,6 +253,71 @@ if scenario == "ui" then
 	UI.AddLine("an answer to keep")
 	check(ns.db.log[#ns.db.log] == "an answer to keep", "the conversation is saved across reloads")
 
+	-- answers type out in place; a line that arrives meanwhile waits behind the answer
+	local function intact(s)       -- no cut colour code, link or UTF-8 character
+		local i, n = 1, #s
+		while i <= n do
+			local c = s:byte(i)
+			if c == 124 then
+				local k = s:sub(i + 1, i + 1)
+				if k == "c" then
+					if not s:sub(i + 2, i + 9):match("^%x%x%x%x%x%x%x%x$") then return false end
+					i = i + 10
+				elseif k == "H" then
+					local a = s:find("|h", i + 2, true)
+					local b = a and s:find("|h", a + 2, true)
+					if not b then return false end
+					i = b + 2
+				elseif k == "r" or k == "|" or k == "n" then i = i + 2
+				else return false end
+			elseif c >= 240 then
+				if not s:sub(i + 1, i + 3):match("^[\128-\191][\128-\191][\128-\191]$") then return false end
+				i = i + 4
+			elseif c >= 224 then
+				if not s:sub(i + 1, i + 2):match("^[\128-\191][\128-\191]$") then return false end
+				i = i + 3
+			elseif c >= 192 then
+				if not s:sub(i + 1, i + 1):match("^[\128-\191]$") then return false end
+				i = i + 2
+			else i = i + 1 end
+		end
+		return true
+	end
+	local LABEL = "|cfff5b33bGnomecaster:|r "
+	local answer = "Gr\195\188\195\159e! |cff66ff66Done|r: a ||pipe||, |Hitem:6948|h[Hearthstone]|h and \226\128\156quotes\226\128\157 "
+		.. string.rep("then more words to read ", 4)
+	M.chat = {}
+	UI.Say(answer)
+	UI.AddLine("a line after the answer")
+	check(#M.chat == 1 and M.chat[1]:sub(1, #LABEL) == LABEL and not M.chat[1]:find("Hearthstone", 1, true),
+		"an answer starts typing in place, labelled, with the next line held back")
+	local states, allIntact = {}, true
+	for _ = 1, 40 do
+		M.Advance(0.05)
+		if not states[M.chat[1]] then states[M.chat[1]] = true; states.n = (states.n or 0) + 1 end
+		if not intact(M.chat[1]) then allIntact = false; print("   broken: " .. M.chat[1]) end
+	end
+	check((states.n or 0) >= 6, "the answer grows over several frames (" .. tostring(states.n) .. " states)")
+	check(allIntact, "no partly typed state cuts a colour code, a link or a UTF-8 character")
+	check(M.chat[1] == LABEL .. answer and M.chat[2] == "a line after the answer",
+		"the whole answer ends up shown, then the line that waited")
+	check(ns.db.log[#ns.db.log - 1] == LABEL .. answer, "the saved conversation keeps the whole answer")
+
+	M.chat = {}
+	UI.Say(string.rep("a long answer that is still typing ", 10))
+	M.Advance(0.1)
+	UI.Hide()
+	check(M.chat[1] == LABEL .. string.rep("a long answer that is still typing ", 10), "closing the panel shows the whole answer at once")
+	UI.Reveal()
+
+	local messages
+	for _, f in ipairs(M.frames) do if f.kind == "ScrollingMessageFrame" and f.parent == panel then messages = f end end
+	rawset(messages, "TransformMessages", false)       -- a client without it
+	M.chat = {}
+	UI.Say("shown at once")
+	check(M.chat[1] == LABEL .. "shown at once", "without TransformMessages the answer shows at once")
+	rawset(messages, "TransformMessages", nil)
+
 	-- if the game keeps loaded reply slots loaded across /reload, they are skipped, not wasted
 	ns.Inbox.next = 1
 	M.loaded["Gnomecaster_Inbox01"], M.loaded["Gnomecaster_Inbox02"], M.loaded["Gnomecaster_Inbox03"] = true, true, true

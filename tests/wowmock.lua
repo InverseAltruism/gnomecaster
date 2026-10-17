@@ -69,7 +69,25 @@ function Widget:ClearFocus()
 	self.focus = false
 	if was and self.scripts.OnEditFocusLost then self.scripts.OnEditFocusLost(self) end
 end
-function Widget:AddMessage(text) M.chat[#M.chat + 1] = text end
+-- Messages keep their extra data, and TransformMessages rewrites them in place, as
+-- ScrollingMessageFrameMixin does; M.chat follows, so tests read what the frame shows.
+function Widget:AddMessage(text, r, g, b, ...)
+	self.messages = self.messages or {}
+	self.messages[#self.messages + 1] = { text = text, r = r, g = g, b = b, extra = { n = select("#", ...), ... }, chat = #M.chat + 1 }
+	M.chat[#M.chat + 1] = text
+end
+function Widget:TransformMessages(predicate, transform)
+	for _, e in ipairs(self.messages or {}) do
+		if predicate(e.text, e.r, e.g, e.b, unpack(e.extra, 1, e.extra.n)) then
+			-- the mixin repackages everything the transform returns, extra data included
+			local out = { n = select("#", transform(e.text, e.r, e.g, e.b, unpack(e.extra, 1, e.extra.n))),
+				transform(e.text, e.r, e.g, e.b, unpack(e.extra, 1, e.extra.n)) }
+			e.text, e.r, e.g, e.b = out[1], out[2], out[3], out[4]
+			e.extra = { n = math.max(0, out.n - 4), unpack(out, 5, out.n) }
+			M.chat[e.chat] = e.text
+		end
+	end
+end
 function Widget:GetPoint() return "CENTER", nil, "CENTER", 0, 0 end
 function Widget:SetFont(path)
 	if self.kind ~= "EditBox" then return end

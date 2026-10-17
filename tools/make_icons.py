@@ -10,7 +10,8 @@ bitmap, so small icons stay crisp. Outputs:
   assets/brand/png/icon-<size>.png         app, installer and web use
   assets/brand/gnomecaster.ico             Windows (16 to 256 px, each size rendered)
   assets/brand/gnomecaster.icns            macOS
-  addon/Gnomecaster/Media/icon.tga         the AddOns list in the game (shown at 20 px)
+  addon/Gnomecaster/Media/icon.tga         the AddOns list and the panel's title (shown at 16-20 px)
+  addon/Gnomecaster/Media/spark.tga        the panel's busy indicator, from spark.svg
   desktop/ui/icon.png                      the desktop app's own interface
   assets/brand/installer/side-<w>.png      the installer's welcome and finish pages, from
                                            installer-side.svg, one per screen scaling
@@ -35,6 +36,7 @@ SIZES = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256, 512, 1024]
 ICO_SIZES = [16, 20, 24, 32, 40, 48, 64, 96, 128, 256]
 GAME_SIZE = 64                      # WoW textures want power-of-two sides
 SIDE = ROOT / "assets" / "brand" / "installer-side.svg"
+SPARK = ROOT / "assets" / "brand" / "spark.svg"
 # Inno Setup's image areas at 100, 125, 150, 175, 200 and 250 % scaling (its WizardImageFile
 # and WizardSmallImageFile help pages); Setup picks the file that fits best.
 SIDE_SIZES = [(202, 386), (269, 515), (336, 643), (403, 772), (430, 824), (534, 1022)]
@@ -61,6 +63,7 @@ def build() -> dict[pathlib.Path, bytes]:
     with tempfile.TemporaryDirectory() as tmp:
         images = {s: render(s, pathlib.Path(tmp)) for s in sorted(set(SIZES + SMALL_SIZES))}
         sides = {w: render(w, pathlib.Path(tmp), SIDE, h).convert("RGB") for w, h in SIDE_SIZES}
+        spark = render(GAME_SIZE // 2, pathlib.Path(tmp), SPARK)
 
     def encode(image: Image.Image, fmt: str, **kw) -> bytes:
         buf = io.BytesIO()
@@ -75,6 +78,7 @@ def build() -> dict[pathlib.Path, bytes]:
     files[ROOT / "assets" / "brand" / "gnomecaster.icns"] = encode(images[1024], "ICNS")
     files[ROOT / "addon" / "Gnomecaster" / "Media" / "icon.tga"] = encode(images[GAME_SIZE], "TGA", compression=None)
     files[ROOT / "desktop" / "ui" / "icon.png"] = encode(images[128], "PNG", optimize=True)
+    files[ROOT / "addon" / "Gnomecaster" / "Media" / "spark.tga"] = encode(spark, "TGA", compression=None)
     installer = ROOT / "assets" / "brand" / "installer"
     for w, im in sides.items():
         files[installer / f"side-{w}.png"] = encode(im, "PNG", optimize=True)

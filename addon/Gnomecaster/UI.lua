@@ -6,7 +6,12 @@ local _, ns = ...
 local UI = {}
 ns.UI = UI
 
-local FADE = 0.15            -- seconds for the panel and the confirm bar to fade
+local FADE = 0.18            -- seconds for the panel and the confirm bar to fade in or out
+local RISE = 8               -- pixels the panel rises while it fades in
+local MEDIA = "Interface\\AddOns\\Gnomecaster\\Media\\"
+local ANSWER = "|cfff5b33bGnomecaster:|r "                     -- brand gold, as in the desktop app
+-- Answers type themselves out: characters per second, and the shortest and longest reveal
+local TYPE_RATE, TYPE_MIN, TYPE_MAX = 220, 0.25, 1.4
 local MIN_W, MIN_H, MAX_W, MAX_H = 320, 200, 900, 700
 local KEEP_LINES = 80        -- conversation lines kept across reloads
 local HISTORY = 30           -- earlier questions reachable with the arrow keys
@@ -15,21 +20,113 @@ local GRIP = "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-"   -- the chat frame'
 
 local panel, log, input, placeholder, counter, status, busyDot, confirm, confirmText, reloadButton
 local fadeIn, fadeOut, confirmIn, pulse
+local typer = { queue = {} }   -- the answer being typed out, and lines waiting behind it
 
 local function db()
 	return ns.db or {}
 end
 
-local function fade(frame, from, to, onFinished)
+local function fade(frame, from, to, onFinished, rise)
 	local group = frame:CreateAnimationGroup()
+	local order = 1
+	if rise then
+		-- start lower, then glide up to the anchor while fading in (the two moves cancel out)
+		local down = group:CreateAnimation("Translation")
+		down:SetOffset(0, -rise)
+		down:SetDuration(0)
+		down:SetOrder(1)
+		local up = group:CreateAnimation("Translation")
+		up:SetOffset(0, rise)
+		up:SetDuration(FADE)
+		up:SetSmoothing("OUT")
+		up:SetOrder(2)
+		order = 2
+	end
 	local alpha = group:CreateAnimation("Alpha")
 	alpha:SetFromAlpha(from)
 	alpha:SetToAlpha(to)
 	alpha:SetDuration(FADE)
 	alpha:SetSmoothing(to > from and "OUT" or "IN")
+	alpha:SetOrder(order)
 	group:SetToFinalAlpha(true)
 	if onFinished then group:SetScript("OnFinished", onFinished) end
 	return group
+end
+
+-- An answer split into pieces that are shown whole: escape sequences (colours, textures,
+-- links) and UTF-8 characters, so a partly typed line never shows a broken code or byte.
+local function pieces(text)
+	local out, i, n = {}, 1, #text
+	while i <= n do
+		local c, j = text:byte(i), i
+		if c == 124 then                                    -- "|"
+			local k = text:sub(i + 1, i + 1)
+			if k == "c" then j = i + 9                      -- |cAARRGGBB
+			elseif k == "T" then j = select(2, text:find("|t", i + 2, true)) or n
+			elseif k == "A" then j = select(2, text:find("|a", i + 2, true)) or n
+			elseif k == "H" then
+				local stop = text:find("|h", i + 2, true)
+				stop = stop and text:find("|h", stop + 2, true)
+				j = stop and stop + 1 or n
+			else j = i + 1 end                              -- |r, ||, |n
+		elseif c >= 240 then j = i + 3
+		elseif c >= 224 then j = i + 2
+		elseif c >= 192 then j = i + 1 end
+		j = math.min(j, n)
+		out[#out + 1] = text:sub(i, j)
+		i = j + 1
+	end
+	return out
+end
+
+local function append(text, r, g, b)
+	log:AddMessage(text, r or 1, g or 1, b or 1)
+	log:ScrollToBottom()
+end
+
+local function retype(text)
+	local tag = typer.tag
+	log:TransformMessages(function(_, _, _, _, t) return t == tag end,
+		function(_, r, g, b, t) return text, r, g, b, t end)
+end
+
+local startTyping
+
+-- Shows the whole answer and lets the lines that waited behind it through.
+local function finishTyping()
+	if not typer.tag then return end
+	retype(typer.full)
+	typer.tag = nil
+	typer.driver:SetScript("OnUpdate", nil)
+	while #typer.queue > 0 and not typer.tag do
+		local item = table.remove(typer.queue, 1)
+		if item.answer then startTyping(item.text, item.r, item.g, item.b) else append(item.text, item.r, item.g, item.b) end
+	end
+end
+
+local function typeStep()
+	local share = math.min(1, (GetTime() - typer.started) / typer.duration)
+	local count = math.floor(#typer.pieces * share)
+	if count ~= typer.shown then
+		typer.shown = count
+		retype(ANSWER .. table.concat(typer.pieces, "", 1, count) .. "|r")
+	end
+	if share >= 1 then finishTyping() end
+end
+
+startTyping = function(text, r, g, b)
+	typer.full = ANSWER .. text
+	if not log.TransformMessages then                   -- a client without it shows the line at once
+		append(typer.full, r, g, b)
+		return
+	end
+	typer.pieces = pieces(text)
+	typer.duration = math.max(TYPE_MIN, math.min(TYPE_MAX, #typer.pieces / TYPE_RATE))
+	typer.started, typer.shown, typer.tag = GetTime(), 0, {}
+	log:AddMessage(ANSWER, r or 1, g or 1, b or 1, typer.tag)
+	log:ScrollToBottom()
+	typer.driver = typer.driver or CreateFrame("Frame")
+	typer.driver:SetScript("OnUpdate", typeStep)
 end
 
 local function savePosition()
@@ -87,29 +184,43 @@ local function build()
 	panel:RegisterForDrag("LeftButton")
 	panel:SetScript("OnDragStart", panel.StartMoving)
 	panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing(); savePosition() end)
+	-- the desktop app's night violet, with a violet edge
 	panel:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-	panel:SetBackdropColor(0.04, 0.05, 0.07, 0.92)
-	panel:SetBackdropBorderColor(0.25, 0.55, 0.85, 0.9)
+	panel:SetBackdropColor(0.07, 0.05, 0.17, 0.94)
+	panel:SetBackdropBorderColor(0.45, 0.31, 0.88, 0.75)
 	panel:Hide()
 	tinsert(UISpecialFrames, "GnomecasterPanel") -- Escape closes it
-	fadeIn = fade(panel, 0, 1)
+	fadeIn = fade(panel, 0, 1, nil, RISE)
 	fadeOut = fade(panel, 1, 0, function() panel:Hide(); panel:SetAlpha(1) end)
 
+	local icon = panel:CreateTexture(nil, "OVERLAY")
+	icon:SetSize(16, 16)
+	icon:SetPoint("TOPLEFT", 9, -7)
+	icon:SetTexture(MEDIA .. "icon")
+
 	local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	title:SetPoint("TOPLEFT", 10, -8)
+	title:SetPoint("LEFT", icon, "RIGHT", 6, 0)
 	title:SetText("Gnomecaster")
 
+	local rule = panel:CreateTexture(nil, "ARTWORK")
+	rule:SetHeight(1)
+	rule:SetPoint("TOPLEFT", 8, -28)
+	rule:SetPoint("TOPRIGHT", -8, -28)
+	rule:SetColorTexture(1, 1, 1, 0.08)
+
+	-- the spark from the icon, glowing while a question is out
 	busyDot = panel:CreateTexture(nil, "OVERLAY")
-	busyDot:SetSize(6, 6)
-	busyDot:SetPoint("LEFT", title, "RIGHT", 6, 0)
-	busyDot:SetColorTexture(0.4, 0.8, 1, 1)
+	busyDot:SetSize(14, 14)
+	busyDot:SetPoint("LEFT", title, "RIGHT", 4, 0)
+	busyDot:SetTexture(MEDIA .. "spark")
+	busyDot:SetBlendMode("ADD")
 	busyDot:Hide()
 	pulse = busyDot:CreateAnimationGroup()
 	pulse:SetLooping("BOUNCE")
 	local glow = pulse:CreateAnimation("Alpha")
 	glow:SetFromAlpha(1)
-	glow:SetToAlpha(0.2)
-	glow:SetDuration(0.6)
+	glow:SetToAlpha(0.25)
+	glow:SetDuration(0.7)
 	glow:SetSmoothing("IN_OUT")
 
 	status = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
@@ -120,7 +231,7 @@ local function build()
 	close:SetScript("OnClick", function() UI.Hide() end)
 
 	log = CreateFrame("ScrollingMessageFrame", nil, panel)
-	log:SetPoint("TOPLEFT", 10, -28)
+	log:SetPoint("TOPLEFT", 10, -34)
 	log:SetPoint("BOTTOMRIGHT", -10, 44)
 	log:SetFontObject(ChatFontNormal)
 	log:SetJustifyH("LEFT")
@@ -198,7 +309,7 @@ local function build()
 	if saved and #saved > 0 then
 		for _, line in ipairs(saved) do log:AddMessage(line, 0.7, 0.7, 0.7) end
 	else
-		UI.AddLine("|cff88ccffAsk me anything, or tell me what to set up.|r Examples: \"take me to my quest\", \"mouseover Rejuvenation macro on slot 5 bound to Shift-E\", \"why did I get that error?\"")
+		UI.AddLine("|cfff5b33bAsk me anything, or tell me what to set up.|r Examples: \"take me to my quest\", \"mouseover Rejuvenation macro on slot 5 bound to Shift-E\", \"why did I get that error?\"")
 	end
 	updateInputHints()
 end
@@ -218,6 +329,7 @@ local function show(focus)
 end
 
 function UI.Hide()
+	finishTyping()
 	if panel and panel:IsShown() and not fadeOut:IsPlaying() then
 		input:ClearFocus()
 		fadeIn:Stop()
@@ -242,11 +354,26 @@ function UI.Reveal()
 	if not panel:IsShown() or fadeOut:IsPlaying() then show(false) end
 end
 
+-- A line waits while an answer is typing, so lines stay in the order they were added.
 function UI.AddLine(text, r, g, b)
 	UI.Ensure()
-	log:AddMessage(text, r or 1, g or 1, b or 1)
-	log:ScrollToBottom()
 	remember(text)
+	if typer.tag then
+		typer.queue[#typer.queue + 1] = { text = text, r = r, g = g, b = b }
+	else
+		append(text, r, g, b)
+	end
+end
+
+-- An answer from the companion: labelled, and typed out unless the client cannot.
+function UI.Say(text, r, g, b)
+	UI.Ensure()
+	remember(ANSWER .. text)
+	if typer.tag then
+		typer.queue[#typer.queue + 1] = { text = text, r = r, g = g, b = b, answer = true }
+	else
+		startTyping(text, r, g, b)
+	end
 end
 
 function UI.SetStatus(text)

@@ -55,7 +55,7 @@ local function onReply(msg, seconds, how, slot, request)
 	ns.UI.Reveal()
 	if type(msg.say) == "string" and msg.say ~= "" then
 		-- error replies (bad key, rate limit, ...) stand out; the text is the companion's advice
-		ns.UI.AddLine((msg.error and "|cffffaa00" or "") .. ns.Escape(msg.say) .. (msg.error and "|r" or ""))
+		ns.UI.Say((msg.error and "|cffffaa00" or "") .. ns.Escape(msg.say) .. (msg.error and "|r" or ""))
 	end
 	if msg.t == "selftest" then
 		ns.UI.AddLine(string.format("|cff66ff66Round trip OK|r in %.1fs via %s (slot %d, %d left).",
