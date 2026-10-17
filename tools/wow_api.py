@@ -44,7 +44,10 @@ LUA_GLOBALS = {"assert", "error", "ipairs", "next", "pairs", "pcall", "print", "
 # Mixins whose methods the addon uses: through templates or intrinsic frame types (widgets),
 # or on objects the API returns (C_Map.GetPlayerMapPosition returns a Vector2D).
 WIDGET_MIXINS = {"BackdropTemplateMixin", "ScrollingMessageFrameMixin"}
-MIXINS_USED = WIDGET_MIXINS | {"Vector2DMixin"}
+# Mixins only frames made from one template carry (the panel's ButtonFrameTemplate); the test
+# mock gives them to those frames alone (tests/wowmock_templates.lua), not to every widget.
+TEMPLATE_MIXINS = {"TitledPanelMixin", "PortraitFrameMixin"}
+MIXINS_USED = WIDGET_MIXINS | TEMPLATE_MIXINS | {"Vector2DMixin"}
 # Calls that cannot be verified against the retail source, each guarded in the addon.
 KNOWN_UNVERIFIED = {
     "AddWaypoint": "TomTom (optional third-party addon); called only when TomTom.AddWaypoint exists",
@@ -109,7 +112,7 @@ def fetch_source() -> pathlib.Path:
 
 
 def build_index() -> dict:
-    index_file = DOCS / "index-v3.json"
+    index_file = DOCS / "index-v4.json"
     if index_file.exists():
         return json.loads(index_file.read_text())
     lua = os.environ.get("LUA") or sys.exit("set LUA to a Lua 5.1 interpreter")

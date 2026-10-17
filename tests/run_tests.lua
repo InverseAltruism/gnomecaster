@@ -283,7 +283,7 @@ if scenario == "ui" then
 		end
 		return true
 	end
-	local LABEL = "|cfff5b33bGnomecaster:|r "
+	local LABEL = "|cffffd200Gnomecaster:|r "      -- Blizzard gold (NORMAL_FONT_COLOR)
 	local answer = "Gr\195\188\195\159e! |cff66ff66Done|r: a ||pipe||, |Hitem:6948|h[Hearthstone]|h and \226\128\156quotes\226\128\157 "
 		.. string.rep("then more words to read ", 4)
 	M.chat = {}
@@ -326,6 +326,110 @@ if scenario == "ui" then
 	local status
 	for _, l in ipairs(M.chat) do if tostring(l):find("next slot") then status = l end end
 	check(ns.Inbox.next == 4 and status and status:find("next slot 4"), "slots already loaded are skipped, and /gc status shows it")
+end
+
+-- The panel's look: Blizzard's window template and its parts, the confirm box, the status lamp,
+-- where the beacon plate goes, and the plain window of a client without the templates.
+if scenario == "panel" then
+	M.onScreenshot = nil
+	local UI = ns.UI
+	local MEDIA = "Interface\\AddOns\\Gnomecaster\\Media\\"
+	local function find(from, pred)
+		for i = from, #M.frames do if pred(M.frames[i]) then return M.frames[i] end end
+	end
+	check(UI.BeaconAnchor(304, 225) == nil, "no beacon place before the panel exists")
+	UI.Toggle(false)
+	M.Advance(0.1)
+	local panel = _G.GnomecasterPanel
+	check(panel.template == "ButtonFrameTemplate" and panel.Inset and panel.NineSlice, "the panel is Blizzard's ButtonFrameTemplate")
+	check(panel.TitleContainer.TitleText.text == "Gnomecaster", "the title sits in the template's title bar")
+	check(panel.PortraitContainer.portrait.texture == MEDIA .. "icon", "the Gnomecaster icon is the portrait")
+	local log = find(1, function(f) return f.kind == "ScrollingMessageFrame" and f.parent == panel end)
+	local input = find(1, function(f) return f.kind == "EditBox" and f.parent == panel end)
+	check(log.points.TOPLEFT.rel == panel.Inset and log.points.BOTTOMRIGHT.rel == panel.Inset, "the conversation fills the inset")
+	local insetBottom = panel.Inset.points.BOTTOMRIGHT.y
+	check(input.template == "InputBoxTemplate" and input.points.BOTTOMLEFT.rel == panel
+		and input.points.BOTTOMLEFT.y + input.h <= insetBottom, "the input line sits in the strip under the inset")
+	panel.CloseButton.scripts.OnClick(panel.CloseButton)
+	check(not panel.shown, "the template's close button closes the panel")
+	UI.Reveal()
+
+	local lamp = find(1, function(f) return f.atlas == "worldquest-icon-engineering" end)
+	local pulse = find(1, function(f) return f.kind == "AnimationGroup" and f.looping == "BOUNCE" end)
+	check(lamp and lamp.desaturated and lamp.alpha < 1 and lamp.shown, "the engineering gear is a dim lamp while idle")
+	UI.SetBusy(true)
+	check(not lamp.desaturated and lamp.alpha == 1 and pulse.playing, "the gear lights up and pulses while a question is out")
+	UI.SetBusy(false)
+	check(lamp.desaturated and lamp.alpha < 1 and not pulse.playing, "the gear dims again when the answer is in")
+
+	local applied, cancelled
+	local actions = { ns.Actions.Apply, ns.Actions.Cancel }
+	ns.Actions.Apply = function() applied = true end
+	ns.Actions.Cancel = function() cancelled = true end
+	UI.ShowConfirm("- Create macro Test")
+	local applyButton = find(1, function(f) return f.kind == "Button" and f.text == "Apply" end)
+	local cancelButton = find(1, function(f) return f.kind == "Button" and f.text == "Cancel" end)
+	local confirm = applyButton.parent
+	local border = find(1, function(f) return f.parent == confirm and f.template == "DialogBorderDarkTemplate" end)
+	check(confirm.shown and confirm.parent == panel.Inset and border, "the confirm box wears Blizzard's dialog border inside the inset")
+	check(log.points.BOTTOMRIGHT.rel == confirm, "the conversation shrinks to sit above the confirm box")
+	check(applyButton.template == "UIPanelButtonTemplate" and cancelButton.template == "UIPanelButtonTemplate", "Apply and Cancel are Blizzard's panel buttons")
+	applyButton.scripts.OnClick(applyButton)
+	cancelButton.scripts.OnClick(cancelButton)
+	check(applied and cancelled, "Apply and Cancel reach the actions")
+	UI.HideConfirm()
+	check(not confirm.shown and log.points.BOTTOMRIGHT.rel == panel.Inset, "the conversation fills the inset again after the confirm box")
+	ns.Actions.Apply, ns.Actions.Cancel = actions[1], actions[2]
+
+	-- the beacon plate: 1920x1080 at effective scale 1 is 1365.33 x 768 units, 0.711 units per pixel
+	local perPx = 768 / 1080
+	local a = UI.BeaconAnchor(304, 225)
+	check(a and a.points.TOPLEFT.rel == panel.Inset, "before the panel has a position the plate covers the top of the conversation")
+	M.SetRect(UIParent, 0, 0, 1365.33, 768)
+	M.SetRect(panel, 845, 300, 440, 320)
+	local p = UI.BeaconAnchor(304, 225).points.TOPLEFT
+	check(p.rel == panel and p.rp == "TOPLEFT" and math.abs(p.x + (304 * perPx + 21)) < 1e-6 and p.y == 0,
+		"a panel near the right edge sends from its left side, level with its top")
+	M.SetRect(panel, 40, 300, 440, 320)
+	p = UI.BeaconAnchor(304, 225).points.TOPLEFT
+	check(p.rel == panel and p.rp == "TOPRIGHT" and p.x == 12 and p.y == 0, "a panel near the left edge sends from its right side")
+	M.SetRect(panel, 40, 0, 440, 200)
+	p = UI.BeaconAnchor(304, 400).points.TOPLEFT
+	check(math.abs(p.y - (400 * perPx - 200)) < 1e-6, "a plate that would reach below the screen is raised")
+	panel.effectiveScale = 2
+	M.SetRect(panel, 845, 300, 440, 320)
+	p = UI.BeaconAnchor(304, 225).points.TOPLEFT
+	check(math.abs(p.x + (304 * perPx / 2 + 21)) < 1e-6, "the plate's size follows the panel's scale")
+	panel.effectiveScale = nil
+	M.SetRect(UIParent, 0, 0, 1024, 768)
+	M.SetRect(panel, 62, 200, 900, 400)
+	p = UI.BeaconAnchor(304, 225).points.TOPLEFT
+	check(p.rel == panel.Inset and p.y <= 0, "with room on neither side the plate covers the top of the conversation")
+	UI.Hide()
+	check(UI.BeaconAnchor(304, 225) == nil, "no beacon place while the panel is hidden")
+
+	-- A client without the templates or the atlas: CreateFrame refuses them, or ignores them.
+	for _, mode in ipairs({ "error", "plain" }) do
+		M.missingTemplates = { ButtonFrameTemplate = mode, DialogBorderDarkTemplate = mode }
+		M.atlases = {}
+		local from = #M.frames + 1
+		local ns2 = M.LoadAddon(addonsDir .. "/Gnomecaster")
+		ns2.UI.Toggle(true)
+		M.Advance(0.1)
+		local plain = _G.GnomecasterPanel
+		local input2 = find(from, function(f) return f.kind == "EditBox" and f.parent == plain end)
+		local title = find(from, function(f) return f.kind == "FontString" and f.text == "Gnomecaster" end)
+		local close = find(from, function(f) return f.template == "UIPanelCloseButton" and f.parent == plain end)
+		local spark = find(from, function(f) return f.texture == MEDIA .. "spark" end)
+		check(plain ~= panel and plain.shown and not plain.Inset and input2.focus and title and close and spark,
+			mode .. ": without the template the panel opens as a plain window with title, close button and lamp")
+		ns2.UI.ShowConfirm("- Create macro Test")
+		local apply2 = find(from, function(f) return f.kind == "Button" and f.text == "Apply" end)
+		local fill = apply2.parent.regions[1]
+		check(apply2.parent.shown and fill and fill.color, mode .. ": without the dialog border the confirm box has a dark fill")
+		close.scripts.OnClick(close)
+		check(not plain.shown, mode .. ": its close button closes it")
+	end
 end
 
 -- A real model through the whole pipeline (not in run_all.sh: needs GNOMECASTER_* settings

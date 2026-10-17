@@ -118,7 +118,12 @@ end
 function Widget:Stop() self.playing = false end
 function Widget:IsPlaying() return self.playing == true end
 
-function CreateFrame(kind, name, parent, template) return newWidget(kind, name, parent) end
+-- Frame templates and the widget state the panel tests read: tests/wowmock_templates.lua
+dofile(here .. "wowmock_templates.lua")(M, Widget, newWidget)
+function CreateFrame(kind, name, parent, template)
+	if template then return M.CreateFrame(kind, name, parent, template) end
+	return newWidget(kind, name, parent)
+end
 UIParent = newWidget("Frame", "UIParent")
 WorldFrame = newWidget("Frame", "WorldFrame")
 DEFAULT_CHAT_FRAME = newWidget("ScrollingMessageFrame", "DEFAULT_CHAT_FRAME")

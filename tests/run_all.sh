@@ -15,7 +15,7 @@ export PYTHONDONTWRITEBYTECODE=1
 
 failed=()
 cp "$HERE"/wowmock*.lua "$HERE"/wow_api_methods.lua "$HERE"/render.py "$HERE"/driver.py "$HERE"/run_tests.lua "$HERE"/run_places.lua "$WORK"/
-for sc in macro noevents noprobe fontcache secret combat jpeg scaled actions ui places conversation; do
+for sc in macro noevents noprobe fontcache secret combat jpeg scaled actions ui panel places conversation; do
 	rm -rf "$WORK/AddOns" && mkdir -p "$WORK/AddOns" && cp -r "$HERE"/../addon/* "$WORK/AddOns/"
 	echo "=== $sc"
 	if ! (cd "$WORK" && "$LUA" run_tests.lua "$sc" "$WORK/AddOns" "$WORK") >"$WORK/$sc.log" 2>&1; then

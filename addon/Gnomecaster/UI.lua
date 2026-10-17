@@ -1,4 +1,4 @@
--- The in-game panel: the conversation, a confirm bar for changes, and the input line.
+-- The in-game panel: the conversation, a confirm box for changes, and the input line.
 -- Nothing here can be seen from the test machine, so every widget call is checked against
 -- Blizzard's API documentation by tools/wow_api.py, and the test mock rejects any other.
 local _, ns = ...
@@ -6,10 +6,11 @@ local _, ns = ...
 local UI = {}
 ns.UI = UI
 
-local FADE = 0.18            -- seconds for the panel and the confirm bar to fade in or out
+local FADE = 0.18            -- seconds for the panel and the confirm box to fade in or out
 local RISE = 8               -- pixels the panel rises while it fades in
 local MEDIA = "Interface\\AddOns\\Gnomecaster\\Media\\"
-local ANSWER = "|cfff5b33bGnomecaster:|r "                     -- brand gold, as in the desktop app
+local GOLD = "|cffffd200"    -- NORMAL_FONT_COLOR, the gold of Blizzard's titles and NPC names
+local ANSWER = GOLD .. "Gnomecaster:|r "
 -- Answers type themselves out: characters per second, and the shortest and longest reveal
 local TYPE_RATE, TYPE_MIN, TYPE_MAX = 220, 0.25, 1.4
 local MIN_W, MIN_H, MAX_W, MAX_H = 320, 200, 900, 700
@@ -17,9 +18,16 @@ local KEEP_LINES = 80        -- conversation lines kept across reloads
 local HISTORY = 30           -- earlier questions reachable with the arrow keys
 local MAX_LETTERS = 400
 local GRIP = "Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-"   -- the chat frame's own resize grip
+-- The engineering profession's world quest icon (Blizzard_FrameXMLBase Constants.lua, retail and
+-- Classic): the status lamp, dim while idle, lit and pulsing while a question is out.
+local GEAR = "worldquest-icon-engineering"
+local IDLE_ALPHA = 0.55
+-- UI units from the panel's edge to the beacon plate: the metal border reaches 13 past the left
+-- edge (portrait ring) and 4 past the right (NineSliceLayouts PortraitFrameTemplate), plus a gap.
+local PLATE_LEFT, PLATE_RIGHT = 21, 12
 
-local panel, log, input, placeholder, counter, status, busyDot, confirm, confirmText, reloadButton
-local fadeIn, fadeOut, confirmIn, pulse
+local panel, inset, log, input, placeholder, counter, status, lamp, confirm, confirmText, reloadButton
+local fadeIn, fadeOut, confirmIn, pulse, beaconAnchor
 local typer = { queue = {} }   -- the answer being typed out, and lines waiting behind it
 
 local function db()
@@ -167,8 +175,72 @@ local function submit(self)
 	updateInputHints()
 end
 
+-- Blizzard's own window where the client has it: ButtonFrameTemplate is the metal frame with a
+-- portrait ring, title bar, close button and an inset for content (Blizzard_SharedXML in retail
+-- and every Classic branch). Otherwise, or if CreateFrame refuses the template, a plain dark frame
+-- with the same parts, so the panel still opens on a client without the template.
+-- Returns the panel, the content inset, the close button and the header strip's offsets
+-- (left, top from the panel's TOPLEFT; right, bottom from its TOPRIGHT).
+local function createWindow()
+	local ok, frame = pcall(CreateFrame, "Frame", "GnomecasterPanel", UIParent, "ButtonFrameTemplate")
+	if ok and frame and frame.Inset and frame.CloseButton and frame.SetTitle and frame.SetPortraitToAsset then
+		frame:SetTitle("Gnomecaster")
+		frame:SetPortraitToAsset(MEDIA .. "icon")
+		-- between the title bar and the inset, right of the portrait ring
+		return frame, frame.Inset, frame.CloseButton, { 66, -24, -8, -58 }
+	end
+	if not ok or not frame then frame = CreateFrame("Frame", "GnomecasterPanel", UIParent) end
+	local bg = frame:CreateTexture(nil, "BACKGROUND")
+	bg:SetAllPoints(frame)
+	bg:SetColorTexture(0.06, 0.06, 0.06, 0.94)
+	local icon = frame:CreateTexture(nil, "OVERLAY")
+	icon:SetSize(16, 16)
+	icon:SetPoint("TOPLEFT", 9, -7)
+	icon:SetTexture(MEDIA .. "icon")
+	local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	title:SetPoint("LEFT", icon, "RIGHT", 6, 0)
+	title:SetText("Gnomecaster")
+	local content = CreateFrame("Frame", nil, frame)
+	content:SetPoint("TOPLEFT", 6, -30)
+	content:SetPoint("BOTTOMRIGHT", -6, 26)
+	local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+	close:SetPoint("TOPRIGHT", 2, 2)
+	return frame, content, close, { 120, -4, -30, -28 }
+end
+
+-- A frame in Blizzard's dialog border (StaticPopup's diamond metal) when the client has
+-- DialogBorderDarkTemplate, and with a dark fill otherwise.
+local function dialogBox(parent)
+	local box = CreateFrame("Frame", nil, parent)
+	local ok, border = pcall(CreateFrame, "Frame", nil, box, "DialogBorderDarkTemplate")
+	if not (ok and border and border.Bg) then
+		local fill = box:CreateTexture(nil, "BACKGROUND")
+		fill:SetAllPoints(box)
+		fill:SetColorTexture(0, 0, 0, 0.85)
+	end
+	return box
+end
+
+-- The conversation fills the inset, or the part above the confirm box while that is shown.
+local function fitLog()
+	log:ClearAllPoints()
+	log:SetPoint("TOPLEFT", inset, "TOPLEFT", 8, -6)
+	if confirm and confirm:IsShown() then
+		log:SetPoint("BOTTOMRIGHT", confirm, "TOPRIGHT", -4, 4)
+	else
+		log:SetPoint("BOTTOMRIGHT", inset, "BOTTOMRIGHT", -8, 6)
+	end
+	log:ScrollToBottom()
+end
+
+local function setLamp(busy)
+	lamp:SetDesaturated(not busy)
+	lamp:SetAlpha(busy and 1 or IDLE_ALPHA)
+end
+
 local function build()
-	panel = CreateFrame("Frame", "GnomecasterPanel", UIParent, "BackdropTemplate")
+	local close, header
+	panel, inset, close, header = createWindow()
 	local size = db().size
 	panel:SetSize(size and size[1] or 440, size and size[2] or 320)
 	local pos = db().pos
@@ -184,55 +256,46 @@ local function build()
 	panel:RegisterForDrag("LeftButton")
 	panel:SetScript("OnDragStart", panel.StartMoving)
 	panel:SetScript("OnDragStop", function(self) self:StopMovingOrSizing(); savePosition() end)
-	-- the desktop app's night violet, with a violet edge
-	panel:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-	panel:SetBackdropColor(0.07, 0.05, 0.17, 0.94)
-	panel:SetBackdropBorderColor(0.45, 0.31, 0.88, 0.75)
 	panel:Hide()
 	tinsert(UISpecialFrames, "GnomecasterPanel") -- Escape closes it
 	fadeIn = fade(panel, 0, 1, nil, RISE)
 	fadeOut = fade(panel, 1, 0, function() panel:Hide(); panel:SetAlpha(1) end)
+	close:SetScript("OnClick", function() UI.Hide() end)
 
-	local icon = panel:CreateTexture(nil, "OVERLAY")
-	icon:SetSize(16, 16)
-	icon:SetPoint("TOPLEFT", 9, -7)
-	icon:SetTexture(MEDIA .. "icon")
-
-	local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	title:SetPoint("LEFT", icon, "RIGHT", 6, 0)
-	title:SetText("Gnomecaster")
-
-	local rule = panel:CreateTexture(nil, "ARTWORK")
-	rule:SetHeight(1)
-	rule:SetPoint("TOPLEFT", 8, -28)
-	rule:SetPoint("TOPRIGHT", -8, -28)
-	rule:SetColorTexture(1, 1, 1, 0.08)
-
-	-- the spark from the icon, glowing while a question is out
-	busyDot = panel:CreateTexture(nil, "OVERLAY")
-	busyDot:SetSize(14, 14)
-	busyDot:SetPoint("LEFT", title, "RIGHT", 4, 0)
-	busyDot:SetTexture(MEDIA .. "spark")
-	busyDot:SetBlendMode("ADD")
-	busyDot:Hide()
-	pulse = busyDot:CreateAnimationGroup()
+	-- header strip: the status lamp and status line on the left, Reload UI on the right
+	local strip = CreateFrame("Frame", nil, panel)
+	strip:SetPoint("TOPLEFT", panel, "TOPLEFT", header[1], header[2])
+	strip:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", header[3], header[4])
+	lamp = strip:CreateTexture(nil, "OVERLAY")
+	lamp:SetSize(20, 20)
+	lamp:SetPoint("LEFT", 0, 0)
+	if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo(GEAR) then
+		lamp:SetAtlas(GEAR)
+	else
+		lamp:SetTexture(MEDIA .. "spark")
+		lamp:SetBlendMode("ADD")
+	end
+	setLamp(false)
+	pulse = lamp:CreateAnimationGroup()
 	pulse:SetLooping("BOUNCE")
 	local glow = pulse:CreateAnimation("Alpha")
 	glow:SetFromAlpha(1)
-	glow:SetToAlpha(0.25)
+	glow:SetToAlpha(0.35)
 	glow:SetDuration(0.7)
 	glow:SetSmoothing("IN_OUT")
 
-	status = panel:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-	status:SetPoint("TOPRIGHT", -30, -10)
+	status = strip:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+	status:SetPoint("LEFT", lamp, "RIGHT", 6, 0)
+	status:SetJustifyH("LEFT")
 
-	local close = CreateFrame("Button", nil, panel, "UIPanelCloseButton")
-	close:SetPoint("TOPRIGHT", 2, 2)
-	close:SetScript("OnClick", function() UI.Hide() end)
+	reloadButton = CreateFrame("Button", nil, strip, "UIPanelButtonTemplate")
+	reloadButton:SetSize(110, 22)
+	reloadButton:SetPoint("RIGHT", 0, 0)
+	reloadButton:SetText("Reload UI")
+	reloadButton:SetScript("OnClick", function() ReloadUI() end)
+	reloadButton:Hide()
 
 	log = CreateFrame("ScrollingMessageFrame", nil, panel)
-	log:SetPoint("TOPLEFT", 10, -34)
-	log:SetPoint("BOTTOMRIGHT", -10, 44)
 	log:SetFontObject(ChatFontNormal)
 	log:SetJustifyH("LEFT")
 	log:SetFading(false)
@@ -243,10 +306,11 @@ local function build()
 		if delta > 0 then self:ScrollUp() else self:ScrollDown() end
 	end)
 
+	-- the input line sits in the strip under the inset, where Blizzard's windows keep their buttons
 	input = CreateFrame("EditBox", nil, panel, "InputBoxTemplate")
-	input:SetPoint("BOTTOMLEFT", 16, 10)
-	input:SetPoint("BOTTOMRIGHT", -28, 10)
-	input:SetHeight(24)
+	input:SetPoint("BOTTOMLEFT", 14, 4)
+	input:SetPoint("BOTTOMRIGHT", -24, 4)
+	input:SetHeight(20)
 	input:SetAutoFocus(false)
 	input:SetMaxLetters(MAX_LETTERS)
 	input:SetAltArrowKeyMode(false)       -- Up and Down walk through earlier questions
@@ -266,30 +330,30 @@ local function build()
 
 	local grip = CreateFrame("Button", nil, panel)
 	grip:SetSize(16, 16)
-	grip:SetPoint("BOTTOMRIGHT", -2, 2)
+	grip:SetPoint("BOTTOMRIGHT", -4, 4)
 	grip:SetNormalTexture(GRIP .. "Up")
 	grip:SetHighlightTexture(GRIP .. "Highlight")
 	grip:SetPushedTexture(GRIP .. "Down")
 	grip:SetScript("OnMouseDown", function() panel:StartSizing("BOTTOMRIGHT") end)
 	grip:SetScript("OnMouseUp", function() panel:StopMovingOrSizing(); savePosition() end)
 
-	-- Confirm bar for macro / bar / keybind / setting changes
-	confirm = CreateFrame("Frame", nil, panel, "BackdropTemplate")
-	confirm:SetPoint("BOTTOMLEFT", panel, "TOPLEFT", 0, 4)
-	confirm:SetPoint("BOTTOMRIGHT", panel, "TOPRIGHT", 0, 4)
+	-- Confirm box for macro / bar / keybind / setting changes, docked at the foot of the inset
+	confirm = dialogBox(inset)
+	confirm:SetPoint("BOTTOMLEFT", inset, "BOTTOMLEFT", 4, 4)
+	confirm:SetPoint("BOTTOMRIGHT", inset, "BOTTOMRIGHT", -4, 4)
 	confirm:SetHeight(80)
-	confirm:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-	confirm:SetBackdropColor(0.08, 0.07, 0.03, 0.95)
-	confirm:SetBackdropBorderColor(0.9, 0.7, 0.2, 0.9)
 	confirm:Hide()
 	confirmIn = fade(confirm, 0, 1)
+	local ask = confirm:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	ask:SetPoint("TOPLEFT", 14, -12)
+	ask:SetText("Apply these changes?")
 	confirmText = confirm:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-	confirmText:SetPoint("TOPLEFT", 10, -8)
-	confirmText:SetPoint("TOPRIGHT", -10, -8)
+	confirmText:SetPoint("TOPLEFT", 14, -30)
+	confirmText:SetPoint("TOPRIGHT", -14, -30)
 	confirmText:SetJustifyH("LEFT")
 	local apply = CreateFrame("Button", nil, confirm, "UIPanelButtonTemplate")
 	apply:SetSize(90, 22)
-	apply:SetPoint("BOTTOMRIGHT", -10, 8)
+	apply:SetPoint("BOTTOMRIGHT", -12, 12)
 	apply:SetText("Apply")
 	apply:SetScript("OnClick", function() ns.Actions.Apply() end)
 	local cancel = CreateFrame("Button", nil, confirm, "UIPanelButtonTemplate")
@@ -297,19 +361,16 @@ local function build()
 	cancel:SetPoint("RIGHT", apply, "LEFT", -6, 0)
 	cancel:SetText("Cancel")
 	cancel:SetScript("OnClick", function() ns.Actions.Cancel() end)
+	fitLog()
 
-	reloadButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-	reloadButton:SetSize(120, 22)
-	reloadButton:SetPoint("BOTTOMRIGHT", -10, 40)
-	reloadButton:SetText("Reload UI")
-	reloadButton:SetScript("OnClick", function() ReloadUI() end)
-	reloadButton:Hide()
+	beaconAnchor = CreateFrame("Frame", nil, panel)
+	beaconAnchor:SetSize(1, 1)
 
 	local saved = db().log
 	if saved and #saved > 0 then
 		for _, line in ipairs(saved) do log:AddMessage(line, 0.7, 0.7, 0.7) end
 	else
-		UI.AddLine("|cfff5b33bAsk me anything, or tell me what to set up.|r Examples: \"take me to my quest\", \"mouseover Rejuvenation macro on slot 5 bound to Shift-E\", \"why did I get that error?\"")
+		UI.AddLine(GOLD .. "Ask me anything, or tell me what to set up.|r Examples: \"take me to my quest\", \"mouseover Rejuvenation macro on slot 5 bound to Shift-E\", \"why did I get that error?\"")
 	end
 	updateInputHints()
 end
@@ -384,11 +445,11 @@ end
 function UI.SetBusy(busy)
 	UI.Ensure()
 	if busy then
-		busyDot:Show()
+		setLamp(true)
 		if not pulse:IsPlaying() then pulse:Play() end
 	else
 		pulse:Stop()
-		busyDot:Hide()
+		setLamp(false)
 		status:SetText("")
 	end
 end
@@ -396,22 +457,53 @@ end
 function UI.ShowConfirm(text)
 	UI.Ensure()
 	confirmText:SetText(text)
-	confirm:SetHeight(math.max(60, confirmText:GetStringHeight() + 44))
+	confirm:SetHeight(math.max(76, confirmText:GetStringHeight() + 74))
 	if not confirm:IsShown() then
 		confirm:SetAlpha(0)
 		confirm:Show()
 		confirmIn:Play()
 	end
+	fitLog()
 end
 
 function UI.HideConfirm()
 	if confirm then
 		confirmIn:Stop()
 		confirm:Hide()
+		fitLog()
 	end
 end
 
 function UI.ShowReload(show)
 	UI.Ensure()
 	reloadButton:SetShown(show and true or false)
+end
+
+-- Where Beacon.lua puts the request plate while a question is sent: it anchors the plate's
+-- TOPLEFT to the returned frame's TOPLEFT. width and height are the plate's size in physical
+-- pixels, its frame included. The plate goes beside the panel, level with its top (raised if it
+-- would reach below the screen), on a side with room for it, so it reads as the panel
+-- transmitting and stays clear of the input line; with room on neither side, or before the
+-- panel has a position, it covers the top of the conversation instead.
+-- Returns nil while the panel is hidden or closing.
+function UI.BeaconAnchor(width, height)
+	if not panel or not panel:IsShown() or fadeOut:IsPlaying() then return nil end
+	beaconAnchor:ClearAllPoints()
+	local left, right, top, screen = panel:GetLeft(), panel:GetRight(), panel:GetTop(), UIParent:GetWidth()
+	if not (left and right and top and screen) then
+		beaconAnchor:SetPoint("TOPLEFT", inset, "TOPLEFT", 4, -4)
+		return beaconAnchor
+	end
+	local _, physH = GetPhysicalScreenSize()
+	local units = 768 / (physH * panel:GetEffectiveScale())      -- UI units per physical pixel
+	local w, h = (width or 0) * units, (height or 0) * units
+	local lift = math.max(0, h - top)
+	if screen - right >= w + PLATE_RIGHT then
+		beaconAnchor:SetPoint("TOPLEFT", panel, "TOPRIGHT", PLATE_RIGHT, lift)
+	elseif left >= w + PLATE_LEFT then
+		beaconAnchor:SetPoint("TOPLEFT", panel, "TOPLEFT", -(w + PLATE_LEFT), lift)
+	else
+		beaconAnchor:SetPoint("TOPLEFT", inset, "TOPLEFT", 4, -4)
+	end
+	return beaconAnchor
 end
