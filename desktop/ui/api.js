@@ -101,7 +101,7 @@ window.GC = (function () {
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     let cancelled = false;
     const state = {
-      version: "1.1.0",
+      version: "1.2.0",
       setupDone: scenario !== "fresh" && scenario !== "nogame",
       games: scenario === "nogame" ? [] : [
         { id: "retail", name: "Retail", path: "C:\\Program Files (x86)\\World of Warcraft\\_retail_", addon: scenario === "fresh" ? "missing" : "current" },
