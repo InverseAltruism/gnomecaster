@@ -491,7 +491,7 @@ class Transcripts(BrainCase):
         t.write({"n": 2})
         clock.t += 86400
         t.write({"n": 3})
-        with (self.folder / "2026-10-02.jsonl").open("a") as f:
+        with (self.folder / "2026-10-02.jsonl").open("a", encoding="utf-8") as f:
             f.write("{cut off\n")
         self.assertEqual([i["n"] for i in t.recent(10)], [3, 2, 1])
         self.assertEqual([i["n"] for i in t.recent(2)], [3, 2])
@@ -502,15 +502,15 @@ class Transcripts(BrainCase):
         self.folder.mkdir(parents=True)
         today = datetime.date(2026, 10, 17)
         for back in (0, KEEP_DAYS - 1, KEEP_DAYS, 40):
-            (self.folder / f"{today - datetime.timedelta(days=back)}.jsonl").write_text("{}\n")
-        (self.folder / "notes.txt").write_text("mine")
+            (self.folder / f"{today - datetime.timedelta(days=back)}.jsonl").write_text("{}\n", encoding="utf-8")
+        (self.folder / "notes.txt").write_text("mine", encoding="utf-8")
         Transcript(self.folder, clock=Clock(datetime.datetime(2026, 10, 17, 9).timestamp())).write({"n": 1})
         self.assertEqual(sorted(p.name for p in self.folder.iterdir()),
                          ["2026-10-04.jsonl", "2026-10-17.jsonl", "notes.txt"])
 
     def test_writing_never_raises(self):
         self.folder.parent.mkdir(parents=True, exist_ok=True)
-        self.folder.write_text("a file where the folder should be")
+        self.folder.write_text("a file where the folder should be", encoding="utf-8")
         with self.assertLogs("gnomecaster", "ERROR"):
             Transcript(self.folder).write({"n": 1})
 

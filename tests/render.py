@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw
 
 
 def read_dump(path):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         size = tuple(map(int, f.readline().split()))
         rects, texts = [], []
         for line in f:

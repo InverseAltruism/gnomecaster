@@ -252,3 +252,13 @@ fixed file ownership, then merged and checked together.
   and `lock.py --check` pass.
 - Not proven until the next in-game test: the dim plate, the new panel, place lookups on
   live data, memory across a real `/reload`.
+
+## 2026-10-17: the first 1.2.0 build failed on Windows
+
+The tag's workflow failed in "Unit tests on Windows" (3 errors): the tests read
+`desktop/ui/api.js` with `read_text()`, which uses cp1252 on Windows, and the new mock data
+holds UTF-8 text. Linux defaults to UTF-8, so the suite here passed. Nothing was published.
+Every text access in the tests, tools and packaging scripts now names UTF-8 (the companion's
+own code already did), and `run_all.sh` turns Python's EncodingWarning into an error for the
+tests and for the companion processes the Lua scenarios start; before the fix that check
+failed 31 tests and a Lua scenario. The unpublished tag v1.2.0 was moved to the fixed commit.

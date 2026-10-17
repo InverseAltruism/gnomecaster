@@ -60,6 +60,7 @@ Needs a Lua 5.1 interpreter (WoW runs Lua 5.1), python3 and Pillow. This server 
     python3 tools/make_icons.py --check                                 # generated images match their SVGs (needs resvg 0.48.1)
     python3 packaging/lock.py --check                                   # hash locks match the pins, pins past the 14-day cooldown
 
+- Every Python text file access names `encoding="utf-8"`: Windows reads text as cp1252 otherwise (the 1.2.0 build failed on it). `run_all.sh` sets `PYTHONWARNDEFAULTENCODING=1` and `PYTHONWARNINGS=error::EncodingWarning`, so a missing encoding fails on Linux too, in the tests and in the companion they start.
 - The mock rejects widget methods that Blizzard does not document (`tests/wow_api_methods.lua`, regenerated with `tools/wow_api.py mock-methods`). Any new WoW call must pass `wow_api.py check`; nothing here can run the game client.
 - The window: serve `desktop/ui/` and open `index.html?mock=fresh` (or `busy`, `aiproblem`, `live`, `nogame`) in a browser; screenshot both colour schemes. The real backend can be driven the same way by forwarding the page's `window.pywebview.api` calls to `app_api.Api` over HTTP.
 - Releases are built on GitHub's Windows runners (`windows.yml`). For testing by hand, this server has a Windows 11 VM (`~/vm/win11`, see its README): off unless started, isolated network, and `build.ps1` there builds the installer offline from a copy of this source. Run installers and the app in it with `vm.py desktop`, not `vm.py ssh`, and stop it afterwards.

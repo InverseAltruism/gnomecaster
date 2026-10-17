@@ -31,7 +31,7 @@ class Update(unittest.TestCase):
         """What an older release left in the game: the addon and `slots` reply slots."""
         for name in ["Gnomecaster"] + [slot(n) for n in range(1, slots + 1)]:
             (self.addons / name).mkdir()
-            (self.addons / name / "inbox.lua").write_text("-- old")
+            (self.addons / name / "inbox.lua").write_text("-- old", encoding="utf-8")
 
     def test_this_version_ships_fewer_slots_than_the_old_ones(self):
         self.assertLess(protocol.NUM_SLOTS, game.MOST_SLOTS_EVER)
@@ -62,7 +62,7 @@ class Update(unittest.TestCase):
         others = ["GnomecasterFan", slot(game.MOST_SLOTS_EVER + 1), "Gnomecaster_Inbox21_backup", "WeakAuras"]
         for name in others:
             (self.addons / name).mkdir(exist_ok=True)
-        (self.addons / "Gnomecaster_Inbox22.txt").write_text("a file, not a folder")
+        (self.addons / "Gnomecaster_Inbox22.txt").write_text("a file, not a folder", encoding="utf-8")
         game.install(self.flavor)
         for name in others + ["Gnomecaster_Inbox22.txt"]:
             self.assertTrue((self.addons / name).exists(), name)
@@ -71,7 +71,7 @@ class Update(unittest.TestCase):
     def test_a_link_named_like_an_old_slot_is_not_followed(self):
         outside = self.root / "player data"
         outside.mkdir()
-        (outside / "keep.txt").write_text("keep")
+        (outside / "keep.txt").write_text("keep", encoding="utf-8")
         os.symlink(outside, self.addons / slot(protocol.NUM_SLOTS + 1))
         game.install(self.flavor)
         self.assertTrue((outside / "keep.txt").exists())

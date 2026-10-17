@@ -85,7 +85,7 @@ class AppCase(unittest.TestCase):
         return api
 
     def saved(self):
-        return json.loads(self.config.read_text())
+        return json.loads(self.config.read_text(encoding="utf-8"))
 
     def model_server(self, *script):
         s = FakeServer(script, models=[m["id"] for m in config.MODELS["openrouter"]])
@@ -104,9 +104,9 @@ class AppCase(unittest.TestCase):
 
 class Contract(unittest.TestCase):
     def test_the_window_and_the_backend_offer_the_same_calls(self):
-        source = (ROOT / "desktop" / "ui" / "api.js").read_text()
+        source = (ROOT / "desktop" / "ui" / "api.js").read_text(encoding="utf-8")
         mock_calls = set(re.findall(r"^\s+async (\w+)\(", source, re.M))
-        used = set(re.findall(r'GC\.call\("(\w+)"', (ROOT / "desktop" / "ui" / "app.js").read_text()))
+        used = set(re.findall(r'GC\.call\("(\w+)"', (ROOT / "desktop" / "ui" / "app.js").read_text(encoding="utf-8")))
         public = {n for n in dir(app_api.Api) if not n.startswith("_")}
         self.assertEqual(public, mock_calls)
         self.assertLessEqual(used, public)
@@ -114,23 +114,23 @@ class Contract(unittest.TestCase):
     def test_native_backgrounds_match_the_dark_bench(self):
         # the window paints app.BACKGROUND before the page loads, and the sign-in page shows in the
         # browser: both must be the stylesheet's dark bench, or the switch flashes another colour
-        css = (ROOT / "desktop" / "ui" / "styles.css").read_text()
+        css = (ROOT / "desktop" / "ui" / "styles.css").read_text(encoding="utf-8")
         bench = re.search(r"--bench:\s*(#[0-9a-fA-F]{6})", css).group(1).lower()
         self.assertEqual(app.BACKGROUND.lower(), bench)
         self.assertIn(f"background:{bench}", oauth.DONE_PAGE.lower())
 
     def test_the_mock_defines_each_call_once(self):
         # in an object literal the later of two same-named methods silently wins
-        source = (ROOT / "desktop" / "ui" / "api.js").read_text()
+        source = (ROOT / "desktop" / "ui" / "api.js").read_text(encoding="utf-8")
         names = re.findall(r"^\s+async (\w+)\(", source, re.M)
         self.assertEqual(sorted(n for n in set(names) if names.count(n) > 1), [])
 
     def test_the_window_reads_transcripts_through_its_two_calls(self):
         # "What Gnomecaster saw" under each answer and the transcripts folder button: the mock
         # offers both calls and the page uses both, so the backend must offer them as well
-        source = (ROOT / "desktop" / "ui" / "api.js").read_text()
+        source = (ROOT / "desktop" / "ui" / "api.js").read_text(encoding="utf-8")
         mock_calls = set(re.findall(r"^\s+async (\w+)\(", source, re.M))
-        used = set(re.findall(r'GC\.call\("(\w+)"', (ROOT / "desktop" / "ui" / "app.js").read_text()))
+        used = set(re.findall(r'GC\.call\("(\w+)"', (ROOT / "desktop" / "ui" / "app.js").read_text(encoding="utf-8")))
         self.assertLessEqual({"getHistory", "openTranscripts"}, mock_calls & used)
 
     def test_nothing_else_is_exposed_to_the_page(self):
@@ -142,20 +142,20 @@ class Contract(unittest.TestCase):
             self.assertEqual(exposed, {n for n in dir(app_api.Api) if not n.startswith("_")})
 
     def test_the_installer_closes_the_app_by_the_mutex_it_holds(self):
-        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text()
+        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text(encoding="utf-8")
         self.assertEqual(re.search(r'^#define AppMutex "([^"]+)"', iss, re.M).group(1), app.MUTEX)
 
     def test_the_installer_closes_the_app_only_once_the_player_has_chosen(self):
         # Inno checks AppMutex, and runs InitializeSetup and InitializeUninstall, before the
         # player has confirmed anything; PrepareToInstall and usAppMutexCheck come after
-        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text()
+        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text(encoding="utf-8")
         self.assertIsNone(re.search(r"^AppMutex=", iss, re.M))
         calls = {m.group(1) for m in re.finditer(r"^(?:function|procedure) (\w+)[^\n]*\n(?:(?!^(?:function|procedure) ).*\n)*?.*\bCloseRunning\b", iss, re.M)}
         self.assertEqual(calls, {"PrepareToInstall", "CurUninstallStepChanged"})
         self.assertIn("usAppMutexCheck) and not CloseRunning", iss)
 
     def test_the_installer_shows_its_own_images_in_dark_mode(self):
-        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text()
+        iss = (ROOT / "packaging" / "gnomecaster.iss").read_text(encoding="utf-8")
         directives = dict(re.findall(r"^(Wizard\w*ImageFile\w*)=(.+)$", iss, re.M))
         self.assertEqual(directives, {"WizardImageFile": "{#SideImages}", "WizardSmallImageFile": "{#SmallImages}",
                                       "WizardImageFileDynamicDark": "{#SideImages}",
@@ -167,7 +167,7 @@ class Contract(unittest.TestCase):
                 self.assertTrue((ROOT / "packaging" / f.replace("\\", "/")).is_file(), f)
 
     def test_addon_and_app_share_one_version(self):
-        toc = (ROOT / "addon" / "Gnomecaster" / "Gnomecaster.toc").read_text()
+        toc = (ROOT / "addon" / "Gnomecaster" / "Gnomecaster.toc").read_text(encoding="utf-8")
         self.assertEqual(re.search(r"^## Version: (\S+)", toc, re.M).group(1), __version__)
 
 
@@ -228,12 +228,12 @@ class Setup(AppCase):
         self.assertEqual({g["id"]: g["addon"] for g in api.getState()["games"]},
                          {self.retail: "current", str(self.wow / "_classic_era_"): "missing"})
         core = self.wow / "_retail_" / "Interface" / "AddOns" / "Gnomecaster" / "Core.lua"
-        core.write_text("-- changed")
+        core.write_text("-- changed", encoding="utf-8")
         retail = next(g for g in api.getState()["games"] if g["id"] == self.retail)
         self.assertEqual(retail["addon"], "outdated")
         r = api.installAddon({})            # defaults to the selected version
         self.assertTrue(r["message"].startswith("Updated."))
-        self.assertNotEqual(core.read_text(), "-- changed")
+        self.assertNotEqual(core.read_text(encoding="utf-8"), "-- changed")
 
     def test_install_points_at_the_old_prototype(self):
         (self.wow / "_retail_" / "Interface" / "AddOns" / "Wowpilot").mkdir(parents=True)
@@ -456,9 +456,9 @@ class Running(AppCase):
         beacon_png(shots / "WoWScrnShot_1.png", {"t": "ask", "rid": 4, "sid": "s", "slot": 1, "text": "mark skull", "ctx": {}})
         inbox = self.wow / "_retail_" / "Interface" / "AddOns" / "Gnomecaster_Inbox01" / "inbox.lua"
         deadline = time.monotonic() + 15
-        while time.monotonic() < deadline and not (inbox.exists() and '["rid"]=4' in inbox.read_text()):
+        while time.monotonic() < deadline and not (inbox.exists() and '["rid"]=4' in inbox.read_text(encoding="utf-8")):
             time.sleep(0.1)
-        self.assertIn('["rid"]=4', inbox.read_text())
+        self.assertIn('["rid"]=4', inbox.read_text(encoding="utf-8"))
         kinds = [(e["type"], e["entry"].get("pending", False)) for e in self.events if e["type"] != "state"]
         self.assertEqual(kinds, [("question", True), ("answer", False)])
         answer = self.events[-1]["entry"]
@@ -579,7 +579,7 @@ class Lifecycle(AppCase):
         self.assertFalse(stopper.is_alive())
         self.assertEqual(companion_threads(before), [])
         inbox = flavor / "Interface" / "AddOns" / "Gnomecaster_Inbox01" / "inbox.lua"
-        self.assertIn("late answer", inbox.read_text())
+        self.assertIn("late answer", inbox.read_text(encoding="utf-8"))
 
     def test_quitting_the_app_does_not_wait_for_an_answer(self):
         entered, release = threading.Event(), threading.Event()
@@ -628,11 +628,11 @@ class Lifecycle(AppCase):
 
 class Robustness(AppCase):
     def test_a_broken_settings_file_starts_fresh_and_is_kept(self):
-        self.config.write_text("{not json")
+        self.config.write_text("{not json", encoding="utf-8")
         with self.assertLogs("gnomecaster", "WARNING"):
             state = self.api().getState()
         self.assertFalse(state["setupDone"])
-        self.assertEqual(self.config.with_suffix(".broken.json").read_text(), "{not json")
+        self.assertEqual(self.config.with_suffix(".broken.json").read_text(encoding="utf-8"), "{not json")
 
     def test_every_call_answers_even_when_something_breaks(self):
         api = self.api()
@@ -916,7 +916,7 @@ class SingleInstance(unittest.TestCase):
         listener.bind(("127.0.0.1", 0))
         listener.listen(1)
         self.addCleanup(listener.close)
-        (self.folder / "instance.json").write_text(json.dumps({"port": listener.getsockname()[1], "token": "old"}))
+        (self.folder / "instance.json").write_text(json.dumps({"port": listener.getsockname()[1], "token": "old"}), encoding="utf-8")
         threading.Thread(target=lambda: listener.accept()[0].close(), daemon=True).start()
         self.assertFalse(app.SingleInstance(self.folder).ask_running_to_show())
 

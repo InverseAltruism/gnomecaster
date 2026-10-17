@@ -40,7 +40,7 @@ def release(name: str, version: str) -> dict:
 
 def read_pins(source: pathlib.Path) -> dict[str, tuple[str, str]]:
     pins = {}
-    for line in source.read_text().splitlines():
+    for line in source.read_text(encoding="utf-8").splitlines():
         line = line.split("#")[0].strip()
         if line:
             req = Requirement(line)
@@ -94,11 +94,11 @@ def main() -> int:
             print("PROBLEM:", p)
         failed |= bool(problems)
         if check:
-            if not target.exists() or target.read_text() != text:
+            if not target.exists() or target.read_text(encoding="utf-8") != text:
                 print(f"out of date: {target.name} (run packaging/lock.py)")
                 failed = True
         elif not problems:
-            target.write_text(text)
+            target.write_text(text, encoding="utf-8")
             print(f"wrote {target.name}")
     return 1 if failed else 0
 

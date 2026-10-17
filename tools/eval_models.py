@@ -214,7 +214,7 @@ def main(argv=None):
         out = pathlib.Path(args.out)
         out.mkdir(parents=True, exist_ok=True)
         name = time.strftime("eval-%Y%m%d-%H%M%S.json")
-        (out / name).write_text(json.dumps({"extra": extra, "results": report}, indent=1, default=str))
+        (out / name).write_text(json.dumps({"extra": extra, "results": report}, indent=1, default=str), encoding="utf-8")
         print(f"raw results: {out / name}")
 
 

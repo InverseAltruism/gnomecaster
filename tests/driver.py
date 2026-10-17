@@ -22,11 +22,11 @@ state = pathlib.Path(image + ".reply.json")
 
 if step == "receive":
     packet = protocol.decode_image(image)
-    pathlib.Path(image + ".json").write_text(json.dumps(packet, indent=1))
+    pathlib.Path(image + ".json").write_text(json.dumps(packet, indent=1), encoding="utf-8")
     reply = serve.respond(packet, slots, make_brain(config.resolve()))
-    state.write_text(json.dumps({"slot": serve.slot_of(packet), "reply": reply}))
+    state.write_text(json.dumps({"slot": serve.slot_of(packet), "reply": reply}), encoding="utf-8")
     print(f"   companion <- {packet.get('t')} #{packet.get('rid')} slot {packet.get('slot')}: {packet.get('text')}")
 else:
-    data = json.loads(state.read_text())
+    data = json.loads(state.read_text(encoding="utf-8"))
     slots.deliver(int(data["slot"]), data["reply"], keep_probe=True)
     print(f"   companion -> {data['reply'].get('say', '')[:90]}")

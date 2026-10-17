@@ -395,7 +395,7 @@ class RequestLoop(unittest.TestCase):
         [p] = self.finished(watcher)
         self.assertEqual(serve.process(p, watcher, self.slots, Brain(None, ADDON_DIR), self.log.append), "request")
         self.assertFalse(p.exists())
-        reply = (self.addons / "Gnomecaster_Inbox02" / "inbox.lua").read_text()
+        reply = (self.addons / "Gnomecaster_Inbox02" / "inbox.lua").read_text(encoding="utf-8")
         self.assertIn('["rid"]=3', reply)
         self.assertFalse((self.addons / "Gnomecaster_Inbox01" / "inbox.lua").exists())
 
@@ -438,7 +438,7 @@ class RequestLoop(unittest.TestCase):
             [p] = self.finished(watcher)
             self.assertEqual(serve.process(p, watcher, self.slots, Brain(None, ADDON_DIR), self.log.append), "request")
         self.assertFalse(p.exists())
-        self.assertIn('["rid"]=5', (self.addons / "Gnomecaster_Inbox01" / "inbox.lua").read_text())
+        self.assertIn('["rid"]=5', (self.addons / "Gnomecaster_Inbox01" / "inbox.lua").read_text(encoding="utf-8"))
 
     def test_handle_never_raises(self):
         class Broken:
@@ -446,7 +446,7 @@ class RequestLoop(unittest.TestCase):
                 raise RuntimeError("boom")
         written = serve.handle({"t": "ask", "rid": 9, "sid": "s", "slot": 1}, self.slots, Broken(), self.log.append)
         self.assertTrue(written)
-        self.assertIn("internal error", (self.addons / "Gnomecaster_Inbox01" / "inbox.lua").read_text())
+        self.assertIn("internal error", (self.addons / "Gnomecaster_Inbox01" / "inbox.lua").read_text(encoding="utf-8"))
 
 
 class Settings(ServerCase):
@@ -491,7 +491,7 @@ class Settings(ServerCase):
         with contextlib.redirect_stdout(out):
             cli.main(["setup", "--provider", "custom", "--base-url", s.url, "--model", "test-model",
                       "--key-env", "TEST_KEY", "--wow", "/nonexistent", "--yes"])
-        saved = json.loads(self.path.read_text())
+        saved = json.loads(self.path.read_text(encoding="utf-8"))
         self.assertEqual((saved["model"], saved["api_key"]), ("test-model", "sk-secret-123"))
         self.assertIn("OK: answered in", out.getvalue())
         self.assertNotIn("sk-secret-123", out.getvalue())

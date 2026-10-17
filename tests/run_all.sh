@@ -12,6 +12,9 @@ export GNOMECASTER_COMPANION="$HERE/../companion/gnomecaster_companion.py"
 unset GNOMECASTER_BASE_URL GNOMECASTER_API_KEY GNOMECASTER_MODEL
 export GNOMECASTER_CONFIG="$WORK/no-config.json"
 export PYTHONDONTWRITEBYTECODE=1
+# Windows reads text as cp1252 unless told otherwise: every text open must name its encoding.
+# This makes one that does not fail here too, in the tests and in the companion they start.
+export PYTHONWARNDEFAULTENCODING=1 PYTHONWARNINGS=error::EncodingWarning
 
 failed=()
 cp "$HERE"/wowmock*.lua "$HERE"/wow_api_methods.lua "$HERE"/render.py "$HERE"/driver.py "$HERE"/run_tests.lua "$HERE"/run_places.lua "$WORK"/

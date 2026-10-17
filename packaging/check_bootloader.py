@@ -29,7 +29,7 @@ def main() -> int:
         print(f"No Windows bootloader at {installed}: run this on the Windows build machine.")
         return 1
     version = PyInstaller.__version__
-    locked = (HERE / "requirements-build.txt").read_text()
+    locked = (HERE / "requirements-build.txt").read_text(encoding="utf-8")
     block = re.search(rf"^pyinstaller=={re.escape(version)} \\\n((?:\s+--hash=sha256:\w+(?: \\)?\n)+)", locked, re.M | re.I)
     if not block:
         print(f"PyInstaller {version} is not the version in requirements-build.txt")
