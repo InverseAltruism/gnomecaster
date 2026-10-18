@@ -262,3 +262,15 @@ Every text access in the tests, tools and packaging scripts now names UTF-8 (the
 own code already did), and `run_all.sh` turns Python's EncodingWarning into an error for the
 tests and for the companion processes the Lua scenarios start; before the fix that check
 failed 31 tests and a Lua scenario. The unpublished tag v1.2.0 was moved to the fixed commit.
+
+## 2026-10-17: new focus, macros, key bindings and settings
+
+Decision (owner): Gnomecaster focuses on macros, key bindings, settings and Blizzard's own
+configurable systems instead of being a general game guide. Three research tracks (player
+requests and policy, prior art, Blizzard's 12.1.5 APIs) are in `docs/research/`; the plan
+is `docs/PLAN-macros.md`. The research found defects in 1.2.0 that the plan fixes first:
+the mark action calls `SetRaidTarget`, restricted on Retail since 12.0; `SetCVar` failures
+are not detected; three allowed settings are secure and one (`nameplateShowFriends`) no
+longer exists. It also showed that macros longer than 255 characters are impossible since
+11.0.2 (secure-button `macrotext` is capped and `/click` chains are blocked), which removes
+an idea discussed earlier the same day.

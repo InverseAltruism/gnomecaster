@@ -4,7 +4,7 @@ In-game AI helper for World of Warcraft. The player types into an addon panel; a
 
 The code started as the Wowpilot prototype, imported and renamed to Gnomecaster on 2026-10-16 (see `docs/PROGRESS.md`). The old name survives only in that history, in the README's upgrade note, and in `.gitignore` (the archive's file name). Slash commands are `/gc` and `/gnomecaster`; the beacon magic is `"GC"`; environment variables are `GNOMECASTER_*`.
 
-Known defects and the quality backlog are in `docs/REVIEW.md`; the current refinement plan is `docs/PLAN.md`.
+Known defects and the quality backlog are in `docs/REVIEW.md`. The current plan is `docs/PLAN-macros.md` (macros, key bindings, settings; evidence in `docs/research/`); `docs/PLAN.md` holds the earlier rounds.
 
 ## Layout
 

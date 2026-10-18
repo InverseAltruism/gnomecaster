@@ -1,0 +1,448 @@
+scope	kind	name	category	header	runOnUp	hidden	debug	bindingContext	default	action	file	line	category_label_enUS	name_label_enUS
+game	Binding	MOVEANDSTEER	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	4	Movement Keys	Move and Steer
+game	Binding	MOVEFORWARD	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	11	Movement Keys	Move Forward
+game	Binding	MOVEBACKWARD	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	18	Movement Keys	Move Backward
+game	Binding	TURNLEFT	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	25	Movement Keys	Turn Left
+game	Binding	TURNRIGHT	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	32	Movement Keys	Turn Right
+game	Binding	STRAFELEFT	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	39	Movement Keys	Strafe Left
+game	Binding	STRAFERIGHT	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	46	Movement Keys	Strafe Right
+game	Binding	JUMP	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	53	Movement Keys	Jump
+game	Binding	SITORSTAND	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	60	Movement Keys	Sit/Move Down
+game	Binding	TOGGLESHEATH	BINDING_HEADER_MOVEMENT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	67	Movement Keys	Sheathe/Unsheathe Weapon
+game	Binding	TOGGLEAUTORUN	BINDING_HEADER_MOVEMENT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	79	Movement Keys	Toggle Autorun
+game	Binding	STARTAUTORUN	BINDING_HEADER_MOVEMENT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	82	Movement Keys	Start Autorun
+game	Binding	STOPAUTORUN	BINDING_HEADER_MOVEMENT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	85	Movement Keys	Stop Autorun
+game	Binding	PITCHUP	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	88	Movement Keys	Pitch Up
+game	Binding	PITCHDOWN	BINDING_HEADER_MOVEMENT		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	95	Movement Keys	Pitch Down
+game	Binding	TOGGLERUN	BINDING_HEADER_MOVEMENT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	102	Movement Keys	Toggle Run/Walk
+game	Binding	FOLLOWTARGET	BINDING_HEADER_MOVEMENT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	105	Movement Keys	Follow Target
+game	Binding	OPENCHAT	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	109	Chat	Open Chat
+game	Binding	OPENCHATSLASH	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	112	Chat	Open Chat Slash
+game	Binding	CHATPAGEUP	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	115	Chat	Chat Page Up
+game	Binding	CHATPAGEDOWN	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	118	Chat	Chat Page Down
+game	Binding	CHATBOTTOM	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	121	Chat	Chat Bottom
+game	Binding	REPLY	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	124	Chat	Chat Reply
+game	Binding	REPLY2	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	127	Chat	Re-Whisper
+game	Binding	COMBATLOGPAGEUP	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	130	Chat	Combat Log Page Up
+game	Binding	COMBATLOGPAGEDOWN	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	133	Chat	Combat Log Page Down
+game	Binding	COMBATLOGBOTTOM	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	136	Chat	Combat Log Bottom
+game	Binding	TOGGLE_VOICE_SELF_MUTE	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	139	Chat	Voice Chat: Toggle Mute Self
+game	Binding	TOGGLE_VOICE_SELF_DEAFEN	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	142	Chat	Voice Chat: Toggle Deafen Self
+game	Binding	TOGGLE_VOICE_PUSH_TO_TALK	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	145	Chat	Voice Chat: Push to Talk
+game	Binding	TEXT_TO_SPEECH_STOP	BINDING_HEADER_CHAT								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	148	Chat	Stop Text To Speech Playback
+game	Binding	ACTIONBUTTON1	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	152	Action Bar	Action Button 1
+game	Binding	ACTIONBUTTON2	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	159	Action Bar	Action Button 2
+game	Binding	ACTIONBUTTON3	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	166	Action Bar	Action Button 3
+game	Binding	ACTIONBUTTON4	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	173	Action Bar	Action Button 4
+game	Binding	ACTIONBUTTON5	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	180	Action Bar	Action Button 5
+game	Binding	ACTIONBUTTON6	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	187	Action Bar	Action Button 6
+game	Binding	ACTIONBUTTON7	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	194	Action Bar	Action Button 7
+game	Binding	ACTIONBUTTON8	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	201	Action Bar	Action Button 8
+game	Binding	ACTIONBUTTON9	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	208	Action Bar	Action Button 9
+game	Binding	ACTIONBUTTON10	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	215	Action Bar	Action Button 10
+game	Binding	ACTIONBUTTON11	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	222	Action Bar	Action Button 11
+game	Binding	ACTIONBUTTON12	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	229	Action Bar	Action Button 12
+game	Binding	EXTRAACTIONBUTTON1	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	237	Action Bar	Extra Action Button 1
+game	Binding	SHAPESHIFTBUTTON1	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	241	Action Bar	Special Action Button 1
+game	Binding	SHAPESHIFTBUTTON2	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	244	Action Bar	Special Action Button 2
+game	Binding	SHAPESHIFTBUTTON3	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	247	Action Bar	Special Action Button 3
+game	Binding	SHAPESHIFTBUTTON4	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	250	Action Bar	Special Action Button 4
+game	Binding	SHAPESHIFTBUTTON5	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	253	Action Bar	Special Action Button 5
+game	Binding	SHAPESHIFTBUTTON6	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	256	Action Bar	Special Action Button 6
+game	Binding	SHAPESHIFTBUTTON7	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	259	Action Bar	Special Action Button 7
+game	Binding	SHAPESHIFTBUTTON8	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	262	Action Bar	Special Action Button 8
+game	Binding	SHAPESHIFTBUTTON9	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	265	Action Bar	Special Action Button 9
+game	Binding	SHAPESHIFTBUTTON10	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	268	Action Bar	Special Action Button 10
+game	Binding	BONUSACTIONBUTTON1	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	272	Action Bar	Pet Action Button 1
+game	Binding	BONUSACTIONBUTTON2	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	281	Action Bar	Pet Action Button 2
+game	Binding	BONUSACTIONBUTTON3	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	290	Action Bar	Pet Action Button 3
+game	Binding	BONUSACTIONBUTTON4	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	299	Action Bar	Pet Action Button 4
+game	Binding	BONUSACTIONBUTTON5	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	308	Action Bar	Pet Action Button 5
+game	Binding	BONUSACTIONBUTTON6	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	317	Action Bar	Pet Action Button 6
+game	Binding	BONUSACTIONBUTTON7	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	326	Action Bar	Pet Action Button 7
+game	Binding	BONUSACTIONBUTTON8	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	335	Action Bar	Pet Action Button 8
+game	Binding	BONUSACTIONBUTTON9	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	344	Action Bar	Pet Action Button 9
+game	Binding	BONUSACTIONBUTTON10	BINDING_HEADER_ACTIONBAR		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	353	Action Bar	Pet Action Button 10
+game	Binding	ACTIONPAGE1	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	363	Action Bar	Action Page 1
+game	Binding	ACTIONPAGE2	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	366	Action Bar	Action Page 2
+game	Binding	ACTIONPAGE3	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	369	Action Bar	Action Page 3
+game	Binding	ACTIONPAGE4	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	372	Action Bar	Action Page 4
+game	Binding	ACTIONPAGE5	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	375	Action Bar	Action Page 5
+game	Binding	ACTIONPAGE6	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	378	Action Bar	Action Page 6
+game	Binding	PREVIOUSACTIONPAGE	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	381	Action Bar	Previous Action Bar
+game	Binding	NEXTACTIONPAGE	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	384	Action Bar	Next Action Bar
+game	Binding	TOGGLEACTIONBARLOCK	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	387	Action Bar	Toggle ActionBar Lock
+game	Binding	TOGGLEAUTOSELFCAST	BINDING_HEADER_ACTIONBAR								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	391	Action Bar	Toggle Auto Self Cast
+game	Binding	MULTIACTIONBAR1BUTTON1	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	397	Action Bar 2	Action Bar 2 Button 1
+game	Binding	MULTIACTIONBAR1BUTTON2	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	404	Action Bar 2	Action Bar 2 Button 2
+game	Binding	MULTIACTIONBAR1BUTTON3	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	411	Action Bar 2	Action Bar 2 Button 3
+game	Binding	MULTIACTIONBAR1BUTTON4	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	418	Action Bar 2	Action Bar 2 Button 4
+game	Binding	MULTIACTIONBAR1BUTTON5	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	425	Action Bar 2	Action Bar 2 Button 5
+game	Binding	MULTIACTIONBAR1BUTTON6	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	432	Action Bar 2	Action Bar 2 Button 6
+game	Binding	MULTIACTIONBAR1BUTTON7	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	439	Action Bar 2	Action Bar 2 Button 7
+game	Binding	MULTIACTIONBAR1BUTTON8	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	446	Action Bar 2	Action Bar 2 Button 8
+game	Binding	MULTIACTIONBAR1BUTTON9	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	453	Action Bar 2	Action Bar 2 Button 9
+game	Binding	MULTIACTIONBAR1BUTTON10	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	460	Action Bar 2	Action Bar 2 Button 10
+game	Binding	MULTIACTIONBAR1BUTTON11	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	467	Action Bar 2	Action Bar 2 Button 11
+game	Binding	MULTIACTIONBAR1BUTTON12	BINDING_HEADER_ACTIONBAR2		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	474	Action Bar 2	Action Bar 2 Button 12
+game	Binding	MULTIACTIONBAR2BUTTON1	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	481	Action Bar 3	Action Bar 3 Button 1
+game	Binding	MULTIACTIONBAR2BUTTON2	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	488	Action Bar 3	Action Bar 3 Button 2
+game	Binding	MULTIACTIONBAR2BUTTON3	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	495	Action Bar 3	Action Bar 3 Button 3
+game	Binding	MULTIACTIONBAR2BUTTON4	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	502	Action Bar 3	Action Bar 3 Button 4
+game	Binding	MULTIACTIONBAR2BUTTON5	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	509	Action Bar 3	Action Bar 3 Button 5
+game	Binding	MULTIACTIONBAR2BUTTON6	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	516	Action Bar 3	Action Bar 3 Button 6
+game	Binding	MULTIACTIONBAR2BUTTON7	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	523	Action Bar 3	Action Bar 3 Button 7
+game	Binding	MULTIACTIONBAR2BUTTON8	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	530	Action Bar 3	Action Bar 3 Button 8
+game	Binding	MULTIACTIONBAR2BUTTON9	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	537	Action Bar 3	Action Bar 3 Button 9
+game	Binding	MULTIACTIONBAR2BUTTON10	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	544	Action Bar 3	Action Bar 3 Button 10
+game	Binding	MULTIACTIONBAR2BUTTON11	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	551	Action Bar 3	Action Bar 3 Button 11
+game	Binding	MULTIACTIONBAR2BUTTON12	BINDING_HEADER_ACTIONBAR3		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	558	Action Bar 3	Action Bar 3 Button 12
+game	Binding	MULTIACTIONBAR3BUTTON1	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	565	Action Bar 4	Action Bar 4 Button 1
+game	Binding	MULTIACTIONBAR3BUTTON2	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	572	Action Bar 4	Action Bar 4 Button 2
+game	Binding	MULTIACTIONBAR3BUTTON3	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	579	Action Bar 4	Action Bar 4 Button 3
+game	Binding	MULTIACTIONBAR3BUTTON4	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	586	Action Bar 4	Action Bar 4 Button 4
+game	Binding	MULTIACTIONBAR3BUTTON5	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	593	Action Bar 4	Action Bar 4 Button 5
+game	Binding	MULTIACTIONBAR3BUTTON6	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	600	Action Bar 4	Action Bar 4 Button 6
+game	Binding	MULTIACTIONBAR3BUTTON7	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	607	Action Bar 4	Action Bar 4 Button 7
+game	Binding	MULTIACTIONBAR3BUTTON8	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	614	Action Bar 4	Action Bar 4 Button 8
+game	Binding	MULTIACTIONBAR3BUTTON9	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	621	Action Bar 4	Action Bar 4 Button 9
+game	Binding	MULTIACTIONBAR3BUTTON10	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	628	Action Bar 4	Action Bar 4 Button 10
+game	Binding	MULTIACTIONBAR3BUTTON11	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	635	Action Bar 4	Action Bar 4 Button 11
+game	Binding	MULTIACTIONBAR3BUTTON12	BINDING_HEADER_ACTIONBAR4		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	642	Action Bar 4	Action Bar 4 Button 12
+game	Binding	MULTIACTIONBAR4BUTTON1	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	649	Action Bar 5	Action Bar 5 Button 1
+game	Binding	MULTIACTIONBAR4BUTTON2	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	656	Action Bar 5	Action Bar 5 Button 2
+game	Binding	MULTIACTIONBAR4BUTTON3	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	663	Action Bar 5	Action Bar 5 Button 3
+game	Binding	MULTIACTIONBAR4BUTTON4	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	670	Action Bar 5	Action Bar 5 Button 4
+game	Binding	MULTIACTIONBAR4BUTTON5	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	677	Action Bar 5	Action Bar 5 Button 5
+game	Binding	MULTIACTIONBAR4BUTTON6	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	684	Action Bar 5	Action Bar 5 Button 6
+game	Binding	MULTIACTIONBAR4BUTTON7	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	691	Action Bar 5	Action Bar 5 Button 7
+game	Binding	MULTIACTIONBAR4BUTTON8	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	698	Action Bar 5	Action Bar 5 Button 8
+game	Binding	MULTIACTIONBAR4BUTTON9	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	705	Action Bar 5	Action Bar 5 Button 9
+game	Binding	MULTIACTIONBAR4BUTTON10	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	712	Action Bar 5	Action Bar 5 Button 10
+game	Binding	MULTIACTIONBAR4BUTTON11	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	719	Action Bar 5	Action Bar 5 Button 11
+game	Binding	MULTIACTIONBAR4BUTTON12	BINDING_HEADER_ACTIONBAR5		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	726	Action Bar 5	Action Bar 5 Button 12
+game	Binding	MULTIACTIONBAR5BUTTON1	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	734	Action Bar 6	Action Bar 6 Button 1
+game	Binding	MULTIACTIONBAR5BUTTON2	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	741	Action Bar 6	Action Bar 6 Button 2
+game	Binding	MULTIACTIONBAR5BUTTON3	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	748	Action Bar 6	Action Bar 6 Button 3
+game	Binding	MULTIACTIONBAR5BUTTON4	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	755	Action Bar 6	Action Bar 6 Button 4
+game	Binding	MULTIACTIONBAR5BUTTON5	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	762	Action Bar 6	Action Bar 6 Button 5
+game	Binding	MULTIACTIONBAR5BUTTON6	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	769	Action Bar 6	Action Bar 6 Button 6
+game	Binding	MULTIACTIONBAR5BUTTON7	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	776	Action Bar 6	Action Bar 6 Button 7
+game	Binding	MULTIACTIONBAR5BUTTON8	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	783	Action Bar 6	Action Bar 6 Button 8
+game	Binding	MULTIACTIONBAR5BUTTON9	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	790	Action Bar 6	Action Bar 6 Button 9
+game	Binding	MULTIACTIONBAR5BUTTON10	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	797	Action Bar 6	Action Bar 6 Button 10
+game	Binding	MULTIACTIONBAR5BUTTON11	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	804	Action Bar 6	Action Bar 6 Button 11
+game	Binding	MULTIACTIONBAR5BUTTON12	BINDING_HEADER_ACTIONBAR6		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	811	Action Bar 6	Action Bar 6 Button 12
+game	Binding	MULTIACTIONBAR6BUTTON1	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	819	Action Bar 7	Action Bar 7 Button 1
+game	Binding	MULTIACTIONBAR6BUTTON2	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	826	Action Bar 7	Action Bar 7 Button 2
+game	Binding	MULTIACTIONBAR6BUTTON3	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	833	Action Bar 7	Action Bar 7 Button 3
+game	Binding	MULTIACTIONBAR6BUTTON4	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	840	Action Bar 7	Action Bar 7 Button 4
+game	Binding	MULTIACTIONBAR6BUTTON5	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	847	Action Bar 7	Action Bar 7 Button 5
+game	Binding	MULTIACTIONBAR6BUTTON6	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	854	Action Bar 7	Action Bar 7 Button 6
+game	Binding	MULTIACTIONBAR6BUTTON7	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	861	Action Bar 7	Action Bar 7 Button 7
+game	Binding	MULTIACTIONBAR6BUTTON8	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	868	Action Bar 7	Action Bar 7 Button 8
+game	Binding	MULTIACTIONBAR6BUTTON9	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	875	Action Bar 7	Action Bar 7 Button 9
+game	Binding	MULTIACTIONBAR6BUTTON10	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	882	Action Bar 7	Action Bar 7 Button 10
+game	Binding	MULTIACTIONBAR6BUTTON11	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	889	Action Bar 7	Action Bar 7 Button 11
+game	Binding	MULTIACTIONBAR6BUTTON12	BINDING_HEADER_ACTIONBAR7		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	896	Action Bar 7	Action Bar 7 Button 12
+game	Binding	MULTIACTIONBAR7BUTTON1	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	904	Action Bar 8	Action Bar 8 Button 1
+game	Binding	MULTIACTIONBAR7BUTTON2	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	911	Action Bar 8	Action Bar 8 Button 2
+game	Binding	MULTIACTIONBAR7BUTTON3	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	918	Action Bar 8	Action Bar 8 Button 3
+game	Binding	MULTIACTIONBAR7BUTTON4	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	925	Action Bar 8	Action Bar 8 Button 4
+game	Binding	MULTIACTIONBAR7BUTTON5	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	932	Action Bar 8	Action Bar 8 Button 5
+game	Binding	MULTIACTIONBAR7BUTTON6	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	939	Action Bar 8	Action Bar 8 Button 6
+game	Binding	MULTIACTIONBAR7BUTTON7	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	946	Action Bar 8	Action Bar 8 Button 7
+game	Binding	MULTIACTIONBAR7BUTTON8	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	953	Action Bar 8	Action Bar 8 Button 8
+game	Binding	MULTIACTIONBAR7BUTTON9	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	960	Action Bar 8	Action Bar 8 Button 9
+game	Binding	MULTIACTIONBAR7BUTTON10	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	967	Action Bar 8	Action Bar 8 Button 10
+game	Binding	MULTIACTIONBAR7BUTTON11	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	974	Action Bar 8	Action Bar 8 Button 11
+game	Binding	MULTIACTIONBAR7BUTTON12	BINDING_HEADER_ACTIONBAR8		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	981	Action Bar 8	Action Bar 8 Button 12
+game	Binding	TARGETNEARESTENEMY	BINDING_HEADER_TARGETING		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	990	Targeting	Target Nearest Enemy
+game	Binding	TARGETPREVIOUSENEMY	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	998	Targeting	Target Previous Enemy
+game	Binding	TARGETSCANENEMY	BINDING_HEADER_TARGETING		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1001	Targeting	Target Scan Enemy (Hold)
+game	Binding	TARGETNEARESTFRIEND	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1008	Targeting	Target Nearest Friend
+game	Binding	TARGETPREVIOUSFRIEND	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1011	Targeting	Target Previous Friend
+game	Binding	TARGETNEARESTENEMYPLAYER	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1014	Targeting	Target Nearest Enemy Player
+game	Binding	TARGETPREVIOUSENEMYPLAYER	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1017	Targeting	Target Previous Enemy Player
+game	Binding	TARGETNEARESTFRIENDPLAYER	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1020	Targeting	Target Nearest Friendly Player
+game	Binding	TARGETPREVIOUSFRIENDPLAYER	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1023	Targeting	Target Previous Friendly Player
+game	Binding	TARGETSELF	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1034	Targeting	Target Self
+game	Binding	TARGETPARTYMEMBER1	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1041	Targeting	Target Party Member 1
+game	Binding	TARGETPARTYMEMBER2	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1048	Targeting	Target Party Member 2
+game	Binding	TARGETPARTYMEMBER3	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1055	Targeting	Target Party Member 3
+game	Binding	TARGETPARTYMEMBER4	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1062	Targeting	Target Party Member 4
+game	Binding	TARGETPET	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1069	Targeting	Target Pet
+game	Binding	TARGETPARTYPET1	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1072	Targeting	Target Party Pet 1
+game	Binding	TARGETPARTYPET2	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1075	Targeting	Target Party Pet 2
+game	Binding	TARGETPARTYPET3	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1078	Targeting	Target Party Pet 3
+game	Binding	TARGETPARTYPET4	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1081	Targeting	Target Party Pet 4
+game	Binding	TARGETLASTHOSTILE	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1084	Targeting	Target Last Hostile
+game	Binding	TARGETLASTTARGET	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1087	Targeting	Target Last Target
+game	Binding	TARGETARENA1	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1090	Targeting	Target Arena Enemy 1
+game	Binding	TARGETARENA2	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1093	Targeting	Target Arena Enemy 2
+game	Binding	TARGETARENA3	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1096	Targeting	Target Arena Enemy 3
+game	Binding	TARGETARENA4	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1099	Targeting	Target Arena Enemy 4
+game	Binding	TARGETARENA5	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1102	Targeting	Target Arena Enemy 5
+game	Binding	FOCUSARENA1	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1105	Targeting	Focus Arena Enemy 1
+game	Binding	FOCUSARENA2	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1108	Targeting	Focus Arena Enemy 2
+game	Binding	FOCUSARENA3	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1111	Targeting	Focus Arena Enemy 3
+game	Binding	FOCUSARENA4	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1114	Targeting	Focus Arena Enemy 4
+game	Binding	FOCUSARENA5	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1117	Targeting	Focus Arena Enemy 5
+game	Binding	NAMEPLATES	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1121	Targeting	Show Enemy Nameplates
+game	Binding	FRIENDNAMEPLATES	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1135	Targeting	Show Friendly Nameplates
+game	Binding	ALLNAMEPLATES	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1149	Targeting	Show All Nameplates
+game	Binding	INTERACTMOUSEOVER	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1166	Targeting	Interact With Mouseover
+game	Binding	INTERACTTARGET	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1171	Targeting	Interact With Target
+game	Binding	ASSISTTARGET	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1174	Targeting	Assist Target
+game	Binding	ATTACKTARGET	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1177	Targeting	Attack Target
+game	Binding	STARTATTACK	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1180	Targeting	Start Attack
+game	Binding	PETATTACK	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1183	Targeting	Pet Attack
+game	Binding	FOCUSTARGET	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1186	Targeting	Focus Target
+game	Binding	TARGETFOCUS	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1189	Targeting	Target Focus
+game	Binding	TARGETMOUSEOVER	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1192	Targeting	Target Mouseover
+game	Binding	TARGETTALKER	BINDING_HEADER_TARGETING								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1195	Targeting	Target Current Talker
+game	Binding	TOGGLEGAMEMENU	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1200	Interface Panel	Toggle Game Menu
+game	Binding	TOGGLEBACKPACK	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1203	Interface Panel	Toggle Backpack
+game	Binding	TOGGLEREAGENTBAG1	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1206	Interface Panel	Toggle Reagent Bag
+game	Binding	TOGGLEBAG1	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1209	Interface Panel	Toggle Bag 1
+game	Binding	TOGGLEBAG2	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1212	Interface Panel	Toggle Bag 2
+game	Binding	TOGGLEBAG3	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1215	Interface Panel	Toggle Bag 3
+game	Binding	TOGGLEBAG4	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1218	Interface Panel	Toggle Bag 4
+game	Binding	OPENALLBAGS	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1221	Interface Panel	Open All Bags
+game	Binding	TOGGLECHARACTER0	BINDING_HEADER_INTERFACE	BLANK8							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1225	Interface Panel	Toggle Character Pane
+game	Binding	TOGGLECHARACTER2	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1228	Interface Panel	Toggle Reputation Pane
+game	Binding	TOGGLECURRENCY	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1231	Interface Panel	Toggle Currency Frame
+game	Binding	TOGGLESPELLBOOK	BINDING_HEADER_INTERFACE	BLANK7							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1235	Interface Panel	Toggle Spellbook
+game	Binding	TOGGLEPROFESSIONBOOK	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1238	Interface Panel	Toggle Profession Book
+game	Binding	TOGGLEPETBOOK	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1241	Interface Panel	Toggle Pet Spellbook
+game	Binding	TOGGLETALENTS	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1244	Interface Panel	Toggle Talent Pane
+game	Binding	TOGGLECOOLDOWNVIEWERSETTINGS	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1247	Interface Panel	Toggle Cooldown Settings
+game	Binding	TOGGLEACHIEVEMENT	BINDING_HEADER_INTERFACE	BLANK10							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1251	Interface Panel	Toggle Achievement Frame
+game	Binding	TOGGLESTATISTICS	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1256	Interface Panel	Toggle Statistics Frame
+game	Binding	TOGGLEQUESTLOG	BINDING_HEADER_INTERFACE	BLANK11							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1262	Interface Panel	Toggle Quest Log
+game	Binding	TOGGLEHOUSINGDASHBOARD	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1265	Interface Panel	Housing Dashboard
+game	Binding	TOGGLEWORLDMAP	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1268	Interface Panel	Toggle World Map Pane
+game	Binding	TOGGLEWORLDMAPSIZE	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1271	Interface Panel	Toggle World Map Size
+game	Binding	TOGGLEMINIMAP	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1274	Interface Panel	Toggle Minimap
+game	Binding	TOGGLEBATTLEFIELDMINIMAP	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1277	Interface Panel	Toggle Zone Map
+game	Binding	TOGGLEWORLDSTATESCORES	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1282	Interface Panel	Toggle Score Screen
+game	Binding	TOGGLEGUILDTAB	BINDING_HEADER_INTERFACE	BLANK12							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1286	Interface Panel	Toggle Guild & Communities
+game	Binding	TOGGLESOCIAL	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1289	Interface Panel	Toggle Social Pane
+game	Binding	TOGGLEFRIENDSTAB	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1292	Interface Panel	Toggle Friends Pane
+game	Binding	TOGGLEQUICKJOINTAB	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1295	Interface Panel	Toggle Quick Join
+game	Binding	TOGGLEWHOTAB	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1298	Interface Panel	Toggle Who Pane
+game	Binding	TOGGLECHATTAB	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1301	Interface Panel	Toggle Chat Pane
+game	Binding	TOGGLERAIDTAB	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1304	Interface Panel	Toggle Raid Pane
+game	Binding	TOGGLETEXTTOSPEECH	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1307	Interface Panel	Toggle Text To Speech Config
+game	Binding	TOGGLEGROUPFINDER	BINDING_HEADER_INTERFACE	BLANK13							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1311	Interface Panel	Toggle Group Finder
+game	Binding	TOGGLEDUNGEONSANDRAIDS	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1314	Interface Panel	Toggle Dungeons & Raids
+game	Binding	TOGGLECHARACTER4	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1317	Interface Panel	Toggle PVP Pane
+game	Binding	TOGGLECOLLECTIONS	BINDING_HEADER_INTERFACE	BLANK14							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1326	Interface Panel	Toggle Collections
+game	Binding	TOGGLECOLLECTIONSMOUNTJOURNAL	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1331	Interface Panel	Toggle Mount Journal
+game	Binding	TOGGLECOLLECTIONSPETJOURNAL	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1336	Interface Panel	Toggle Pet Journal
+game	Binding	TOGGLECOLLECTIONSTOYBOX	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1341	Interface Panel	Toggle Toy Box
+game	Binding	TOGGLECOLLECTIONSHEIRLOOM	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1346	Interface Panel	Toggle Heirlooms Pane
+game	Binding	TOGGLECOLLECTIONSWARDROBE	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1351	Interface Panel	Toggle Appearances
+game	Binding	TOGGLEENCOUNTERJOURNAL	BINDING_HEADER_INTERFACE	BLANK15							Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1357	Interface Panel	Toggle Adventure Guide
+game	Binding	TOGGLEGARRISONLANDINGPAGE	BINDING_HEADER_INTERFACE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1362	Interface Panel	Toggle Garrison Report
+game	Binding	STOPCASTING	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1369	Miscellaneous	Stop Casting
+game	Binding	STOPATTACK	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1372	Miscellaneous	Stop Attacking
+game	Binding	DISMOUNT	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1375	Miscellaneous	Dismount
+game	Binding	MINIMAPZOOMIN	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1378	Miscellaneous	Minimap Zoom In
+game	Binding	MINIMAPZOOMOUT	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1381	Miscellaneous	Minimap Zoom Out
+game	Binding	TOGGLEMUSIC	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1384	Miscellaneous	Toggle Music
+game	Binding	TOGGLESOUND	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1387	Miscellaneous	Toggle Sound
+game	Binding	MASTERVOLUMEUP	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1390	Miscellaneous	Master Volume Up
+game	Binding	MASTERVOLUMEDOWN	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1393	Miscellaneous	Master Volume Down
+game	Binding	TOGGLEUI	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1396	Miscellaneous	Toggle User Interface
+game	Binding	TOGGLEFPS	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1408	Miscellaneous	Toggle Framerate Display
+game	Binding	SCREENSHOT	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1411	Miscellaneous	Screen Shot
+game	Binding	ITEMCOMPARISONCYCLING	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1414	Miscellaneous	Item Comparison Cycling
+game	Binding	TOGGLEGRAPHICSSETTINGS	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1417	Miscellaneous	Toggle Graphics Settings
+game	Binding	TOGGLESELFHIGHLIGHT	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1429	Miscellaneous	Toggle Self Highlight
+game	Binding	TOGGLEWINDOWED	BINDING_HEADER_MISC								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1438	Miscellaneous	Toggle Windowed Mode
+game	Binding	RELOADUI	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1443	Debug	
+game	Binding	FSTACK	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1446	Debug	
+game	Binding	TOGGLECUSTOMIZATIONDEBUGINFO	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1450	Debug	
+game	Binding	TOGGLESTATS	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1453	Debug	
+game	Binding	TOGGLETRIS	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1456	Debug	
+game	Binding	TOGGLEPORTALS	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1459	Debug	
+game	Binding	TOGGLECOLLISION	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1462	Debug	
+game	Binding	TOGGLECOLLISIONDISPLAY	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1465	Debug	
+game	Binding	TOGGLEPLAYERBOUNDS	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1468	Debug	
+game	Binding	TOGGLEPERFORMANCEVALUES	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1471	Debug	
+game	Binding	TOGGLEPERFORMANCEVALUES_OLD	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1474	Debug	
+game	Binding	TOGGLEANIMKITDISPLAY	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1477	Debug	
+game	Binding	TOGGLEWINDDEBUGMENU	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1480	Debug	
+game	Binding	TOGGLEDEBUGAIDISPLAY	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1483	Debug	
+game	Binding	TOGGLECOMMENTATOR	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1487	Debug	
+game	Binding	DUMPMOVEMENTCAPTURE	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1490	Debug	
+game	Binding	COPYTOOLTIP	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1493	Debug	
+game	Binding	REPEATCONSOLECOMMAND	BINDING_HEADER_DEBUG			true	true				Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1496	Debug	
+game	Binding	NEXTVIEW	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1501	Camera	Next View
+game	Binding	PREVVIEW	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1504	Camera	Previous View
+game	Binding	CAMERAZOOMIN	BINDING_HEADER_CAMERA		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1507	Camera	Zoom In
+game	Binding	CAMERAZOOMOUT	BINDING_HEADER_CAMERA		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1514	Camera	Zoom Out
+game	Binding	SETVIEW1	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1521	Camera	Set View 1
+game	Binding	SETVIEW2	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1524	Camera	Set View 2
+game	Binding	SETVIEW3	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1527	Camera	Set View 3
+game	Binding	SETVIEW4	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1530	Camera	Set View 4
+game	Binding	SETVIEW5	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1533	Camera	Set View 5
+game	Binding	SAVEVIEW1	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1536	Camera	Save View 1
+game	Binding	SAVEVIEW2	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1539	Camera	Save View 2
+game	Binding	SAVEVIEW3	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1542	Camera	Save View 3
+game	Binding	SAVEVIEW4	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1545	Camera	Save View 4
+game	Binding	SAVEVIEW5	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1548	Camera	Save View 5
+game	Binding	RESETVIEW1	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1551	Camera	Reset View 1
+game	Binding	RESETVIEW2	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1554	Camera	Reset View 2
+game	Binding	RESETVIEW3	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1557	Camera	Reset View 3
+game	Binding	RESETVIEW4	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1560	Camera	Reset View 4
+game	Binding	RESETVIEW5	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1563	Camera	Reset View 5
+game	Binding	FLIPCAMERAYAW	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1566	Camera	Flip Camera
+game	Binding	CENTERCAMERA	BINDING_HEADER_CAMERA								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1569	Camera	Center Camera
+game	Binding	RAIDTARGET8	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1573	Target Markers	Assign Skull to Target
+game	Binding	RAIDTARGET7	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1576	Target Markers	Assign Cross to Target
+game	Binding	RAIDTARGET6	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1579	Target Markers	Assign Square to Target
+game	Binding	RAIDTARGET5	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1582	Target Markers	Assign Moon to Target
+game	Binding	RAIDTARGET4	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1585	Target Markers	Assign Triangle to Target
+game	Binding	RAIDTARGET3	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1588	Target Markers	Assign Diamond to Target
+game	Binding	RAIDTARGET2	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1591	Target Markers	Assign Circle to Target
+game	Binding	RAIDTARGET1	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1594	Target Markers	Assign Star to Target
+game	Binding	RAIDTARGETNONE	BINDING_HEADER_RAID_TARGET								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1597	Target Markers	Clear Target Marker Icon
+game	Binding	VEHICLEEXIT	BINDING_HEADER_VEHICLE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1601	Vehicle Controls	Exit Vehicle
+game	Binding	VEHICLEPREVSEAT	BINDING_HEADER_VEHICLE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1604	Vehicle Controls	Previous Seat
+game	Binding	VEHICLENEXTSEAT	BINDING_HEADER_VEHICLE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1607	Vehicle Controls	Next Seat
+game	Binding	VEHICLEAIMUP	BINDING_HEADER_VEHICLE		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1610	Vehicle Controls	Aim Up
+game	Binding	VEHICLEAIMDOWN	BINDING_HEADER_VEHICLE		true						Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1617	Vehicle Controls	Aim Down
+game	Binding	VEHICLEAIMINCREMENT	BINDING_HEADER_VEHICLE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1624	Vehicle Controls	Aim Increment
+game	Binding	VEHICLEAIMDECREMENT	BINDING_HEADER_VEHICLE								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1627	Vehicle Controls	Aim Decrement
+game	Binding	HOUSING_TOGGLEEDITOR	BINDING_HEADER_HOUSING_SYSTEM								Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1632	Housing	Enter/Exit House Editor
+game	Binding	HOUSING_TOGGLEBASICDECORMODE	BINDING_HEADER_HOUSING_SYSTEM	BLANK17				HousingEditor			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1637	Housing	Decorate Mode
+game	Binding	HOUSING_TOGGLEEXPERTDECORMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditor			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1640	Housing	Advanced Mode
+game	Binding	HOUSING_TOGGLECUSTOMIZEMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditor			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1643	Housing	Customize Mode
+game	Binding	HOUSING_TOGGLECLEANUPMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditor			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1646	Housing	Cleanup Mode
+game	Binding	HOUSING_TOGGLELAYOUTMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditor			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1649	Housing	Floorplan Editor
+game	Binding	HOUSING_TOGGLEEXTERIORCUSTOMIZEMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditor			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1652	Housing	Edit House Exterior
+game	Binding	HOUSING_TOGGLEDECORGRIDVISIBILITY	BINDING_HEADER_HOUSING_SYSTEM	BLANK18				HousingEditorBasicAndExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1657	Housing	Toggle Grid Visibility
+game	Binding	HOUSING_REMOVEDECOR	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorBasicAndExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1660	Housing	Remove Decor
+game	Binding	HOUSING_TOGGLEDECORSNAPMODE	BINDING_HEADER_HOUSING_SYSTEM	BLANK19				HousingEditorBasicDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1665	Housing	Toggle Snap to Grid
+game	Binding	HOUSING_TOGGLEDECORNUDGEMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorBasicDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1668	Housing	Toggle Decor Clipping
+game	Binding	HOUSING_BASICDECOR_ROTATELEFT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorBasicDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1671	Housing	Rotate Decor Left
+game	Binding	HOUSING_BASICDECOR_ROTATERIGHT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorBasicDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1674	Housing	Rotate Decor Right
+game	Binding	HOUSING_EXPERTDECORTRANSLATESUBMODE	BINDING_HEADER_HOUSING_SYSTEM	BLANK20				HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1679	Housing	Advanced Move Submode
+game	Binding	HOUSING_EXPERTDECORROTATESUBMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1682	Housing	Advanced Rotate Submode
+game	Binding	HOUSING_EXPERTDECORSCALESUBMODE	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1685	Housing	Advanced Scale Submode
+game	Binding	HOUSING_EXPERTDECORINCREMENT_LEFT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1689	Housing	Move Decor Left
+game	Binding	HOUSING_EXPERTDECORINCREMENT_RIGHT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1692	Housing	Move Decor Right
+game	Binding	HOUSING_EXPERTDECORINCREMENT_FORWARD	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1695	Housing	Move Decor Forward
+game	Binding	HOUSING_EXPERTDECORINCREMENT_BACK	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1698	Housing	Move Decor Backward
+game	Binding	HOUSING_EXPERTDECORINCREMENT_UP	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1702	Housing	Move Decor Up
+game	Binding	HOUSING_EXPERTDECORINCREMENT_DOWN	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1705	Housing	Move Decor Down
+game	Binding	HOUSING_EXPERTDECORINCREMENT_SCALEUP	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1709	Housing	Scale Decor Up
+game	Binding	HOUSING_EXPERTDECORINCREMENT_SCALEDOWN	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1712	Housing	Scale Decor Down
+game	Binding	HOUSING_EXPERTDECORINCREMENT_ROTATELEFT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1716	Housing	Rotate Decor Left
+game	Binding	HOUSING_EXPERTDECORINCREMENT_ROTATERIGHT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1719	Housing	Rotate Decor Right
+game	Binding	HOUSING_EXPERTDECORROTATION_NEXTAXIS	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorExpertDecorMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1722	Housing	Switch to next rotation axis
+game	Binding	HOUSING_ROTATEROOMLEFT	BINDING_HEADER_HOUSING_SYSTEM	BLANK21				HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1727	Housing	Rotate Room Left
+game	Binding	HOUSING_ROTATEROOMRIGHT	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1730	Housing	Rotate Room Right
+game	Binding	HOUSING_LAYOUTCAMERA_UP	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1733	Housing	Move Camera Up
+game	Binding	HOUSING_LAYOUTCAMERA_DOWN	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1736	Housing	Move Camera Down
+game	Binding	HOUSING_LAYOUTCAMERA_LEFT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1739	Housing	Move Camera Left
+game	Binding	HOUSING_LAYOUTCAMERA_RIGHT	BINDING_HEADER_HOUSING_SYSTEM		true			HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1742	Housing	Move Camera Right
+game	Binding	HOUSING_LAYOUTCAMERA_ZOOM_IN	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1745	Housing	Zoom In
+game	Binding	HOUSING_LAYOUTCAMERA_ZOOM_OUT	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1748	Housing	Zoom Out
+game	Binding	HOUSING_LAYOUTFLOOR_UP	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1751	Housing	Move Up a Floor
+game	Binding	HOUSING_LAYOUTFLOOR_DOWN	BINDING_HEADER_HOUSING_SYSTEM					HousingEditorLayoutMode			Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1754	Housing	Move Down a Floor
+game	Binding	TURNORACTION			true	true					Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1760		
+game	Binding	CAMERAORSELECTORMOVE			true	true					Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1767		
+game	ModifiedClick								ALT	SELFCAST	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1776		
+game	ModifiedClick								NONE	FOCUSCAST	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1777		
+game	ModifiedClick								NONE	MOUSEOVERCAST	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1778		
+game	ModifiedClick								SHIFT	AUTOLOOTTOGGLE	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1779		
+game	ModifiedClick								SHIFT	MAILAUTOLOOTTOGGLE	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1780		
+game	ModifiedClick								CTRL	STICKYCAMERA	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1781		
+game	ModifiedClick								SHIFT-BUTTON1	CHATLINK	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1782		
+game	ModifiedClick								CTRL-BUTTON1	DRESSUP	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1783		
+game	ModifiedClick								SHIFT-BUTTON2	EXPANDITEM	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1784		
+game	ModifiedClick								SHIFT	SPLITSTACK	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1785		
+game	ModifiedClick								SHIFT	PICKUPACTION	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1786		
+game	ModifiedClick								SHIFT	PICKUPITEM	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1787		
+game	ModifiedClick								SHIFT	COMPAREITEMS	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1788		
+game	ModifiedClick								SHIFT	OPENALLBAGS	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1789		
+game	ModifiedClick								SHIFT	QUESTWATCHTOGGLE	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1790		
+game	ModifiedClick								SHIFT	RECIPEWATCHTOGGLE	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1791		
+game	ModifiedClick								SHIFT	TOKENWATCHTOGGLE	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1792		
+game	ModifiedClick								ALT	SHOWITEMFLYOUT	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1793		
+game	ModifiedClick								ALT	SHOWMULTICASTFLYOUT	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1794		
+game	ModifiedClick								SHIFT	HOUSINGINVERTINCLUDECHILDREN	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1795		
+game	ModifiedClick								SHIFT	HOUSINGEXTRAINCREMENT	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1796		
+game	ModifiedClick								SHIFT	TRANSFORMMANIPULATORSNAP	Blizzard_FrameXML/Bindings.xml (townlong-yak build 70448, unchanged since 70391)	1797		
+game	Binding	TOGGLEPINGLISTENER	BINDING_HEADER_PING_SYSTEM		true						Interface/AddOns/Blizzard_PingUI/Bindings.xml	3	Ping System	Ping
+game	Binding	PINGATTACK	BINDING_HEADER_PING_SYSTEM								Interface/AddOns/Blizzard_PingUI/Bindings.xml	7	Ping System	Attack
+game	Binding	PINGWARNING	BINDING_HEADER_PING_SYSTEM								Interface/AddOns/Blizzard_PingUI/Bindings.xml	11	Ping System	Warning
+game	Binding	PINGONMYWAY	BINDING_HEADER_PING_SYSTEM								Interface/AddOns/Blizzard_PingUI/Bindings.xml	15	Ping System	On My Way
+game	Binding	PINGASSIST	BINDING_HEADER_PING_SYSTEM								Interface/AddOns/Blizzard_PingUI/Bindings.xml	19	Ping System	Assist
+game	Binding	TOGGLEPINGTARGET	BINDING_HEADER_PING_SYSTEM								Interface/AddOns/Blizzard_PingUI/Bindings.xml	23	Ping System	Toggle Ping Target
+glue	Binding	TOGGLEGAMEMENU				true					Interface/AddOns/Blizzard_GlueXML/Bindings.xml	2		Toggle Game Menu
+glue	Binding	TOGGLEMUSIC				true					Interface/AddOns/Blizzard_GlueXML/Bindings.xml	5		Toggle Music
+glue	Binding	TOGGLESOUND				true					Interface/AddOns/Blizzard_GlueXML/Bindings.xml	8		Toggle Sound
+glue	Binding	TOGGLEAMBIENCE				true					Interface/AddOns/Blizzard_GlueXML/Bindings.xml	11		
+glue	Binding	SCREENSHOT				true					Interface/AddOns/Blizzard_GlueXML/Bindings.xml	14		Screen Shot
+commentator	Binding	COMMENTATORRESET	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	3	Commentator	Reset Commentator
+commentator	Binding	COMMENTATORMOVESPEEDINCREASE	BINDING_HEADER_COMMENTATOR	COMMENTATORCAMERA							Interface/AddOns/Blizzard_Commentator/Bindings.xml	7	Commentator	Increase Camera Speed
+commentator	Binding	COMMENTATORMOVESPEEDDECREASE	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	10	Commentator	Decrease Camera Speed
+commentator	Binding	COMMENTATORZOOMIN	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	14	Commentator	Zoom Camera In
+commentator	Binding	COMMENTATORZOOMOUT	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	17	Commentator	Zoom Camera Out
+commentator	Binding	COMMENTATORRESETZOOM	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	20	Commentator	Reset Zoom
+commentator	Binding	TOGGLE_SMART_CAMERA	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	23	Commentator	Toggle Smart Camera
+commentator	Binding	TOGGLE_SMART_CAMERA_LOCK	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	26	Commentator	Lock Smart Camera
+commentator	Binding	COMMENTATORLOOKATNONE	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	30	Commentator	Stop Following/Tracking Player
+commentator	Binding	CYCLEFOLLOWTRANSITONSPEED	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	35	Commentator	Cycle Transition Speed
+commentator	Binding	FORCEFOLLOWTRANSITON	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	38	Commentator	Snap to Follow
+commentator	Binding	TOGGLESMOOTHFOLLOWTRANSITIONS	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	41	Commentator	Toggle Smooth Follow Transitions
+commentator	Binding	TOGGLECAMERACOLLISION	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	44	Commentator	Toggle Camera Collision
+commentator	Binding	TEAM_1_ADD_SCORE	BINDING_HEADER_COMMENTATOR	COMMENTATORSCORING							Interface/AddOns/Blizzard_Commentator/Bindings.xml	49	Commentator	Add Score to Team 1
+commentator	Binding	TEAM_2_ADD_SCORE	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	52	Commentator	Add Score to Team 2
+commentator	Binding	TEAM_1_REMOVE_SCORE	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	55	Commentator	Remove Score from Team 1
+commentator	Binding	TEAM_2_REMOVE_SCORE	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	58	Commentator	Remove Score from Team 2
+commentator	Binding	RESET_SCORE_COUNT	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	61	Commentator	Reset Game Score
+commentator	Binding	SWAPUNITFRAMES	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	64	Commentator	Swap team sides
+commentator	Binding	CHECK_FOR_SCOREBOARD	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	67	Commentator	Trigger End Scoreboard
+commentator	Binding	TOGGLE_FRAME_LOCK	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	70	Commentator	Toggle Default User Interface
+commentator	Binding	COMMENTATORFOLLOW1	BINDING_HEADER_COMMENTATOR	COMMENTATORFOLLOW							Interface/AddOns/Blizzard_Commentator/Bindings.xml	74	Commentator	Follow Player 1 on Team 1
+commentator	Binding	COMMENTATORFOLLOW2	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	77	Commentator	Follow Player 2 on Team 1
+commentator	Binding	COMMENTATORFOLLOW3	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	80	Commentator	Follow Player 3 on Team 1
+commentator	Binding	COMMENTATORFOLLOW4	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	83	Commentator	Follow Player 4 on Team 1
+commentator	Binding	COMMENTATORFOLLOW5	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	86	Commentator	Follow Player 5 on Team 1
+commentator	Binding	COMMENTATORFOLLOW6	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	89	Commentator	Follow Player 6 on Team 1
+commentator	Binding	COMMENTATORFOLLOW7	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	92	Commentator	Follow Player 1 on Team 2
+commentator	Binding	COMMENTATORFOLLOW8	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	95	Commentator	Follow Player 2 on Team 2
+commentator	Binding	COMMENTATORFOLLOW9	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	98	Commentator	Follow Player 3 on Team 2
+commentator	Binding	COMMENTATORFOLLOW10	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	101	Commentator	Follow Player 4 on Team 2
+commentator	Binding	COMMENTATORFOLLOW11	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	104	Commentator	Follow Player 5 on Team 2
+commentator	Binding	COMMENTATORFOLLOW12	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	107	Commentator	Follow Player 6 on Team 2
+commentator	Binding	COMMENTATORFOLLOW1SNAP	BINDING_HEADER_COMMENTATOR	COMMENTATORFOLLOWSNAP							Interface/AddOns/Blizzard_Commentator/Bindings.xml	111	Commentator	Snap to Player 1 on Team 1
+commentator	Binding	COMMENTATORFOLLOW2SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	114	Commentator	Snap to Player 2 on Team 1
+commentator	Binding	COMMENTATORFOLLOW3SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	117	Commentator	Snap to Player 3 on Team 1
+commentator	Binding	COMMENTATORFOLLOW4SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	120	Commentator	Snap to Player 4 on Team 1
+commentator	Binding	COMMENTATORFOLLOW5SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	123	Commentator	Snap to Player 5 on Team 1
+commentator	Binding	COMMENTATORFOLLOW6SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	126	Commentator	Snap to Player 6 on Team 1
+commentator	Binding	COMMENTATORFOLLOW7SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	129	Commentator	Snap to Player 1 on Team 2
+commentator	Binding	COMMENTATORFOLLOW8SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	132	Commentator	Snap to Player 2 on Team 2
+commentator	Binding	COMMENTATORFOLLOW9SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	135	Commentator	Snap to Player 3 on Team 2
+commentator	Binding	COMMENTATORFOLLOW10SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	138	Commentator	Snap to Player 4 on Team 2
+commentator	Binding	COMMENTATORFOLLOW11SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	141	Commentator	Snap to Player 5 on Team 2
+commentator	Binding	COMMENTATORFOLLOW12SNAP	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	144	Commentator	Snap to Player 6 on Team 2
+commentator	Binding	COMMENTATORLOOKAT1	BINDING_HEADER_COMMENTATOR	COMMENTATORLOOKAT							Interface/AddOns/Blizzard_Commentator/Bindings.xml	148	Commentator	Track Player 1 on Team 1
+commentator	Binding	COMMENTATORLOOKAT2	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	151	Commentator	Track Player 2 on Team 1
+commentator	Binding	COMMENTATORLOOKAT3	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	154	Commentator	Track Player 3 on Team 1
+commentator	Binding	COMMENTATORLOOKAT4	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	157	Commentator	Track Player 4 on Team 1
+commentator	Binding	COMMENTATORLOOKAT5	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	160	Commentator	Track Player 5 on Team 1
+commentator	Binding	COMMENTATORLOOKAT6	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	163	Commentator	Track Player 6 on Team 1
+commentator	Binding	COMMENTATORLOOKAT7	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	166	Commentator	Track Player 1 on Team 2
+commentator	Binding	COMMENTATORLOOKAT8	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	169	Commentator	Track Player 2 on Team 2
+commentator	Binding	COMMENTATORLOOKAT9	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	172	Commentator	Track Player 3 on Team 2
+commentator	Binding	COMMENTATORLOOKAT10	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	175	Commentator	Track Player 4 on Team 2
+commentator	Binding	COMMENTATORLOOKAT11	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	178	Commentator	Track Player 5 on Team 2
+commentator	Binding	COMMENTATORLOOKAT12	BINDING_HEADER_COMMENTATOR								Interface/AddOns/Blizzard_Commentator/Bindings.xml	181	Commentator	Track Player 6 on Team 2
+ptr	Binding	Open Issue Report	PTR						F6		Interface/AddOns/Blizzard_PTRFeedback/Bindings.xml	2		
